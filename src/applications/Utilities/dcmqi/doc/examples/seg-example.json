@@ -1,0 +1,39 @@
+{
+  "@schema": "https://raw.githubusercontent.com/qiicr/dcmqi/master/doc/schemas/seg-schema.json#",
+
+  "ContentCreatorName": "Doe^John",
+  "ClinicalTrialSeriesID": "Session1",
+  "ClinicalTrialTimePointID": "1",
+  "ClinicalTrialCoordinatingCenterName": "BWH",
+  "SeriesDescription": "Segmentation",
+  "SeriesNumber": "300",
+  "InstanceNumber": "1",
+
+  "segmentAttributes": [
+    [
+      {
+        "labelID": 1,
+        "SegmentDescription": "Liver Segmentation",
+        "SegmentedPropertyCategoryCodeSequence": {
+          "CodeValue": "T-D0050",
+          "CodingSchemeDesignator": "SRT",
+          "CodeMeaning": "Tissue"
+        },
+        "SegmentedPropertyTypeCodeSequence": {
+          "CodeValue": "T-62000",
+          "CodingSchemeDesignator": "SRT",
+          "CodeMeaning": "Liver"
+        },
+        "SegmentAlgorithmType": "SEMIAUTOMATIC",
+        "SegmentAlgorithmName": "SlicerEditor",
+        "recommendedDisplayRGBValue": [
+          221,
+          130,
+          101
+        ],
+        "TrackingIdentifier": "Liver",
+        "TrackingUniqueIdentifier": "1.2.3"
+      }
+    ]
+  ]
+}

@@ -1,0 +1,11 @@
+# Copyright (C) 2020 Intel Corporation
+# Licensed subject to Collaboration Agreement dated February 28th, 2020 between Intel Corporation and Trustees of the University of Pennsylvania.
+
+auto_port   : False
+cert_folder : pki
+hash_salt   : Anything you want. Make it unique
+init_kwargs :
+  agg_addr            : sbia-pc103.med.upenn.edu
+  disable_tls         : False
+  disable_client_auth : False
+  agg_port            : 50051

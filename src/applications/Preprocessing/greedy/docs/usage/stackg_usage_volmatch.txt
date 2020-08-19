@@ -1,0 +1,14 @@
+stack_greedy: Paul's histology stack to MRI registration implementation
+Usage:
+  stack_greedy volmatch [cmd_options] <project_dir>
+Required Command Options:
+  -i <image>             : 3D image to use as target of registration
+Additional Command Options:
+  -gm <image>            : A mask image for the 3D image. Metric and gradient will
+                           only be computed over the mask
+Options Shared with Greedy (see Greedy docs for more info):
+  -m metric              : Metric to use for slice matching
+  -n NxNxN               : Number of iterations per level of multi-res
+  -threads N             : Number of allowed concurrent threads
+  -gm-trim <radius>      : Generate mask for gradient computation 
+  -search N s_ang s_xyz  : Random search over rigid transforms 

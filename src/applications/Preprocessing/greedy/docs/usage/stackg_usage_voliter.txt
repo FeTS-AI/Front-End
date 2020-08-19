@@ -1,0 +1,20 @@
+stack_greedy: Paul's histology stack to MRI registration implementation
+Usage:
+  stack_greedy voliter [cmd_options] <project_dir>
+Command Options:
+  -na <iter>             : Total number of affine iterations [5]
+  -nd <iter>             : Total numer of deformable iterations [5]
+  -w <weight>            : Relative weight of the slice-to-volume metric
+                           vs. the slice-to-neighbors metric [4.0]
+  -R <first> <last>      : Only run a subset of iterations. Iterations
+                           are counted starting with 1.
+Options Shared with Greedy (see Greedy docs for more info):
+  -m metric              : Metric to use for slice matching
+  -n NxNxN               : Number of iterations per level of multi-res
+  -threads N             : Number of allowed concurrent threads
+  -gm-trim <radius>      : Generate mask for gradient computation 
+  -s <s1> <s2>           : Warp smoothing parameters
+  -e <eps>               : Optimization step size
+  -sv                    : Use Diffeomorphic Demons algorithm
+
+

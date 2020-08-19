@@ -1,0 +1,84 @@
+{
+  "@context": "http://qiicr.org/dcmqi/contexts/dcmqi.jsonld",
+  "id" : "https://raw.githubusercontent.com/qiicr/dcmqi/master/doc/schemas/common-schema.json#",
+  "$schema": "http://json-schema.org/draft-04/schema#",
+
+  "definitions" : {
+    "PN" : {
+      "type" : "string",
+      "maxLength" : 64
+    },
+    "CS" : {
+      "type" : "string",
+      "maxLength" : 16
+    },
+    "IS" : {
+      "type" : "string",
+      "maxLength" : 12
+    },
+    "DS" : {
+      "type" : "string",
+      "maxLength" : 16,
+      "pattern": "^( )*(-|\\+)?[0-9]*(.[0-9]+)?((e|E)(-|\\+)?[0-9]+)?( )*$"
+    },
+    "LO" : {
+      "type" : "string",
+      "maxLength" : 64
+    },
+    "SH" : {
+      "type" : "string",
+      "maxLength" : 64
+    },
+    "FD": {
+      "type" : "string",
+      "maxLength" : 16,
+      "pattern": "^( )*(-|\\+)?[0-9]*(.[0-9]+)?((e|E)(-|\\+)?[0-9]+)?( )*$"
+    },
+    "US": {
+      "type": "integer",
+      "minimum" : 0,
+      "maximum": 2E+16
+    },
+    "UT": {
+      "type": "string"
+    },
+    "UI": {
+      "type": "string",
+      "pattern": "[0-9\\.]*"
+    },
+    "RGB": {
+      "type": "array",
+      "items": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 255
+      },
+      "minItems": 3,
+      "maxItems": 3
+    },
+    "CIELab": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/US"
+      },
+      "minItems": 3,
+      "maxItems": 3
+    },
+    "codeSequence" : {
+      "type" : "object",
+      "additionalProperties": false,
+      "required" : ["CodeValue","CodingSchemeDesignator","CodeMeaning"],
+      "properties" : {
+        "CodeValue" : { "$ref": "#/definitions/SH", "default" : "T-D0050"},
+        "CodingSchemeDesignator" : { "$ref": "#/definitions/SH", "default" : "SRT"},
+        "CodeMeaning" : { "$ref": "#/definitions/LO", "default" : "Tissue"}
+      }
+    },
+    "dicomInstancesFileNameList" : {
+      "type" : "array",
+      "items" : {
+        "type": "string"
+      }
+    }
+  }
+}

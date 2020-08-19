@@ -1,0 +1,47 @@
+# Compose an FL plan in JSON/YAML.
+# The plan is consumed by
+#  bin/create_pki_for_flplan.py, 
+# bin/run_inference_from_flplan.py, bin/run_simulation_from_flplan.py,
+# bin/run_aggregator_from_flplan, bin/run_collaborator_from_flplan, and
+# bin/create_initial_weights_file_from_plan.py 
+
+aggregator_object_init:
+  init_kwargs:
+    rounds_to_train: 1000
+    init_model_fname: pt_3dresunet_brainmagebrats_init.pbuf
+    latest_model_fname: pt_3dresunet_brainmagebrats_latest.pbuf
+    best_model_fname: pt_3dresunet_brainmagebrats_best.pbuf
+
+model_object_init:
+  class_to_init: fets.models.pytorch.pt_3dresunet.pt_3dresunet.PyTorch3DResUNet
+  init_kwargs:
+    base_filters: 30
+    learning_rate: 1
+    loss_function: dc
+    opt: adam
+
+collaborator_object_init:
+  init_kwargs:
+    polling_interval  : 4
+    opt_treatment     : 'CONTINUE_LOCAL'
+    send_model_deltas : False
+    epochs_per_round  : 0.5
+
+network_object_init:
+  defaults_file: defaults/network.yaml
+ 
+data_object_init:
+  class_to_init: fets.data.pytorch.ptbrainmagedata.PyTorchBrainMaGeData
+  data_name_in_local_config: brats
+  init_kwargs: 
+    batch_size: 1
+    patch_size: [128,128,128]
+    feature_modes: ["_t1.nii", "_t2.nii", "_flair.nii", "_t1ce.nii"]
+    divisibility_factor: 16
+    class_label_map: {0: 0, 1: 1, 2: 2, 4: 4}
+
+inference:
+  allowed: True
+  kwargs:
+    output_file_tag: 'resunet_seg'
+  

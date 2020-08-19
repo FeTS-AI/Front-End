@@ -1,0 +1,15 @@
+stack_greedy: Paul's histology stack to MRI registration implementation
+Usage:
+  stack_greedy recon [cmd_options] <project_dir>
+Required Command Options:
+  -z <offset> <eps>   : Parameters for the graph-theoretic algorithm. Offset is the 
+                        maximum distance in z when slices are considered neighbors.
+                        Epsilon is the constant in eq.(2) from Alder et al. 2014, used
+                        to control how likely slices are to be skipped
+Options Shared with Greedy (see Greedy docs for more info):
+  -m metric              : Metric to use for slice matching
+  -n NxNxN               : Number of iterations per level of multi-res
+  -threads N             : Number of allowed concurrent threads
+  -gm-trim <radius>      : Generate mask for gradient computation 
+  -search N s_ang s_xyz  : Random search over rigid transforms 
+

@@ -1,0 +1,31 @@
+/**
+
+\page Download Download Instructions
+
+There are plans to distribute pre-compiled binaries of FeTS in the future; for now, the only option to use FeTS is to build from sources.
+
+
+--------------------------------------------------------------------
+## License
+
+By installing the FeTS, the user agrees to the following licenses, which pertain to the code and its different constituents, please see (LICENSE)[./LICENSE].
+
+The FeTS software family (which includes the interactive framework and available applications) incorporates 3rd party libraries and toolkits. All rights to these components are subject to the terms and licenses of their respective owners. All trademarks are the property of their respective owners.
+
+The incorporated packages include but are not limited to:
+
+  -# Intel's OpenFederatedLearning toolkit (https://github.com/IntelLabs/OpenFederatedLearning/)
+  -# Qt (https://www.qt.io/), The QT Company, Qt FOR APPLICATION DEVELOPMENT LICENSE (https://www.qt.io/terms-conditions/).
+  -# ITK (https://www.itk.org/), Insight Software Consortium, Apache 2.0 License (https://itk.org/ITK/project/licenseversion1.html).
+  -# VTK (http://www.vtk.org/), Kitware, BSD License (http://www.vtk.org/licensing/).
+  -# OpenCV (http://www.opencv.org/), OpenCV, 3-Clause BSD License (http://opencv.org/license.html)
+
+
+--------------------------------------------------------------------
+
+--------------------------------------------------------------------
+\htmlonly
+<div align="right"><a href="Installation.html"><b>Next (Installation)<b></a>
+\endhtmlonly
+--------------------------------------------------------------------
+*/

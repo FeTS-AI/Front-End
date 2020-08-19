@@ -1,0 +1,27 @@
+stack_greedy: Paul's histology stack to MRI registration implementation
+Usage:
+  stack_greedy splat [cmd_options] <project_dir>
+Required Command Options:
+  -o <filename>          : Destination filename 
+  -i <stage_spec> [iter] : Stage of project from which to splat (raw/recon/volmatch/voliter)
+                           For voliter, iteration may be specified as second argument
+  -rf <filename>         : Reference image for output volume (if -z not specified)
+  -z <z0> <z_step> <z1>  : Range of z-positions for the output volume (if -rf not specified)
+  -S <mode>              : Splatting mode. Currently supported modes are:
+                             exact   : a slide is splatted if it's z matches target (up to ztol)
+Additional Command Options:
+  -ztol <value>          : Tolerance for the exact splatting mode
+  -M <file>              : Alternative manifest file. Can be used to specify the list of ids to
+                           include in the splatting (column 1) and the alternative sources for the
+                           images (optional column 2). The can be used to splat derived data.
+  -H                     : When providing alternative sources with -M, ignore the header of the
+                           source images, stretching them to occupy the same physical space as the
+                           images in the main manifest. Useful when you have data covering the same
+                           slide extents but with headers that don't match.
+  -si <sigma>            : Apply in-plane Gaussian smoothing with given standard deviation (voxel
+                           units) to images before splatting
+Options Shared with Greedy (see Greedy docs for more info):
+  -rb <value>            : Background value for 2D/3D interpolation
+  -ri <mode> [sigma]     : Interpolation mode (for 2D interpolation)
+
+

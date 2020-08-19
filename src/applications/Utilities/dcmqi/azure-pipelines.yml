@@ -1,0 +1,375 @@
+trigger:
+  batch: true
+  branches:
+    include:
+    - master
+
+resources:
+  containers:
+  - container: centos
+    image: cbica/captk_centos7:latest
+
+jobs:
+- job: 'WindowsBuild'
+  displayName: "End-to-end Windows build & package"
+  timeoutInMinutes: 0
+  cancelTimeoutInMinutes: 300
+
+  pool:
+    vmImage: 'vs2017-win2016'
+
+  steps:
+    - checkout: self  # self represents the repo where the initial Pipelines YAML file was found
+      fetchDepth: 1  # the depth of commits to ask Git to fetch; defaults to no limit
+
+    - task: CacheBeta@0
+      inputs:
+        key: '"bin_windows.tar.gz" | "$(Build.DefinitionName)"'
+        path: $(Build.SourcesDirectory) 
+        cacheHitVar: CACHE_RESTORED_WINDOWS
+        restoreKeys: |
+          "bin_windows.tar.gz"
+        continueOnError : true
+      displayName: 'Caching'
+
+    - script: |
+        choco install doxygen.install 
+      displayName: 'Install dependencies'
+  
+    - bash: |
+        tar xvfz bin_windows.tar.gz
+        rm -rf bin_windows.tar.gz
+        ls
+        mv bin_windows bin
+        ls
+        cd bin
+
+        ls -lt
+      displayName: 'Unzip bin if cached'
+      condition: eq(variables.CACHE_RESTORED_WINDOWS, 'true')
+
+    - script: |
+        mkdir -p bin
+        cd bin
+        call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x64
+        cmake -G "Visual Studio 15 2017 Win64" -DCMAKE_INSTALL_PREFIX="./installLibs" -DCMAKE_CONFIGURATION_TYPES="Release" -DDCMQI_BUILD_DOC=OFF ..
+        cmake --build . --target ALL_BUILD --config Release
+        rm -rf installLibs
+      displayName: 'Configure and compile Superbuild'
+      condition: ne(variables.CACHE_RESTORED_WINDOWS, 'true')
+    
+    - bash: |
+        tar cvfz bin_windows.tar.gz bin
+      displayName: 'Zipping Superbuild'
+    
+    # - script: |
+    #     cd bin
+    #     call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x64
+    #     cmake -G "Visual Studio 15 2017 Win64" -DCMAKE_INSTALL_PREFIX="./install" -DCMAKE_CONFIGURATION_TYPES="Release" -DCAPTK_DISABLE_CWL=ON -DITK_DIR=./ITK-build -DBUILD_TESTING=ON ..
+    #     setx PATH "%PATH%;$(Build.SourcesDirectory)/bin/qt/5.12.1/bin"
+    #     cmake --build . --target ALL_BUILD --config Release
+    #     rm -rf binaries_windows.zip
+    #   displayName: 'Configure and compile DCMQI'
+       
+    # - powershell: |
+    #     wmic logicaldisk get size,freespace,caption
+    #   displayName: 'Disk space check'
+
+    #- script: |
+    #    cd bin
+    #    export GIT_LFS_SKIP_SMUDGE=1
+    #    git lfs pull --include "data/TestData.zip"
+    #    call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x64
+    #    cmake -DCMAKE_GENERATOR_PLATFORM=x64 -DCMAKE_INSTALL_PREFIX="./install" -DCAPTK_DISABLE_CWL=ON ..
+    #    setx PATH "%PATH%;$(Build.SourcesDirectory)/bin/qt/5.12.1/bin"
+    #    cmake --build . --target RUN_TESTS --config Release
+    #  displayName: 'Performing the Tests'
+    
+    - script: |
+        cd bin
+        call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x64
+        cmake -G "Visual Studio 15 2017 Win64" -DDCMQI_INSTALL_BIN_DIR="./install/bin" -DCMQI_INSTALL_LIB_DIR="./install/lib" -DCMAKE_CONFIGURATION_TYPES="Release" -DITK_DIR=./ITK-build -DSlicerExecutionModel=./SlicerExecutionModel-build -DBUILD_TESTING=OFF ..
+        cmake --build . --target INSTALL --config Release
+
+        tar cvfz install_windows.tar.gz install
+
+        mv install_windows.tar.gz $(Build.ArtifactStagingDirectory)
+        
+        cd ../
+        
+      displayName: 'Build DCMQI'
+
+    - bash: |
+        rm -rf src
+        rm -rf docs*
+        rm -rf data
+        rm -rf binaries
+        rm -rf scripts
+        rm -rf bin_windows.tar.gz
+
+        cd bin
+        rm -rf *proj*
+
+        cd ../
+
+        mv bin bin_windows
+        tar cvfz bin_windows.tar.gz bin_windows
+      displayName: 'Zipping bin'
+    
+    # - powershell: |
+    #     wmic logicaldisk get size,freespace,caption
+    #   displayName: 'Disk space check'
+
+    - task: PublishBuildArtifacts@1
+      inputs:
+        pathtoPublish: '$(Build.ArtifactStagingDirectory)'
+        artifactName: '$(Build.DefinitionName)_installer_Windows'
+    
+    - task: DownloadBuildArtifacts@0
+      inputs:
+        buildType: 'current'
+        downloadType: 'single'
+        artifactName: '$(Build.DefinitionName)_installer_Windows'
+        downloadPath: '$(System.ArtifactsDirectory)'
+
+- job: 'CentOSBuild'
+  displayName: "End-to-end Linux (CentOS) build on Docker"
+  timeoutInMinutes: 0
+  cancelTimeoutInMinutes: 300
+
+  pool:
+    vmImage: 'Ubuntu-16.04'
+  
+  container: centos
+
+  steps:
+    - checkout: self  # self represents the repo where the initial Pipelines YAML file was found
+      fetchDepth: 1  # the depth of commits to ask Git to fetch; defaults to no limit
+
+    - task: CacheBeta@0
+      inputs:
+        key: '"bin_linux.tar.gz" | "$(Build.DefinitionName)"'
+        path: $(Build.SourcesDirectory) 
+        cacheHitVar: CACHE_RESTORED_LINUX
+        continueOnError : true
+        restoreKeys: |
+          "bin_linux.tar.gz"
+      displayName: 'Caching'
+
+    - bash: |
+        wget https://cmake.org/files/v3.12/cmake-3.12.4-Linux-x86_64.tar.gz
+        tar -xvf cmake-3.12.4-Linux-x86_64.tar.gz
+        export PATH=`pwd`/cmake-3.12.4-Linux-x86_64/bin/:$PATH
+      displayName: 'CMake installation'
+
+    # # Dependency manager
+    # - bash: |
+    #     sudo apt-get update && sudo apt-get install -qq gcc-4.8 g++-4.8 make libgl-dev cmake python3-pip python-numpy dos2unix libxkbcommon-x11-0 doxygen
+        
+    #   displayName: 'Install dependencies from Aptitude'
+
+    - bash: |
+        export PATH=`pwd`/cmake-3.12.4-Linux-x86_64/bin/:$PATH
+        tar xvfz bin_linux.tar.gz
+        rm -rf bin_linux.tar.gz
+        ls
+        mv bin_linux bin
+        ls
+        cd bin
+        tar xvfz qt.tar.gz
+        tar xvfz externalApps.tar.gz
+        rm -rf *.tar.gz
+        # mv binaries_windows externalApps
+        # rm CMakeCache.txt 
+
+        ls -lt
+      displayName: 'Unzip bin if cached'
+      condition: eq(variables.CACHE_RESTORED_LINUX, 'true')
+
+    # Configure and build superbuild
+    - bash: |
+        export PATH=`pwd`/cmake-3.12.4-Linux-x86_64/bin/:$PATH
+        mkdir -p bin
+        cd bin
+        cmake -DCMAKE_INSTALL_PREFIX="./installLibs" -DDCMQI_BUILD_DOC=OFF ..
+        make -j2
+      displayName: 'Configure and compile Superbuild'
+      condition: ne(variables.CACHE_RESTORED_LINUX, 'true')
+
+    - bash: |
+        tar cvfz bin_linux.tar.gz bin
+      displayName: 'Zipping Superbuild'
+    
+    # Configure and build DCMQI
+    - bash: |
+        export PATH=`pwd`/cmake-3.12.4-Linux-x86_64/bin/:$PATH
+        cd bin
+        cmake -DDCMQI_INSTALL_BIN_DIR="./install/bin" -DCMQI_INSTALL_LIB_DIR="./install/lib" -DBUILD_TESTING=OFF -DDCMQI_BUILD_DOC=OFF ..
+        make -j2
+        make install
+      displayName: 'Configure and compile DCMQI'
+
+    # Build a package
+    - bash: |
+        rm -rf src
+        rm -rf docs*
+
+        tar cvfz install_linux.tar.gz install
+
+        mv install_linux.tar.gz $(Build.ArtifactStagingDirectory)
+        
+      displayName: 'Set up environment variables for packager and build a package'
+
+    - bash: |
+        rm -rf src
+        rm -rf docs*
+        cd bin
+
+        cd ../
+
+        mv bin bin_linux
+        tar cvfz bin_linux.tar.gz bin_linux
+      displayName: 'Zipping bin'
+    
+    - task: PublishBuildArtifacts@1
+      inputs:
+        pathtoPublish: '$(Build.ArtifactStagingDirectory)'
+        artifactName: '$(Build.DefinitionName)_installer_Linux'
+
+    - task: DownloadBuildArtifacts@0
+      inputs:
+        buildType: 'current'
+        downloadType: 'single'
+        artifactName: '$(Build.DefinitionName)_installer_Linux'
+        downloadPath: '$(System.ArtifactsDirectory)'
+    
+- job: 'MacOSBuild'
+  displayName: "End-to-end MacOS build & package"
+  timeoutInMinutes: 0
+  cancelTimeoutInMinutes: 300
+
+  pool:
+    vmImage: 'MacOS-10.13'
+
+  steps:
+    - checkout: self  # self represents the repo where the initial Pipelines YAML file was found
+      fetchDepth: 1  # the depth of commits to ask Git to fetch; defaults to no limit
+
+    - task: CacheBeta@0
+      inputs:
+        key: '"bin_macos.tar.gz" | "$(Build.DefinitionName)"'
+        path: $(Build.SourcesDirectory) 
+        cacheHitVar: CACHE_RESTORED_MAC
+        continueOnError : true
+        restoreKeys: |
+          "bin_macos.tar.gz"
+      displayName: 'Caching'
+
+    - bash: |
+        brew install make doxygen libomp
+        #brew install caskroom/cask/mactex # latex is not used for documentation right now
+      displayName: 'Brew dependencies'
+    
+    - bash: |
+        tar xvfz bin_macos.tar.gz
+        rm -rf bin_macos.tar.gz
+        ls
+        mv bin_macos bin
+        ls
+        cd bin
+        tar xvfz qt.tar.gz
+        tar xvfz externalApps.tar.gz
+        rm -rf *.tar.gz
+
+        ls -lt
+      displayName: 'Unzip bin if cached'
+      condition: eq(variables.CACHE_RESTORED_MAC, 'true')
+
+    - bash: |
+        mkdir -p bin
+        cd bin
+
+        export CMAKE_INSTALL_RPATH_USE_LINK_PATH=TRUE
+        export CMAKE_PREFIX_PATH="/Library/TeX/texbin"
+
+        cmake -DDCMQI_BUILD_DOC=OFF ../ -DDCMQI_INSTALL_BIN_DIR="./install/bin" -DCMQI_INSTALL_LIB_DIR="./install/lib" -DBUILD_TESTING=OFF
+
+        make -j 2
+  
+      displayName: 'Configure and compile Superbuild'
+      condition: ne(variables.CACHE_RESTORED_MAC, 'true')
+
+    - bash: |
+        tar cvfz bin_macos.tar.gz bin
+      displayName: 'Zipping Superbuild'
+    
+    - bash: |
+        cd bin
+
+        export CMAKE_INSTALL_RPATH_USE_LINK_PATH=TRUE
+        export CMAKE_PREFIX_PATH="/Library/TeX/texbin"
+
+        sudo rm -rf DCMQI_*
+
+        cmake -DDCMQI_BUILD_DOC=OFF ../ -DBUILD_TESTING=OFF
+        rm CMakeCache.txt
+        export CMAKE_INSTALL_RPATH_USE_LINK_PATH=TRUE
+        export CMAKE_PREFIX_PATH="/Library/TeX/texbin"
+        cmake -DDCMQI_BUILD_DOC=OFF ../
+
+        make -j 2
+      displayName: 'Export variables for llvm then configure and compile DCMQI'
+    
+    - bash: |
+        cd bin
+
+        version=$(grep -i -e "project_version:*" CMakeCache.txt | cut -c24-)
+        pkgname="_Installer"
+        pkgname="$version$pkgname"
+
+        sudo rm -rf DCMQI_$version.app/Contents/Resources/bin/ITK-SNAP.app
+
+        rm -rf DCMQI*.app
+
+        cmake -DDCMQI_BUILD_DOC=OFF ../
+        rm CMakeCache.txt
+        export CMAKE_INSTALL_RPATH_USE_LINK_PATH=TRUE
+        export CMAKE_PREFIX_PATH="/Library/TeX/texbin"
+        cmake -DDCMQI_BUILD_DOC=OFF ../
+
+        make -j 2 install/strip
+
+        tar cvfz install_macos.tar.gz install
+
+        mv install_macos.tar.gz $(Build.ArtifactStagingDirectory)
+
+      displayName: 'Ensure documentation is picked up properly'
+    
+    
+    - bash: |
+        rm -rf src
+        rm -rf docs*
+        rm -rf data
+        rm -rf binaries
+        rm -rf scripts
+        rm -rf bin_macos.tar.gz
+
+        cd bin
+        cd ../
+        # ls
+        mv bin bin_macos
+        # ls
+        tar cvfz bin_macos.tar.gz bin_macos
+      displayName: 'Zipping bin'
+
+    - task: PublishBuildArtifacts@1
+      inputs:
+        pathtoPublish: '$(Build.ArtifactStagingDirectory)'
+        artifactName: '$(Build.DefinitionName)_installer_macOS'
+
+    - task: DownloadBuildArtifacts@0
+      inputs:
+        buildType: 'current'
+        downloadType: 'single'
+        artifactName: '$(Build.DefinitionName)_installer_macOS'
+        downloadPath: '$(System.ArtifactsDirectory)'

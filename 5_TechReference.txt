@@ -1,0 +1,58 @@
+﻿/**
+
+\page Technical_Reference Technical Reference and Build from Source
+
+This section gives further technical details for all previous documentation material.
+
+## Prerequisites
+
+| Package                           | Version                   | Description                                                                                                                                     |
+|-----------------------------------|---------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------|
+| Archiver or Git                   | N.A.                      | - **Windows**: Built-in unzip tool<br>- **Linux**: [gzip](https://www.gzip.org/)                                                     |
+| C++ compiler                      | C++11 compliance needed   | - **Windows**: Visual Studio 2015/2017<br>- **Linux**: GCC/4.9.2-7.4.0<br>- **macOS**: CLang 10.0.0, LLVM 6.0.1                                     |
+| OpenGL                            | 3.2+ (hardware-dependent) | - **Windows/macOS**: Update graphics drivers<br>- **Ubuntu**: apt-get install libgl-dev<br>- **CentOS**: yum install mesa-libGL-devel<br>- [Details in FAQ](FAQ.html#gs_FAQ_3) |
+| [CMake](https://cmake.org/files/) | 3.10 - 3.12               | To configure the FeTS compilation along with its dependencies (via Superbuild).                                                                |
+| X11 [Linux-only]                  | N.A.                      | - **Ubuntu**: apt-get install libxkbcommon-x11-0<br>- **CentOS**: yum install libXt-deve                                             |
+| dos2unix [Linux-only]             | N.A.                      | - **Ubuntu**: apt-get install dos2unix<br>- **CentOS**: yum install dos2unix                                                         |
+| [Doxygen](http://doxygen.nl/)     | 1.8+                      | OPTIONAL: For documentation only.                                                                                                               |
+
+Ensure all dependencies are met before proceeding.
+
+## Building FeTS
+
+An example using GCC and make is provided below and this can be adapted for Windows as needed:
+
+```bash
+git clone https://github.com/FETS-AI/Front-End.git
+cd FETS
+git submodule update --init --recursive # this ensures all submodules are initialized and up-to-date
+mkdir bin # this is where we will build all the binaries
+cd bin
+cmake .. # configure the superbuild first - builds ITK, VTK and OpenCV based on specific Qt version which is downloaded
+make -j # multi-threaded compilation: use 'make -j${N}' to specify number of threads to use; on Windows, compile the ALL_BUILD project
+cmake -DCMAKE_INSTALL_PREFIX=${path_to_where_you_want_to_install} .. # configure FeTS
+make -j # multi-threaded compilation: use 'make -j${N}' to specify number of threads to use; on Windows, compile the ALL_BUILD project
+make install/strip # installs FeTS and all its files to ${path_to_where_you_want_to_install}; on Windows, compile the INSTALL project
+```
+
+For Windows: 
+
+Install Qt 5.21.1 from https://www.qt.io/download-open-source and ensure that the `$version/bin` is in path.
+
+```powershell
+git clone https://github.com/FETS-AI/Front-End.git
+cd FETS
+git submodule update --init --recursive # this ensures all submodules are initialized and up-to-date
+mkdir bin # this is where we will build all the binaries
+cd bin
+cmake -G "Visual Studio 15 2017 Win64" -DCMAKE_INSTALL_PREFIX="./installLibs" -DCMAKE_CONFIGURATION_TYPES="Release" .. # this builds the dependencies
+cmake --build . --target ALL_BUILD --config Release
+# have a coffee, this will take some time
+cmake -G "Visual Studio 15 2017 Win64" -DCMAKE_INSTALL_PREFIX="./install" -DCMAKE_CONFIGURATION_TYPES="Release" .. # this builds FeTS
+cmake --build . --target ALL_BUILD --config Release
+``
+
+<b>NOTE:</b> The visualization of images is based on the physical coordinate system of each image (i.e., the origin and direction information from within the image file is used for rendering). In practice, use of a consistent coordinate framework results in images with different origins to appear misaligned (shifted) when compared to other neuro-imaging software packages that do rendering based on the Cartesian coordinate information in the image.
+
+*/
+

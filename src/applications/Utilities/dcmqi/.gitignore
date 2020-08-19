@@ -1,0 +1,41 @@
+build/
+docker/dcmqi/dcmqi-linux/
+
+*.[ao]
+*~
+*.swp
+*.so
+
+# OS generated files #
+######################
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+Icon?
+ehthumbs.db
+Thumbs.db
+
+# QtCreator          #
+######################
+
+*.autosave
+
+# QtCtreator Qml
+*.qmlproject.user
+*.qmlproject.user.*
+
+# QtCtreator CMake
+CMakeLists.txt.user*
+
+# Python             #
+######################
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# VSCode             #
+######################
+.vscode

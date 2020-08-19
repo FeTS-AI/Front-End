@@ -1,0 +1,12 @@
+stack_greedy: Paul's histology stack to MRI registration implementation
+Usage:
+  stack_greedy [options] <command> [cmd_options] <project_dir>
+Commands:
+  init               : Initialize project directory
+  recon              : Initially reconstruct slice stack without using 3D volume
+  volmatch           : Initially match slice stack to the 3D volume
+  voliter            : Iteratively match slice stack to the 3D volume
+  splat              : Output a 3D volume from slices for any given stage
+  help               : Help for any particular command
+Common Options
+  -N                 : Skip steps when outputs are already present

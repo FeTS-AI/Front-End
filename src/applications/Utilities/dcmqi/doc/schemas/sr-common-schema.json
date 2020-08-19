@@ -1,0 +1,92 @@
+{
+  "@context": "http://qiicr.org/dcmqi/contexts/dcmqi.jsonld",
+  "id": "https://raw.githubusercontent.com/qiicr/dcmqi/master/doc/schemas/sr-common-schema.json#",
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "definitions": {
+    "TEXT": {
+      "type": "string"
+    },
+    "UIDREF": {
+      "type": "string"
+    },
+    "PNAME": {
+      "type": "string"
+    },
+    "CODE": {
+      "$ref": "https://raw.githubusercontent.com/qiicr/dcmqi/master/doc/schemas/common-schema.json#/definitons/codeSequence"
+    },
+    "NUM": {
+      "type": "number"
+    },
+    "observerContext": {
+      "type": "object",
+      "oneOf": [
+        {
+          "additionalProperties": false,
+          "properties": {
+            "PersonObserverName": {
+              "$ref": "#/definitions/PNAME"
+            },
+            "ObserverType": {
+              "type": "string",
+              "enum": [
+                "PERSON"
+              ]
+            }
+          },
+          "required": [
+            "PersonObserverName",
+            "ObserverType"
+          ]
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "DeviceObserverUID": {
+              "$ref": "#/definitions/UIDREF"
+            },
+            "ObserverType": {
+              "type": "string",
+              "enum": [
+                "DEVICE"
+              ]
+            },
+            "DeviceObserverName": {
+              "$ref": "#/definitions/TEXT"
+            },
+            "DeviceObserverManufacturer": {
+              "$ref": "#/definitions/TEXT"
+            },
+            "DeviceObserverModelName": {
+              "$ref": "#/definitions/TEXT"
+            },
+            "DeviceObserverSerialNumber": {
+              "$ref": "#/definitions/TEXT"
+            }
+          },
+          "required": [
+            "ObserverType"
+          ]
+        }
+      ]
+    },
+    
+    "measurementAlgorithmIdentification": {
+      "type": "object",
+      "properties": {
+        "AlgorithmName": {
+          "type": "string"
+        },
+        "AlgorithmVersion": {
+          "type": "string"
+        },
+        "AlgorithmParameters": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

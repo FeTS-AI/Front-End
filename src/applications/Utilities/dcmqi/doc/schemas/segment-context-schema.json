@@ -1,0 +1,22 @@
+{
+  "@context": "http://qiicr.org/dcmqi/contexts/dcmqi.jsonld",
+  "id": "https://raw.githubusercontent.com/qiicr/dcmqi/master/doc/schemas/segment-context-schema.json#",
+  "$schema": "http://json-schema.org/draft-04/schema#",
+
+  "properties": {
+    "@schema": {"type" : "string"},
+    "SegmentationCategoryTypeContextName": {"type": "string"},
+    "SegmentationCodes": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "Category": {
+          "type": "array",
+          "items": {
+            "$ref": "https://raw.githubusercontent.com/qiicr/dcmqi/master/doc/schemas/segment-context-common-schema.json#/definitions/CategoryDefinition"
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,18 @@
+/**
+
+\page ReleaseNotes Changelog: Release Notes
+
+- First release (under Phase 1 evaluation) 
+
+
+Contact <a href="mailto:software@cbica.upenn.edu">software@cbica.upenn.edu</a> for questions, etc.
+
+--------------------------------------------------------------------
+
+--------------------------------------------------------------------
+\htmlonly
+<div align="right"><a href="People.html"><b>Next (People)<b></a>
+\endhtmlonly
+--------------------------------------------------------------------
+
+*/

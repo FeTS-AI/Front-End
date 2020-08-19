@@ -1,0 +1,38 @@
+greedy: A fast implementation of diffeomorphic image registration
+Usage (affine registration):
+  greedy [options]
+Required options:
+  -d <2|3|4>              The dimensionality of the registration problem
+  -a                      Enables affine registration mode
+  -i <f_image> <m_image>  Input fixed and moving images. Multiple fixed/moving image pairs may be specified by repeating -i command.
+  -o <matrix_file>        Output file where the affine transform will be saved
+Common options:
+  -w <float>              Relative weight of the next fixed/moving pair. Should precede the -i commmand.
+  -m <metric> [param]     Intensity dissimilarity metric
+                             SSD:          sum of square differences (default)
+                             MI:           mutual information
+                             NMI:          normalized mutual information
+                             NCC <vector>: patch normalized cross-correlation  (patch radius specified as NxNxN)
+                             MAHAL:        Mahalanobis distance to target warp
+  -n <vector>             Number of multi-resolution levels and iterations per level, e.g., 100x40x10 (default is 100x100).
+  -gm <image>             Mask image for computing metric and gradients. This mask is defined in fixed image space. May be binary or real-valued image with range [0, 1]
+  -gm-trim <vector>       Generate mask image by trimming the extent of the fixed image by the given radius (e.g., 8x8). Useful during affine registration with the NCC metric when the background of your images is non-zero.
+  -ia <matrix_file>       Initialize affine t-form from existing matrix file
+  -ia-identity            Initialize affine t-form by matching the origins of
+                          the fixed and moving images stored in NIFT headers
+  -ia-image-centers       Initialize affine t-form by matching image centers
+  -ia-moments <1|2>       Initialize affine t-form based on matching moments of inertia (either first or second moments)
+  -dof <6|12>             Degrees of freedom for affine registration
+                             6:            rigid registration
+                             12:           affine registration (default)
+  -search <N> <rt> <tr>   Search randomly over rigid t-forms for N iterations before starting registration. Search space specified by 'rt' (rotation) and 'tr' (translation). 'rt' may be the stdev of the random rotation angle (degrees) or keyword 'any' (any rotation) or 'flip' (any flip or rotation). 'tr' is the stdev of the random offset (in physical image units).
+Advanced options:
+  -jitter sigma           Small random jitter applied to points where image metric is sampled to avoid local minima. (def: 0.5)
+  -debug-deriv            Enable periodic accuracy checks for derivatives
+  -debug-deriv-eps        Epsilon for central differences in '-debug-deriv'
+  -debug-aff-obj          Plot objective in neighborhood of '-ia' matrix
+  -powell                 Use Powell's method instead of LBFGS
+
+
+
+

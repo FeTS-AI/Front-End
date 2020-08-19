@@ -1,0 +1,14 @@
+stack_greedy: Paul's histology stack to MRI registration implementation
+Usage:
+  stack_greedy init [cmd_options] <project_dir>
+Required Command Options:
+  -M <manifest>      : Manifest of slices to be reconstructed in 3D. Each line of
+                       the manifest file contains the following fields:
+                         unique_id         : a unique identifier, for output dirs
+                         z_position        : a float indicating slice z-position
+                         leader            : a flag (1/0) indicating whether this slide
+                                             is a leader or a follower in registration
+                         filename          : path to image filename
+Additional Command Options:
+  -ext <extension>   : Extension to use for output image files (without trailing period).)
+                       Default extension is nii.gz.

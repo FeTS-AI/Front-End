@@ -1,0 +1,17 @@
+/**
+
+\page Science Scientific Findings using FeTS
+
+MJ Sheller, B Edwards, GA Reina, J Martin, S Pati, A Kotrotsou, M Milchenko, W Xu, D Marcus, RR Colen, S Bakas, "Federated learning in medicine: facilitating multi-institutional collaborations without sharing patient data", Scientific Reports, 10(1):1-12, 2020.
+DOI: https://doi.org/10.1038/s41598-020-69250-1
+Available on: PubMed, NCBI, Publisher (Nature.com)
+
+MJ Sheller, GA Reina, B Edwards, J Martin, S Bakas, "Multi-Institutional Deep Learning Modeling Without Sharing Patient Data: A Feasibility Study on Brain Tumor Segmentation", MICCAI Brainlesion — Springer LNCS, 11383:92-104, 2018.
+DOI: https://doi.org/10.1007/978-3-030-11723-8_9
+Available on: PubMed, Publisher (Springer), arXiv (preprint)
+
+--------
+
+--------
+
+*/

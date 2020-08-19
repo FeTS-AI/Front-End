@@ -1,0 +1,24 @@
+/**
+
+\page People People (Credits)
+
+
+## Advisors:
+
+- [Spyridon Bakas](https://www.med.upenn.edu/cbica/sbakas/): Principal Investigator
+- Christos Davatzikos
+- Despina Kontos
+- Bjoern Menze
+
+## Contributors (alphabetical order):
+- [Mark Bergman](https://www.med.upenn.edu/sbia/mbergman.html)
+- Megh Bhalerao
+- Brandon Edwards
+- Jason Martin
+- [Sarthak Pati](https://www.med.upenn.edu/sbia/spati.html)
+- Tony G Reina
+- Micah Sheller
+- Siddhesh Thakur
+
+Contact [software [at] cbica.upenn.edu](mailto:software@cbica.upenn.edu) for questions.
+*/

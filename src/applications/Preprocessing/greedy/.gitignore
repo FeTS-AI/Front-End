@@ -1,0 +1,8 @@
+.*.sw?
+.DS_Store
+CMakeLists.txt.user
+*.autosave
+*~
+.8.un~
+docs/_build
+bin

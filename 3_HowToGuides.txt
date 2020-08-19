@@ -1,0 +1,259 @@
+/**
+
+\page How_To_Guides How To Guides
+
+This section provides step-by-step guidance to apply the FeTS functionalities:
+
+- \subpage ht_Preprocessing "Pre-processing"
+- \subpage ht_Segmentation "Segmentation"
+- \subpage ht_utilities "Utilities (CLI only)"
+
+Training videos can be accessed in our <a href="https://www.youtube.com/channel/UC69N7TN5bH2onj4dHcPLxxA"><b>YouTube Channel</b></a>, specifically in the <a href="https://www.youtube.com/playlist?list=PLXdcXDD5czvjFFQGX9Jm3KouP0H9cWowu"><b>CaPTk Playlist</b></a>.
+
+--------
+*/
+
+
+/**
+\page ht_Preprocessing Pre-processing
+The following applications can be called from the GUI: 
+
+- \subpage preprocessing_dcm2nii "DICOM to NIfTI conversion"
+- \subpage preprocessing_reg "Registration"
+- \subpage preprocessing_susan "Denoise-SUSAN (ITK filter)"
+- \subpage preprocessing_biasN4 "N4 Bias Correction (ITK filter)"
+- \subpage preprocessing_histoMatch "Histogram Matching"
+- \subpage preprocessing_zScoreNorm "Z-Score Normalization"
+
+For a full list of available applications and examples, please use the command: 
+\verbatim
+${FeTS_InstallDir}/bin/Preprocessing -h
+\endverbatim
+--------
+*/
+
+
+/**  
+\page preprocessing_dcm2nii DICOM to NIfTI conversion
+This tool converts a DICOM series into the Neuroimaging
+Informatics Technology Initiative (NIfTI) file format.
+
+<b>REQUIREMENTS:</b>
+	-# A folder with the continuous sequence of a DICOM series.
+	
+<b>USAGE:</b>
+	-# Launch the tool using the 'Preprocessing' -> 'DICOM to NIfTI' menu option.
+	-# Specify the first DICOM image in series, and the output filename.
+	-# Click on "Confirm".
+  -# This can also be used from the command line:
+\verbatim
+${FeTS_InstallDir}/bin/Utlities.exe -i C:/test/dicomFolderWithSingleSubject -d2n 
+\endverbatim
+
+--------
+*/
+
+
+/**  
+\page preprocessing_reg Image Co-registration
+This tool registers multiple moving images to a single target image using the Greedy Registration technique [1].
+
+<b>REQUIREMENTS:</b>
+	-# A Target image.
+  -# Up to 5 moving images
+	
+<b>USAGE:</b>
+	-# Launch the "Registration" dialog from the "Preprocessing" menu.
+  -# Customize the parameters (Metrics, Radius and Iterations) as needed; for details regarding the parameters and their usage, please refer to the Greedy manual [2].
+  -# Specify the moving images (up to 5) and their respective output images.
+	-# Click on 'Register'.
+	-# The output image is saved in the specified locations.
+  -# This can also be used from the command line:
+\verbatim
+${FeTS_InstallDir}/bin/Preprocessing.exe -i moving.nii.gz -rFI fixed.nii.gz -o output.nii.gz -reg Affine -rME NCC-2x2x2 -rIS 1 -rNI 100,50,5
+\endverbatim
+ 
+--------
+
+References:
+
+-# P.A.Yushkevich, J.Pluta, H.Wang, L.E.Wisse, S.Das, D.Wolk, "Fast Automatic Segmentation of Hippocampal Subfields and Medical Temporal Lobe Subregions in 3 Tesla and 7 Tesla MRI, Alzheimer's & Dementia: The Journal of Alzheimer's Association, 12(7), P126-127
+-# www.github.com/pyushkevich/greedy
+
+*/
+
+
+/**  
+\page preprocessing_susan Denoise-SUSAN (ITK filter)
+This tool smooths an image already loaded in FeTS, to remove any high frequency intensity variations (i.e., noise), using the SUSAN algorithm [1].
+
+<b>REQUIREMENTS:</b>
+	-# An image loaded in FeTS.
+	
+<b>USAGE:</b>
+	-# Load an image in FeTS.
+	-# Launch the tool using the 'Preprocessing' -> 'Denoise-SUSAN' menu option.
+	-# Specify the output filename.
+	-# Click on 'Save'.
+	-# The output image is saved in the specified folder and automatically loaded in FeTS.
+  -# This can also be used from the command line:
+\verbatim
+${FeTS_InstallDir}/bin/Preprocessing.exe -i C:/test/image.nii.gz -o C:/test/image_smooth.nii.gz -ss
+\endverbatim
+
+--------
+
+Reference:
+
+-# S.M.Smith, J.M.Brady. "SUSAN-A new approach to low level image processing", International Journal of Computer Vision. 23(1):45-78, 1997.
+
+*/
+
+
+/**  
+\page preprocessing_biasN4 N4 Bias Correction (ITK filter)
+This tool corrects an image, already loaded in FeTS, for magnetic field inhomogeneities using a non-parametric method [1].
+
+<b>REQUIREMENTS:</b>
+	-# An image loaded in FeTS.
+	
+<b>USAGE:</b>
+	-# Load an image in FeTS.
+	-# Launch the tool using the 'Preprocessing' -> 'BiasCorrection' menu option.
+	-# Specify the output filename.
+	-# Click on 'Save'.
+	-# The output image is saved in the specified folder and automatically loaded in FeTS.
+  -# This can also be used from the command line:
+\verbatim
+${FeTS_InstallDir}/bin/Preprocessing.exe -i C:/test/image.nii.gz -o C:/test/image_biasCorr.nii.gz -n4
+\endverbatim
+
+--------
+
+Reference:
+
+-# J.G.Sled, A.P.Zijdenbos, A.C.Evans. "A nonparametric method for automatic correction of intensity nonuniformity in MRI data" IEEE Trans Med Imaging. 17(1):87-97, 1998.
+
+*/
+
+
+/**  
+\page preprocessing_histoMatch Histogram Matching
+This tool normalizes the intensity profile of an input image based on the intensity profile of a reference image [1].
+
+<b>REQUIREMENTS:</b>
+	-# A reference and an input image.
+	
+<b>USAGE:</b>
+	-# Launch the tool using the 'Preprocessing' -> 'HistogramMatching' menu option.
+	-# Specify the Reference and Input images, and the output filename.
+	-# Click on 'Confirm'.
+	-# The output image is saved in the specified folder.
+  -# This can also be used from the command line:
+\verbatim
+${FeTS_InstallDir}/bin/Preprocessing.exe -i C:/test/input.nii.gz -o C:/test/output.nii.gz -hi C:/test/target.nii.gz -hb 100 -hq 50
+\endverbatim
+
+--------
+
+Reference:
+
+-# L.G.Nyul, J.K.Udupa, X.Zhang, "New Variants of a Method of MRI Scale Standardization", IEEE Trans Med Imaging. 19(2):143-50, 2000. DOI:10.1109/42.836373
+
+*/
+
+
+/**  
+\page preprocessing_zScoreNorm Z-Scoring Normalization
+This tool does a z-scoring based normalization on the loaded image.
+
+<b>REQUIREMENTS:</b>
+	-# An input image.
+	
+<b>USAGE:</b>
+	-# Launch the tool using the 'Preprocessing' -> 'ZScoringNormalizer' menu option.
+  -# Specify the input image and the (optional) mask
+  -# Specify the parameters (quantization upper/lower and cut-off upper/lower) to remove the outliers 
+  -# Specify the output image 
+	-# Click on 'Confirm'.
+	-# The output image is saved in the specified folder.
+  -# This can also be used from the command line:
+\verbatim
+${FeTS_InstallDir}/bin/Preprocessing.exe -i C:/test/input.nii.gz -m C:/test/input_binaryMask.nii.gz -o C:/test/output.nii.gz -zn 1 -zq 5,95 -zc 3,3
+\endverbatim
+
+--------
+
+Reference:
+
+-# T.Rohlfing, N.M.Zahr, E.V.Sullivan, A.Pfefferbaum, "The SRI24 multichannel atlas of normal adult human brain structure", Human Brain Mapping, 31(5):798-819, 2010. DOI:10.1002/hbm.20906
+
+*/
+
+
+/**
+\page ht_Segmentation Segmentation
+
+There are various segmentation tools available within FeTS. They are enumerated as follows:
+
+- \subpage seg_DL "Deep Learning Segmentation"
+
+*/
+
+/**
+\page seg_DL Deep Learning Segmentation
+
+For our Deep Learning based segmentation, we use DeepMedic [1,2] and users can do inference using a pre-trained models (trained on BraTS 2017 Training Data) with FeTS for Brain Tumor Segmentation or Skull Stripping. Users also have the option to train their own models using DeepMedic and using that model for their own tasks (be mindful of the pre-processing).
+
+<b> REQUIREMENTS:</b>
+The 4 basic MRI modalities (T1, T1-Gd, T2 and T2-FLAIR) for a subject which are co-registered.
+
+<b> USAGE:</b>
+	-# Load the images that you want to segment in FeTS.
+  -# [OPTIONAL] Load the brain mask - this is used for normalization.
+  -# [OPTIONAL] Select the appropriate pre-trained model folder (either brain tumor segmentation or skull stripping is available): for custom models, select appropriate option and browse to the model directory.
+  -# Select the output folder.
+  -# Click on 'Applications' -> 'Brain Tumor Segmentation' or 'Skull Stripping'
+  -# This can also be used from the command line:
+\verbatim
+${FeTS_InstallDir}/bin/DeepMedic.exe -t1 C:/data/t1.nii.gz -t2 C:/data/t2.nii.gz -t1c C:/data/t1ce.nii.gz -fl C:/data/fl.nii.gz -o C:/data/output/ -m C:/data/optionalMask.nii.gz -md C:/data/pretrainedModelFolder/
+\endverbatim
+<br>
+
+--------
+
+References:
+
+-# K.Kamnitsas, C.Ledig, V.F.J.Newcombe, J.P.Simpson, A.D.Kane, D.K.Menon, D.Rueckert, B.Glocker, "Efficient Multi-Scale 3D CNN with Fully Connected CRF for Accurate Brain Lesion Segmentation", Medical Image Analysis, 2016.
+-# K.Kamnitsas, L.Chen, C.Ledig, D.Rueckert, B.Glocker, "Multi-Scale 3D CNNs for segmentation of brain Lesions in multi-modal MRI", in proceeding of ISLES challenge, MICCAI 2015.
+
+*/
+
+
+/**
+\page ht_utilities Utilities (CLI only)
+
+This is a command line executable containing the following functionalities:
+- Resizing
+- Image information
+- Unique values in image
+- Get smallest bounding box in mask (optional isotropic bounding box)
+- Test 2 images
+- Create mask from threshold
+- DICOM to NIfTI conversion
+- NIfTI to DICOM & DICOM-Seg conversion
+- Orientation fix
+- Thresholding:
+  - Below
+  - Above
+  - Above & Below
+  - Otsu 
+  - Binary
+- Convert file formats
+- Extract Image Series from Joined stack and vice-versa (4D <-> 3D)
+
+For a full list of available applications and examples, please use the command: 
+\verbatim
+${FeTS_InstallDir}/bin/Utilities -h
+\endverbatim
+*/

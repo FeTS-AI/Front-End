@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<executable>
+  <category>Informatics.Converters</category>
+  <title>Convert DICOM Parametric Map into ITK image</title>
+  <description>This tool can be used to convert a DICOM Parametric Map Image object into ITK image format, and generate a JSON file holding meta information.</description>
+  <version>1.0</version>
+  <documentation-url>https://github.com/QIICR/dcmqi</documentation-url>
+  <license></license>
+  <contributor>Andrey Fedorov(BWH), Christian Herz(BWH)</contributor>
+  <acknowledgements>This work is supported in part the National Institutes of Health, National Cancer Institute, Informatics Technology for Cancer Research (ITCR) program, grant Quantitative Image Informatics for Cancer Research (QIICR) (U24 CA180918, PIs Kikinis and Fedorov).</acknowledgements>
+
+  <parameters>
+    <label>Required input/output parameters</label>
+    <file>
+      <name>inputFileName</name>
+      <label>Parametric Map DICOM file name</label>
+      <channel>input</channel>
+      <longflag>inputDICOM</longflag>
+      <description>File name of the DICOM Parametric map image.</description>
+    </file>
+
+    <directory>
+      <name>outputDirName</name>
+      <label>Output directory name</label>
+      <channel>output</channel>
+      <longflag>outputDirectory</longflag>
+      <description>Directory to store parametric map in an ITK format, and the JSON metadata file.</description>
+    </directory>
+  </parameters>
+
+  <parameters advanced="true">
+    <label>Advanced parameters</label>
+
+    <string-enumeration>
+      <name>outputType</name>
+      <label>Output type</label>
+      <flag>-t</flag>
+      <longflag>--outputType</longflag>
+      <description>Output ITK format for the output image.</description>
+      <default>nrrd</default>
+      <element>nrrd</element>
+      <element>mhd</element>
+      <element>mha</element>
+      <element>nii</element>
+      <element>nifti</element>
+      <element>hdr</element>
+      <element>img</element>
+    </string-enumeration>
+
+    <string>
+      <name>prefix</name>
+      <label>Output prefix</label>
+      <flag>-n</flag>
+      <longflag>--prefix</longflag>
+      <description>Prefix for output files</description>
+      <default></default>
+    </string>
+  </parameters>
+
+</executable>
