@@ -46,7 +46,7 @@ sudo apt install python3.6 python3.6-venv python3.6-dev
 
 ### Set up the binaries and environment
 
-- Download the pre-built binaries from [this link](ftp://www.nitrc.org/home/groups/fets/downloads/FeTS_0.0.1.nonRelease_Installer.bin)
+- Download the pre-built binaries from [this link](https://www.nitrc.org/frs/downloadlink.php/11892)
 - Run the following commands:
 ```bash
 cd ${download_location}
