@@ -279,7 +279,7 @@ cd bin
 
 if [ -z "$CAPTK_BUILD_THREADS" ]; then
 
-  CAPTK_BUILD_THREADS=2
+  CAPTK_BUILD_THREADS=1
 
 fi
 
