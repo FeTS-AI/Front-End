@@ -55,8 +55,8 @@ chmod +x ./FeTS_${version}.bin # optional addition of execution permission
 # accept license
 cd ${install_path}/squashfs-root/usr/ # this is the ${fets_root_dir}
 cd bin/OpenFederatedLearning
-make install_openfl python_version=python3.7 # substitute your python version here, for python3.6, the parameter 'python_version' is not needed
-make install_fets python_version=python3.7 # substitute your python version here, for python3.6, the parameter 'python_version' is not needed
+make install_openfl 
+make install_fets
 ./venv/bin/pip install torch torchvision # installs latest stable pytorch (we have tested with 1.6.0 with cuda-10.2), change to appropriate cuda version; see https://pytorch.org/get-started/locally/
 # for cuda 9.2, this would be './venv/bin/pip install torch==1.6.0+cu92 torchvision==0.7.0+cu92 -f https://download.pytorch.org/whl/torch_stable.html'
 # for cuda 10.1, this would be './venv/bin/pip install torch==1.6.0+cu101 torchvision==0.7.0+cu101 -f https://download.pytorch.org/whl/torch_stable.html'
