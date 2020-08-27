@@ -3,5 +3,11 @@ show_downloads: True
 navigation:
   - title: Home
     url: /
-  - title: Setup
-    url: setup
+  - title: Application Setup
+    url: ./setup.md
+  - title: Process the Data
+    url: ./process_data.md
+  - title: Run the Application
+    url: ./runningApplication.md
+  - title: Extras
+    url: ./extras.md
