@@ -3,7 +3,7 @@
 Contents:
 
 - [Requirements](#Requirements)
-- [Set up the Environment](set-up-the-environment)
+- [Set up the Environment](#set-up-the-environment)
 - [Set up the Collaborator](#set-up-the-collaborator)
 
 ## Requirements
