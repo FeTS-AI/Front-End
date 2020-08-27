@@ -1,11 +1,5 @@
 # Application Setup
 
-Contents:
-
-- [Requirements](#requirements)
-- [Set up the Environment](#set-up-the-environment)
-- [Set up the Collaborator](#set-up-the-collaborator)
-
 ## Requirements
 
 - OS: Linux (Ubuntu 18.04) [note that Ubuntu 20.04 does **not** work, and we will support Windows for Phase-2]
