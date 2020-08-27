@@ -14,3 +14,4 @@ For more details, please visit us at https://www.fets.ai/
 ## Table of Contents
 - [Application Setup](./setup.md)
 - [Process the Data](./process_data.md)
+- [Run the Application](./runningApplication.md)
