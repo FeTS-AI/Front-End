@@ -4,10 +4,10 @@ navigation:
   - title: Home
     url: /
   - title: Application Setup
-    url: ./setup.md
+    url: setup
   - title: Process the Data
-    url: ./process_data.md
+    url: process_data
   - title: Run the Application
-    url: ./runningApplication.md
+    url: runningApplication
   - title: Extras
-    url: ./extras.md
+    url: extras
