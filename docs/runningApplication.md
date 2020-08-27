@@ -2,6 +2,12 @@
 
 **Note** the `${fets_root_dir}` from [Setup](./setup.md#set-up-the-environment).
 
+Contents:
+
+- [Application Path](#application-path)
+- [Inference](#inference)
+- [Training](#training)
+
 ## Application Path
 
 ```bash
