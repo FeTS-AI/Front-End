@@ -1210,7 +1210,7 @@ void fMainWindow::about()
 
 void fMainWindow::help_Interactions()
 {
-  openLink("https://github.com/FETS-AI/Front-End/blob/master/README.md");
+  openLink("https://fets-ai.github.io/Front-End/");
 }
 
 void fMainWindow::help_Download(QAction* action)
