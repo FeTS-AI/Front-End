@@ -24,20 +24,26 @@ cd ${download_location}
 - Select if you want to run the inference on GPU or CPU
 - Click "Fusion + Save" to start
 - Use the drawing tools provided in the "Drawing" tab for corrections and save the final segmentation.
-- **Note**: 
-  - For CPU, a run-time requirement of at least 48GB of RAM would be needed
-  - For GPU, at least 11GB of dedicated VRAM would be needed
-- Command-line usage:
+- **Command-line usage**:
   - Skull-stripping:
   ```bash
   cd ${fets_root_dir}/OpenFederatedLearning
-  ./venv/bin/python ./bin/run_inference_from_flplan.py -nmwf pt_3dresunet_ss_brainmagebrats_best.pt -p pt_3dresunet_ss_brainmagebrats_best.yaml -d ${path_to_input_directory} -ld ${directory_to_save_logs}
+  ./venv/bin/python ./bin/run_inference_from_flplan.py \
+  -nmwf pt_3dresunet_ss_brainmagebrats_best.pt \
+  -p pt_3dresunet_ss_brainmagebrats_best.yaml \
+  -d ${path_to_input_directory} -ld ${directory_to_save_logs}
   ```
   - Brain Tumor Segmentation:
   ```bash
   cd ${fets_root_dir}/OpenFederatedLearning
-  ./venv/bin/python ./bin/run_inference_from_flplan.py -nmwf pt_3dresunet_brainmagebrats_best.pbuf -p pt_3dresunet_brainmagebrats.yaml -d ${path_to_input_directory} -ld ${directory_to_save_logs}
+  ./venv/bin/python ./bin/run_inference_from_flplan.py \
+  -nmwf pt_3dresunet_brainmagebrats_best.pbuf \
+  -p pt_3dresunet_brainmagebrats.yaml \
+  -d ${path_to_input_directory} -ld ${directory_to_save_logs}
   ```
+- **Note**: 
+  - For CPU, a run-time requirement of at least 48GB of RAM would be needed
+  - For GPU, at least 11GB of dedicated VRAM would be needed
 
 ## Training
 
@@ -54,3 +60,11 @@ cd ${download_location}
 - For Phase-1, we currently support training on the 3DResUNet architecture for Brain Tumor Segmentation.
 - Select if you want to run the inference on GPU or CPU
 - Click "Train + Save" to start
+- **Command-line usage**:
+```bash
+cd ${fets_root_dir}/OpenFederatedLearning
+./venv/bin/python ./bin/run_collaborator_from_flplan.py \
+-p pt_3dresunet_brainmagebrats.yaml \
+-d ${path_to_input_directory} \
+-ld ${directory_to_save_logs} -col ${collaborator_common_name}
+```
