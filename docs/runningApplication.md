@@ -27,6 +27,17 @@ cd ${download_location}
 - **Note**: 
   - For CPU, a run-time requirement of at least 48GB of RAM would be needed
   - For GPU, at least 11GB of dedicated VRAM would be needed
+- Command-line usage:
+  - Skull-stripping:
+  ```bash
+  cd ${fets_root_dir}/OpenFederatedLearning
+  ./venv/bin/python ./bin/run_inference_from_flplan.py -nmwf pt_3dresunet_ss_brainmagebrats_best.pt -p pt_3dresunet_ss_brainmagebrats_best.yaml -d ${path_to_input_directory} -ld ${directory_to_save_logs}
+  ```
+  - Brain Tumor Segmentation:
+  ```bash
+  cd ${fets_root_dir}/OpenFederatedLearning
+  ./venv/bin/python ./bin/run_inference_from_flplan.py -nmwf pt_3dresunet_brainmagebrats_best.pbuf -p pt_3dresunet_brainmagebrats.yaml -d ${path_to_input_directory} -ld ${directory_to_save_logs}
+  ```
 
 ## Training
 
