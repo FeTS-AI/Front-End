@@ -31,6 +31,7 @@ cd ${download_location}
   ./venv/bin/python ./bin/run_inference_from_flplan.py \
   -nmwf pt_3dresunet_ss_brainmagebrats_best.pt \
   -p pt_3dresunet_ss_brainmagebrats_best.yaml \
+  -md cuda \ # if not provided, defaults to "cpu"
   -d ${path_to_input_directory} -ld ${directory_to_save_logs}
   ```
   - Brain Tumor Segmentation:
@@ -39,6 +40,7 @@ cd ${download_location}
   ./venv/bin/python ./bin/run_inference_from_flplan.py \
   -mwf pt_3dresunet_brainmagebrats_best.pbuf \
   -p pt_3dresunet_brainmagebrats.yaml \
+  -md cuda \ # if not provided, defaults to "cpu"
   -d ${path_to_input_directory} -ld ${directory_to_save_logs}
   ```
 - **Note**: 
@@ -66,5 +68,6 @@ cd ${fets_root_dir}/OpenFederatedLearning
 ./venv/bin/python ./bin/run_collaborator_from_flplan.py \
 -p pt_3dresunet_brainmagebrats.yaml \
 -d ${path_to_input_directory} \
+-md cuda \ # if not provided, defaults to "cpu"
 -ld ${directory_to_save_logs} -col ${collaborator_common_name}
 ```
