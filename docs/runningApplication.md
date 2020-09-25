@@ -38,7 +38,7 @@ cd ${download_location}
   ```bash
   cd ${fets_root_dir}/OpenFederatedLearning
   ./venv/bin/python ./bin/run_inference_from_flplan.py \
-  -mwf pt_3dresunet_brainmagebrats_best.pbuf \
+  -mwf pt_3dresunet_brainmagebrats_best.pbuf \ # for initial inference, use pt_3dresunet_brainmagebrats_init.pbuf 
   -p pt_3dresunet_brainmagebrats.yaml \
   -md cuda \ # if not provided, defaults to "cpu"
   -d ${path_to_input_directory} -ld ${directory_to_save_logs}
