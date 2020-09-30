@@ -20,7 +20,10 @@ sudo apt install python3.6 python3.6-venv python3.6-dev
 	- Glioblastoma (GBM) patients
 	- 4 structural modalities - T1 pre and post contrast, T2 and Flair
 	- At least 90 cases
-	- Tumor regions (Edema - ED, Enhancing - ET and Non-Enhancing- NET)
+	- Tumor regions (as defined in BraTS challenge):
+    - Edema - ED
+    - Enhancing - ET
+    - Necrotic + Non-Enhancing-Tumor core - NET
   - No instrumentation, pre-resection
 
 ## Set up the Environment
