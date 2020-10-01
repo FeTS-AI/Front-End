@@ -58,3 +58,4 @@ testing
 vsts*
 superbuild
 build
+debug.log
