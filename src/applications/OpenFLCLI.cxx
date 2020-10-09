@@ -18,8 +18,9 @@ int main(int argc, char** argv)
   parser.addRequiredParameter("t", "training", cbica::Parameter::BOOLEAN, "0 or 1", "Whether performing training or inference", "1==Train and 0==Inference");
   parser.addRequiredParameter("L", "LoggingDir", cbica::Parameter::DIRECTORY, "Dir with write access", "Location of logging directory");
   parser.addOptionalParameter("g", "gpu", cbica::Parameter::BOOLEAN, "0-1", "Whether to run the process on GPU or not", "Defaults to '0'");
+  parser.addOptionalParameter("p", "planName", cbica::Parameter::STRING, "None", "The plan name for which training needs to happen", "Needs '-t 1'");
 
-  std::string dataDir, modelName, loggingDir;
+  std::string dataDir, modelName, loggingDir, planName;
   bool gpuRequested = false;
   bool trainingRequested = false;
 
@@ -30,6 +31,15 @@ int main(int argc, char** argv)
   if (parser.isPresent("t"))
   {
     parser.getParameterValue("t", trainingRequested);
+    if (parser.isPresent("p"))
+    {
+      parser.getParameterValue("p", planName);
+    }
+    else
+    {
+      std::cerr << "Training is requested, but a plan name has not been specified; please use '-p' to specify this.\n";
+      return EXIT_FAILURE;
+    }
   }
   if (parser.isPresent("g"))
   {
