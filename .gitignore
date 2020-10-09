@@ -48,7 +48,7 @@ confetti
 dcm2nii
 theia
 .DS_Store
-testing
+
 /binaries/.DS_Store
 /binaries/MCR
 /cmake_modules/.DS_Store
