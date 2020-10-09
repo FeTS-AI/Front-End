@@ -52,13 +52,21 @@ int main(int argc, char** argv)
     hardcodedModelWeightPath = (fetsApplicationPath + "/OpenFederatedLearning/bin/federations/weights/"), // start with the common location
     hardcodedPythonPath = (fetsApplicationPath + "/OpenFederatedLearning/venv/bin/python"), // this needs to change for Windows (wonder what happens for macOS?)
     hardcodedModelName = "",
-    args = "";
+    args = "",
+    specialArgs = "";
 
+  if (trainingRequested)
+  {
+    specialArgs = "-col " + colName;
+  }
   if (modelName.find("_3dresunet_ss") != std::string::npos)
   {
     hardcodedPlanName = "pt_3dresunet_ss_brainmagebrats";
     hardcodedModelName = hardcodedModelWeightPath + hardcodedPlanName + "_best.pt"; // taken from https://github.com/FETS-AI/Models/blob/master/skullstripping/3dresunet/pt_3dresunet_ss_brainmagebrats_best.pt
-    args += "-nmwf " + hardcodedModelName;
+    if (!trainingRequested)
+    {
+      specialArgs += "-nmwf " + hardcodedModelName;
+    }
   }
   else
   {
@@ -73,7 +81,10 @@ int main(int argc, char** argv)
         return EXIT_FAILURE;
       }
     }
-    args += "-mwf " + hardcodedModelName;
+    if (!trainingRequested)
+    {
+      specialArgs += "-mwf " + hardcodedModelName;
+    }
   }
 
   // sanity checks
@@ -113,7 +124,7 @@ int main(int argc, char** argv)
     args += "cpu";
   }
 
-  if (std::system((fullCommandToRun + " " + args).c_str()) != 0)
+  if (std::system((fullCommandToRun + " " + args + " " + specialArgs).c_str()) != 0)
   {
     std::cerr << "Couldn't complete the requested task.\n";
     return EXIT_FAILURE;
