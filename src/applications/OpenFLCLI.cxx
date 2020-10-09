@@ -18,9 +18,9 @@ int main(int argc, char** argv)
   parser.addRequiredParameter("t", "training", cbica::Parameter::BOOLEAN, "0 or 1", "Whether performing training or inference", "1==Train and 0==Inference");
   parser.addRequiredParameter("L", "LoggingDir", cbica::Parameter::DIRECTORY, "Dir with write access", "Location of logging directory");
   parser.addOptionalParameter("g", "gpu", cbica::Parameter::BOOLEAN, "0-1", "Whether to run the process on GPU or not", "Defaults to '0'");
-  parser.addOptionalParameter("p", "planName", cbica::Parameter::STRING, "None", "The plan name for which training needs to happen", "Needs '-t 1'");
-
-  std::string dataDir, modelName, loggingDir, planName;
+  parser.addOptionalParameter("c", "colName", cbica::Parameter::STRING, "", "Common name of collaborator", "Required for training");
+  
+  std::string dataDir, modelName, loggingDir, colName;
   bool gpuRequested = false;
   bool trainingRequested = false;
 
@@ -31,13 +31,13 @@ int main(int argc, char** argv)
   if (parser.isPresent("t"))
   {
     parser.getParameterValue("t", trainingRequested);
-    if (parser.isPresent("p"))
+    if (parser.isPresent("c"))
     {
-      parser.getParameterValue("p", planName);
+      parser.getParameterValue("c", colName);
     }
     else
     {
-      std::cerr << "Training is requested, but a plan name has not been specified; please use '-p' to specify this.\n";
+      std::cerr << "Collaborator name is required to beging training; please specify this using '-c'.\n";
       return EXIT_FAILURE;
     }
   }
@@ -88,8 +88,15 @@ int main(int argc, char** argv)
     return;
   }
 
-  std::string fullCommandToRun = hardcodedPythonPath + " " +
-    fetsApplicationPath + "/OpenFederatedLearning/bin/run_inference_from_flplan.py";
+  std::string fullCommandToRun = hardcodedPythonPath + " " + fetsApplicationPath;
+  if (trainingRequested)
+  {
+    fullCommandToRun += "/OpenFederatedLearning/bin/run_inference_from_flplan.py";
+  }
+  else
+  {
+    fullCommandToRun += "/OpenFederatedLearning/bin/run_collaborator_from_flplan.py";
+  }
 
   args += " -p " + hardcodedPlanName + ".yaml"
     //<< "-mwf" << hardcodedModelWeightPath // todo: doing customized solution above - change after model weights are using full paths for all
