@@ -15,16 +15,22 @@ int main(int argc, char** argv)
 
   parser.addRequiredParameter("d", "dataDir", cbica::Parameter::DIRECTORY, "Dir with Read/Write access", "Input data directory");
   parser.addRequiredParameter("m", "modelName", cbica::Parameter::FILE, "Model file", "Input model weights file");
+  parser.addRequiredParameter("t", "training", cbica::Parameter::BOOLEAN, "0 or 1", "Whether performing training or inference", "1==Train and 0==Inference");
   parser.addRequiredParameter("L", "LoggingDir", cbica::Parameter::DIRECTORY, "Dir with write access", "Location of logging directory");
   parser.addOptionalParameter("g", "gpu", cbica::Parameter::BOOLEAN, "0-1", "Whether to run the process on GPU or not", "Defaults to '0'");
 
   std::string dataDir, modelName, loggingDir;
   bool gpuRequested = false;
+  bool trainingRequested = false;
 
   parser.getParameterValue("d", dataDir);
   parser.getParameterValue("m", modelName);
   parser.getParameterValue("L", loggingDir);
 
+  if (parser.isPresent("t"))
+  {
+    parser.getParameterValue("t", trainingRequested);
+  }
   if (parser.isPresent("g"))
   {
     parser.getParameterValue("g", gpuRequested);
