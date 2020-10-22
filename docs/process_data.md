@@ -20,9 +20,14 @@ ${fets_root_dir}/bin/Utilities -i C:/test/1.dcm -o C:/test.nii.gz -d2n
   4. Registration to [SRI-24 anatomical atlas](https://www.nitrc.org/projects/sri24/) (Note that the 2 registration steps are applied as one transformation matrix, thereby avoiding multiple intensity interpolations)
   5. Application of the registration/transformation matrix to the re-oriented image (prior to N4 bias correction) to maximize image fidelity
 
-```bash
-${fets_root_dir}/bin/BraTSPipeline -t1 C:/test/t1.nii.gz -t1c C:/test/t1gd.nii.gz -t2 C:/test/t2.nii.gz -fl C:/test/flair.nii.gz -o C:/test/outputDir 
-```
+  ```bash
+  ${fets_root_dir}/bin/BraTSPipeline \
+    -t1 C:/test/t1.nii.gz \ # you can pass first dicom image series 
+    -t1c C:/test/t1gd.nii.gz \ # you can pass first dicom image series 
+    -t2 C:/test/t2.nii.gz \ # you can pass first dicom image series 
+    -fl C:/test/flair.nii.gz \ # you can pass first dicom image series 
+    -o C:/test/outputDir 
+  ```
 - After finishing the pre-processing, the data needs to be organized in the BraTS format:
 ```
 /data_folder/ 
