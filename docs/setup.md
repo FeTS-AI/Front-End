@@ -17,14 +17,14 @@ sudo apt install python3.6 python3.6-venv python3.6-dev
 - 48GB RAM for CPU-only tasks
 - Read/write access to the data for processing
 - Data requirements for Phase-1 Validation: 
-	- Glioblastoma (GBM) patients
-	- 4 structural modalities - T1 pre and post contrast, T2 and Flair
-	- Scanned along axial axis
-	- At least 90 cases
-	- Tumor regions (as defined in BraTS challenge):
-	  - Edema - ED
-    	  - Enhancing - ET
-    	  - Necrotic + Non-Enhancing-Tumor core - NET
+  - Glioblastoma (GBM) patients
+  - 4 structural modalities - T1 pre and post contrast, T2 and Flair
+  - Scanned along axial axis
+  - At least 90 cases
+  - Tumor regions (as defined in BraTS challenge):
+    - Edema - ED
+    - Enhancing - ET
+    - Necrotic + Non-Enhancing-Tumor core - NET
   - No instrumentation, pre-resection
 
 ## Set up the Environment
