@@ -14,7 +14,8 @@ sudo apt install python3.6 python3.6-venv python3.6-dev
   - [CUDA 9.2+](https://developer.nvidia.com/cuda-toolkit)
   - [Compatible cuDNN](https://developer.nvidia.com/cudnn)
   - 11GB dedicated VRAM
-- 48GB RAM for CPU-only tasks
+  - 40GB RAM
+- 80GB RAM for CPU-only tasks
 - Read/write access to the data for processing
 - Data requirements for Phase-1 Validation: 
   - Glioblastoma (GBM) patients
