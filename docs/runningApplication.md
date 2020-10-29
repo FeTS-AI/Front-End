@@ -8,6 +8,8 @@
 cd ${download_location}
 ./squashfs-root/usr/bin/FeTS # launches application
 ```
+
+Please add the following path to your `LD_LIBRARY_PATH` when using FeTS: `${fets_root_dir}/lib`
 ## Inference
 
 <p align="center">
