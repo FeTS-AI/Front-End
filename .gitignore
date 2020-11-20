@@ -41,7 +41,6 @@ ibsi_phantom
 /src/applications/FeatureExtraction/runner.ps1
 
 mac-pkg.sh
-deepmedic
 itksnap
 libra
 confetti
