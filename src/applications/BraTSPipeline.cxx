@@ -221,7 +221,7 @@ int main(int argc, char** argv)
     }
 
     // the bias-corrected images need to be written because these are passed on to greedy
-    inputReorientedBiasFiles[modality] = outputDir + "/raw_rai_n4" + modality + ".nii.gz";
+    inputReorientedBiasFiles[modality] = outputDir + "/raw_rai_n4_" + modality + ".nii.gz";
 
     if (!cbica::fileExists(inputReorientedBiasFiles[modality]))
     {
