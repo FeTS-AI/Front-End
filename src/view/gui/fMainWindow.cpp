@@ -5990,7 +5990,7 @@ void fMainWindow::OnSegmentationClicked()
 
       auto subDirs = cbica::subdirectoriesInDirectory(inputDir);
 
-      std::string subjectsWithErrors;
+      std::string subjectsWithMissingModalities, subjectsWithErrors;
 
       for (size_t s = 0; s < subDirs.size(); s++)
       {
@@ -6002,7 +6002,7 @@ void fMainWindow::OnSegmentationClicked()
         }
         else
         {
-          subjectsWithErrors += subDirs[s];
+          subjectsWithMissingModalities += subDirs[s];
         }
 
         fileToCheck = inputDir + "/" + subDirs[s] + "/brain_t1.nii.gz";
@@ -6012,7 +6012,7 @@ void fMainWindow::OnSegmentationClicked()
         }
         else
         {
-          subjectsWithErrors += subDirs[s];
+          subjectsWithMissingModalities += subDirs[s];
         }
         fileToCheck = inputDir + "/" + subDirs[s] + "/brain_t2.nii.gz";
         if (cbica::fileExists(fileToCheck))
@@ -6021,7 +6021,7 @@ void fMainWindow::OnSegmentationClicked()
         }
         else
         {
-          subjectsWithErrors += subDirs[s];
+          subjectsWithMissingModalities += subDirs[s];
         }
         fileToCheck = inputDir + "/" + subDirs[s] + "/brain_flair.nii.gz";
         if (cbica::fileExists(fileToCheck))
@@ -6030,10 +6030,10 @@ void fMainWindow::OnSegmentationClicked()
         }
         else
         {
-          subjectsWithErrors += subDirs[s] + ",";
+          subjectsWithMissingModalities += subDirs[s] + ",";
         }
 
-        if (subjectsWithErrors.empty())
+        if (subjectsWithMissingModalities.empty())
         {
           auto brainMaskFile = inputDir + "/" + subDirs[s] + "/deepmedic_seg.nii.gz";
 
@@ -6043,14 +6043,23 @@ void fMainWindow::OnSegmentationClicked()
           file_t2 + "," +
           file_flair + " -o " +
           brainMaskFile;
-          std::system(fullCommand.c_str());
+          
+          if (std::system(fullCommand.c_str()) != 0)
+          {
+            subjectsWithErrors += subDirs[s] + ",";
+          }
         }
       }
 
+      if (!subjectsWithMissingModalities.empty())
+      {
+        subjectsWithMissingModalities.pop_back();
+        ShowErrorMessage("The following subjects had at least one missing modality: \n" + subjectsWithMissingModalities);
+      }
       if (!subjectsWithErrors.empty())
       {
         subjectsWithErrors.pop_back();
-        ShowErrorMessage("The following subjects had at least one missing modality: \n" + subjectsWithErrors);
+        ShowErrorMessage("DeepMedic couldn't run the following subjects: \n" + subjectsWithErrors);
       }
 
     }
