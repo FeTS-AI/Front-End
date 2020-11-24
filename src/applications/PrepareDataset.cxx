@@ -87,6 +87,25 @@ int main(int argc, char** argv)
 
   auto csvContents = GetCSVContents(inputCSV);
 
+  if (csvContents.empty())
+  {
+    std::cerr << "Parsed CSV data structure is empty, cannot proceed.\n";
+    return EXIT_FAILURE;
+  }
+
+  // set up the output directories
+  auto outputDir_qc = cbica::normPath(outputDir + "/DataForQC");
+  auto outputDir_final = cbica::normPath(outputDir + "/DataForFeTS");
+
+  // iterate through all subjects
+  for (size_t i = 0; i < csvContents.size(); i++)
+  {
+    auto subjectID = csvContents[i]["ID"];
+    auto file_t1 = csvContents[i]["T1"];
+    auto file_t1c = csvContents[i]["T1GD"];
+    auto file_t2 = csvContents[i]["T2"];
+    auto file_fl = csvContents[i]["FLAIR"];
+  }
 
   return EXIT_SUCCESS;
 }
