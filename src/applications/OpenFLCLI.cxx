@@ -96,7 +96,7 @@ int main(int argc, char** argv)
   if (!cbica::isFile(hardcodedPythonPath))
   {
     std::cerr << "The python virtual environment was not found, please refer to documentation to initialize it.\n";
-    return;
+    return EXIT_FAILURE;
   }
 
   std::string fullCommandToRun = hardcodedPythonPath + " " + fetsApplicationPath;
