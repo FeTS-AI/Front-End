@@ -21,7 +21,7 @@ int main(int argc, char** argv)
   parser.addRequiredParameter("t2", "t2Image", cbica::Parameter::STRING, "Input Image (DICOM or NIfTI)", "Input structural T2-weighted contrast image");
   parser.addRequiredParameter("fl", "flImage", cbica::Parameter::STRING, "Input Image (DICOM or NIfTI)", "Input structural FLAIR contrast image");
   parser.addRequiredParameter("o", "outputDir", cbica::Parameter::DIRECTORY, "Directory", "Output directory for final output");
-  parser.addOptionalParameter("s", "skullStrip", cbica::Parameter::BOOLEAN, "0 or 1", "Flag whether to skull strip or not", "Defaults to 0", "This uses DeepMedic: https://cbica.github.io/CaPTk/seg_DL.html");
+  parser.addOptionalParameter("s", "skullStrip", cbica::Parameter::BOOLEAN, "0 or 1", "Flag whether to skull strip or not", "Defaults to 1", "This uses DeepMedic: https://cbica.github.io/CaPTk/seg_DL.html");
   parser.addOptionalParameter("b", "brainTumor", cbica::Parameter::BOOLEAN, "0 or 1", "Flag whether to segment brain tumors or not", "Defaults to 0", "This uses DeepMedic: https://cbica.github.io/CaPTk/seg_DL.html");
   parser.addOptionalParameter("d", "debug", cbica::Parameter::BOOLEAN, "0 or 1", "Print debugging information", "Defaults to 1");
   parser.addOptionalParameter("i", "interFiles", cbica::Parameter::BOOLEAN, "0 or 1", "Save intermediate files", "Defaults to 1");
@@ -35,7 +35,7 @@ int main(int argc, char** argv)
 
   std::string outputDir;
 
-  bool debug = true, intermediateFiles = true, skullStrip = false, brainTumor = false;
+  bool debug = true, intermediateFiles = true, skullStrip = true, brainTumor = false;
 
   parser.getParameterValue("t1c", inputFiles["T1CE"]);
   parser.getParameterValue("t1", inputFiles["T1"]);
@@ -72,6 +72,12 @@ int main(int argc, char** argv)
   // sanity checks
   for (auto it = inputFiles.begin(); it != inputFiles.end(); it++)
   {
+    if (it->second.find(" ") != std::string::npos) // check for spaces in path
+    {
+      std::cerr << "Please ensure there are no spaces in the path, this causes issues in downstream processing.\n";
+      return EXIT_FAILURE;
+    }
+
     if (!cbica::exists(it->second))
     {
       std::cerr << "Couldn't find the modality '" << it->first << "', denoted by '" << it->second << "'.\n";
@@ -107,8 +113,7 @@ int main(int argc, char** argv)
   {
     auto modality = it->first;
     /// [1] read image - DICOM to NIfTI conversion, if applicable
-    inputImages[modality] = ImageType::New();
-    //inputImages[modality] = cbica::ReadImage< ImageType >(it->second);
+    inputImages[modality] = cbica::ReadImage< ImageType >(it->second);
 
     if (inputImages[modality].IsNull() && cbica::IsDicom(it->second))
     {
@@ -123,9 +128,9 @@ int main(int argc, char** argv)
 #endif
 #else
 #if WIN32
-      m_exe = cbica::getExecutablePath() + "../../src/applications/individualApps/dcm2niix" + "/dcm2niix.exe";
+      m_exe = std::string(PROJECT_SOURCE_DIR) + "/src/applications/individualApps/dcm2niix/dcm2niix.exe";
 #else
-      m_exe = cbica::getExecutablePath() + "../../src/applications/individualApps/dcm2niix" + "/dcm2niix";
+      m_exe = std::string(PROJECT_SOURCE_DIR) + "/src/applications/individualApps/dcm2niix/dcm2niix";
 #endif
 #endif
 
@@ -137,7 +142,7 @@ int main(int argc, char** argv)
 
       auto tempOutput = cbica::createTemporaryDirectory();
       //construct command
-      std::string fullCommandToRun = cbica::normPath(m_exe) + " -o " + cbica::normPath(tempOutput) + " -z y " + cbica::normPath(dicomFolderPath);
+      std::string fullCommandToRun = cbica::normPath(m_exe) + " -o " + cbica::normPath(tempOutput) + " -z y \"" + cbica::normPath(dicomFolderPath) + "\"";
 
       //run command via system call
       if (std::system((fullCommandToRun).c_str()) != 0)
@@ -152,6 +157,7 @@ int main(int argc, char** argv)
         if (cbica::getFilenameExtension(filesInDir[i]) == ".nii.gz")
         {
           inputImages[modality] = cbica::ReadImage< ImageType >(filesInDir[i]);
+          break;
         }
       }
       cbica::removeDirectoryRecursively(tempOutput, true);
@@ -202,7 +208,7 @@ int main(int argc, char** argv)
     }
     else
     {
-      inputReorientedFiles[modality] = outputDir + "/" + modality + "_rai.nii.gz";
+      inputReorientedFiles[modality] = outputDir + "/raw_rai_" + modality + ".nii.gz";
       // the re-oriented images need to be written because these are passed on to greedy
       cbica::WriteImage< ImageType >(inputImages_processed[modality], inputReorientedFiles[modality]);
     }
@@ -215,7 +221,7 @@ int main(int argc, char** argv)
     }
 
     // the bias-corrected images need to be written because these are passed on to greedy
-    inputReorientedBiasFiles[modality] = outputDir + "/" + modality + "_rai_n4.nii.gz";
+    inputReorientedBiasFiles[modality] = outputDir + "/raw_rai_n4" + modality + ".nii.gz";
 
     if (!cbica::fileExists(inputReorientedBiasFiles[modality]))
     {
@@ -269,7 +275,7 @@ int main(int argc, char** argv)
   auto atlasImage = captkDataDir + "/sri24/atlasImage.nii.gz";
   outputMatFiles["T1CE"] = outputDir + "/" + outputNames["T1CE"] + ".mat";
   outputRegisteredImages["T1CE"] = outputDir + "/" + outputNames["T1CE"] + ".nii.gz";
-  outputRegisteredMaskedImages["T1CE"] = outputDir + "/" + outputNames["T1CE"] + "_brain.nii.gz";
+  outputRegisteredMaskedImages["T1CE"] = outputDir + "/brain_t1gd.nii.gz";
 
   std::string fullCommand;
 
@@ -314,7 +320,7 @@ int main(int argc, char** argv)
     {
       outputMatFiles[modality] = outputDir + "/" + outputNames[modality] + ".mat";
       outputRegisteredImages[modality] = outputDir + "/" + modality + "_to_SRI.nii.gz";
-      outputRegisteredMaskedImages[modality] = outputDir + "/" + modality + "_to_SRI_brain.nii.gz";
+      outputRegisteredMaskedImages[modality] = outputDir + "/brain_" + modality + ".nii.gz";
 
       if (!cbica::exists(outputMatFiles[modality]))
       {
