@@ -107,17 +107,67 @@ int main(int argc, char** argv)
   {
     auto modality = it->first;
     /// [1] read image - DICOM to NIfTI conversion, if applicable
-    inputImages[modality] = cbica::ReadImage< ImageType >(it->second);
+    inputImages[modality] = ImageType::New();
+    //inputImages[modality] = cbica::ReadImage< ImageType >(it->second);
+
+    if (inputImages[modality].IsNull() && cbica::IsDicom(it->second))
+    {
+      auto dicomFolderPath = cbica::getFilenamePath(it->second);
+      // construct path to dcm2niix for debug/release modes and different OS
+      std::string m_exe;
+#ifdef CAPTK_PACKAGE_PROJECT
+#if WIN32
+      m_exe = cbica::getExecutablePath() + "/dcm2niix.exe";
+#else
+      m_exe = cbica::getExecutablePath() + "/dcm2niix";
+#endif
+#else
+#if WIN32
+      m_exe = cbica::getExecutablePath() + "../../src/applications/individualApps/dcm2niix" + "/dcm2niix.exe";
+#else
+      m_exe = cbica::getExecutablePath() + "../../src/applications/individualApps/dcm2niix" + "/dcm2niix";
+#endif
+#endif
+
+      if (!cbica::isFile(m_exe))
+      {
+        std::cerr << "Couldn't find the dcm2niix executable, which was expected in '" << cbica::normalizePath(m_exe) << "'.\n";
+        return EXIT_FAILURE;
+      }
+
+      auto tempOutput = cbica::createTemporaryDirectory();
+      //construct command
+      std::string fullCommandToRun = cbica::normPath(m_exe) + " -o " + cbica::normPath(tempOutput) + " -z y " + cbica::normPath(dicomFolderPath);
+
+      //run command via system call
+      if (std::system((fullCommandToRun).c_str()) != 0)
+      {
+        std::cerr << "Something went wrong during dicom to nifti conversion, please re-try or contact sofware@cbica.upenn.edu.\n";
+        return EXIT_FAILURE;
+      }
+
+      auto filesInDir = cbica::filesInDirectory(tempOutput);
+      for (size_t i = 0; i < filesInDir.size(); i++)
+      {
+        if (cbica::getFilenameExtension(filesInDir[i]) == ".nii.gz")
+        {
+          inputImages[modality] = cbica::ReadImage< ImageType >(filesInDir[i]);
+        }
+      }
+      cbica::removeDirectoryRecursively(tempOutput, true);
+    }
 
     if (inputImages[modality].IsNotNull())
     {
+      auto fileToWrite = outputDir + "/raw_" + modality + ".nii.gz";
+
       if (intermediateFiles)
       {
         if (debug)
         {
           std::cout << "Writing raw input (post DICOM conversion, if applicable) for modality '" << modality << "'.\n";
         }
-        cbica::WriteImage< ImageType >(inputImages[modality], outputDir + "/" + modality + "_raw.nii.gz");
+        cbica::WriteImage< ImageType >(inputImages[modality], fileToWrite);
       }
     }
     else
