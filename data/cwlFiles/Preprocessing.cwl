@@ -245,4 +245,4 @@ hints:
     packages:
       Preprocessing:
         version:
-          - 0.0.1.nonRelease
+          - 0.0.1
