@@ -41,7 +41,7 @@ std::vector< std::map< std::string, std::string > > GetCSVContents(const std::st
         }
         else if ((temp == "t2flair") || (temp == "flair") || (temp == "fl"))
         { 
-          headers.push_back("T1");
+          headers.push_back("FLAIR");
         }
       }
       else
@@ -96,7 +96,19 @@ int main(int argc, char** argv)
   // set up the output directories
   auto outputDir_qc = cbica::normPath(outputDir + "/DataForQC");
   auto outputDir_final = cbica::normPath(outputDir + "/DataForFeTS");
+  cbica::createDir(outputDir);
+  cbica::createDir(outputDir_qc);
+  cbica::createDir(outputDir_final);
 
+  std::string bratsPipeline_exe = cbica::getExecutablePath() + "/BraTSPipeline";
+#if WIN32
+  bratsPipeline_exe += ".exe";
+#endif
+  if (!cbica::isFile(bratsPipeline_exe))
+  {
+    std::cerr << "BraTSPipeline was not found in the installation, cannot proceed.\n";
+    return EXIT_FAILURE;
+  }
   // iterate through all subjects
   for (size_t i = 0; i < csvContents.size(); i++)
   {
@@ -105,6 +117,23 @@ int main(int argc, char** argv)
     auto file_t1c = csvContents[i]["T1GD"];
     auto file_t2 = csvContents[i]["T2"];
     auto file_fl = csvContents[i]["FLAIR"];
+
+    auto interimOutputDir = outputDir_qc + "/" + subjectID;
+    auto finalSubjectOutputDir = outputDir_final + "/" + subjectID;
+    cbica::createDir(finalSubjectOutputDir);
+
+    auto command = bratsPipeline_exe + " -t1 " + csvContents[i]["T1"] + " -t1c " + csvContents[i]["T1GD"] + " -t2 " + csvContents[i]["T2"] + " -fl " + csvContents[i]["FLAIR"] + " -o " + interimOutputDir + " -s 1";
+    if (std::system(command.c_str()) != 0)
+    {
+      std::cerr << "BraTSPipeline failed for subject " << csvContents[i]["ID"] << "\n";
+    }
+    else
+    {
+      cbica::copyFile(interimOutputDir + "/brain_T1GD.nii.gz", finalSubjectOutputDir + "/brain_t1gd.nii.gz");
+      cbica::copyFile(interimOutputDir + "/brain_T1.nii.gz", finalSubjectOutputDir + "/brain_t1.nii.gz");
+      cbica::copyFile(interimOutputDir + "/brain_T2.nii.gz", finalSubjectOutputDir + "/brain_t2.nii.gz");
+      cbica::copyFile(interimOutputDir + "/brain_FLAIR.nii.gz", finalSubjectOutputDir + "/brain_flair.nii.gz");
+    }
   }
 
   return EXIT_SUCCESS;
