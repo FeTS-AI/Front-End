@@ -5967,21 +5967,94 @@ void fMainWindow::OnSegmentationClicked()
     return;
   }
 
-  // todo: uncomment this when more algorithms are integrated
-  //if (allSegmentationsOptions.empty())
-  //{
-  //  ShowErrorMessage("No models have been selected for inference. Please select at least 1 and re-try.");
-  //  return;
-  //}
+  if (allSegmentationsOptions.empty())
+  {
+    ShowErrorMessage("No models have been selected for inference. Please select at least 1 and re-try.");
+    return;
+  }
 
-  //if (allSegmentationsOptions.size() > 1)
-  //{
-  //  if (allFusionOptions.empty())
-  //  {
-  //    ShowErrorMessage("No fusion methods have been selected. If there are more than 1 models selected for inference, at least 1 fusion method is needed.");
-  //    return;
-  //  }
-  //}
+  if (allSegmentationsOptions.size() > 1)
+  {
+    if (allFusionOptions.empty())
+    {
+      ShowErrorMessage("No fusion methods have been selected. If there are more than 1 models selected for inference, at least 1 fusion method is needed.");
+      return;
+    }
+  }
+
+  for (size_t i = 0; i < allSegmentationsOptions.size(); i++)
+  {
+    if (allSegmentationsOptions[i] == "DeepMedic")
+    {
+      auto deepMedicExe = getApplicationPath("DeepMedic");
+
+      auto subDirs = cbica::subdirectoriesInDirectory(inputDir);
+
+      std::string subjectsWithErrors;
+
+      for (size_t s = 0; s < subDirs.size(); s++)
+      {
+        std::string file_t1gd, file_t1, file_t2, file_flair;
+        auto fileToCheck = inputDir + "/" + subDirs[s] + "/brain_t1gd.nii.gz";
+        if (cbica::fileExists(fileToCheck))
+        {
+          file_t1gd = fileToCheck;
+        }
+        else
+        {
+          subjectsWithErrors += subDirs[s];
+        }
+
+        fileToCheck = inputDir + "/" + subDirs[s] + "/brain_t1.nii.gz";
+        if (cbica::fileExists(fileToCheck))
+        {
+          file_t1 = fileToCheck;
+        }
+        else
+        {
+          subjectsWithErrors += subDirs[s];
+        }
+        fileToCheck = inputDir + "/" + subDirs[s] + "/brain_t2.nii.gz";
+        if (cbica::fileExists(fileToCheck))
+        {
+          file_t2 = fileToCheck;
+        }
+        else
+        {
+          subjectsWithErrors += subDirs[s];
+        }
+        fileToCheck = inputDir + "/" + subDirs[s] + "/brain_flair.nii.gz";
+        if (cbica::fileExists(fileToCheck))
+        {
+          file_flair = fileToCheck;
+        }
+        else
+        {
+          subjectsWithErrors += subDirs[s] + ",";
+        }
+
+        if (subjectsWithErrors.empty())
+        {
+          auto brainMaskFile = inputDir + "/" + subDirs[s] + "/deepmedic_seg.nii.gz";
+
+          auto fullCommand = deepMedicExe + " -md " + getCaPTkDataDir() + "/fets/deepMedic/saved_models/brainTumorSegmentation/ " +
+          "-i " + file_t1 + "," +
+          file_t1gd + "," +
+          file_t2 + "," +
+          file_flair + " -o " +
+          brainMaskFile;
+          std::system(fullCommand.c_str());
+        }
+      }
+
+      if (!subjectsWithErrors.empty())
+      {
+        subjectsWithErrors.pop_back();
+        ShowErrorMessage("The following subjects had at least one missing modality: \n" + subjectsWithErrors);
+      }
+
+    }
+  }
   
   QString hardcodedPlanName,
     hardcodedModelWeightPath = (captk_currentApplicationPath + "/OpenFederatedLearning/bin/federations/weights/").c_str(), // start with the common location
