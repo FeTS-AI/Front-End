@@ -14,13 +14,15 @@ sudo apt install python3.6 python3.6-venv python3.6-dev
   - [CUDA 9.2+](https://developer.nvidia.com/cuda-toolkit)
   - [Compatible cuDNN](https://developer.nvidia.com/cudnn)
   - 11GB dedicated VRAM
-- 48GB RAM for CPU-only tasks
+  - 40GB RAM
+- 80GB RAM for CPU-only tasks
 - Read/write access to the data for processing
 - Data requirements for Phase-1 Validation: 
-	- Glioblastoma (GBM) patients
-	- 4 structural modalities - T1 pre and post contrast, T2 and Flair
-	- At least 90 cases
-	- Tumor regions (as defined in BraTS challenge):
+  - Glioblastoma (GBM) patients
+  - 4 structural modalities - T1 pre and post contrast, T2 and T2-Flair
+  - Scanned along axial axis
+  - At least 90 cases
+  - Tumor regions (as defined in BraTS challenge):
     - Edema - ED
     - Enhancing - ET
     - Necrotic + Non-Enhancing-Tumor core - NET
