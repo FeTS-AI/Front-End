@@ -132,7 +132,7 @@ int main(int argc, char** argv)
       cbica::copyFile(interimOutputDir + "/brain_T1CE.nii.gz", finalSubjectOutputDir + "/brain_t1gd.nii.gz");
       cbica::copyFile(interimOutputDir + "/brain_T1.nii.gz", finalSubjectOutputDir + "/brain_t1.nii.gz");
       cbica::copyFile(interimOutputDir + "/brain_T2.nii.gz", finalSubjectOutputDir + "/brain_t2.nii.gz");
-      cbica::copyFile(interimOutputDir + "/brain_FLAIR.nii.gz", finalSubjectOutputDir + "/brain_flair.nii.gz");
+      cbica::copyFile(interimOutputDir + "/brain_FL.nii.gz", finalSubjectOutputDir + "/brain_flair.nii.gz");
     }
   }
 
