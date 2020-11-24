@@ -5,6 +5,7 @@
 
 #include "cbicaCmdParser.h"
 #include "cbicaUtilities.h"
+#include "CaPTkGUIUtils.h"
 
 std::vector< std::map< std::string, std::string > > GetCSVContents(const std::string &fileName)
 {
@@ -128,10 +129,8 @@ int main(int argc, char** argv)
   cbica::createDir(outputDir_qc);
   cbica::createDir(outputDir_final);
 
-  std::string bratsPipeline_exe = cbica::getExecutablePath() + "/BraTSPipeline";
-#if WIN32
-  bratsPipeline_exe += ".exe";
-#endif
+  auto bratsPipeline_exe = getApplicationPath("BraTSPipeline");
+
   if (!cbica::isFile(bratsPipeline_exe))
   {
     std::cerr << "BraTSPipeline was not found in the installation, cannot proceed.\n";
@@ -140,14 +139,10 @@ int main(int argc, char** argv)
   // iterate through all subjects
   for (size_t i = 0; i < csvContents.size(); i++)
   {
-    auto subjectID = csvContents[i]["ID"];
-    auto file_t1 = csvContents[i]["T1"];
-    auto file_t1c = csvContents[i]["T1GD"];
-    auto file_t2 = csvContents[i]["T2"];
-    auto file_fl = csvContents[i]["FLAIR"];
+    std::cout << "Started processing subject '" << csvContents[i]["ID"] << "'\n";
 
-    auto interimOutputDir = outputDir_qc + "/" + subjectID;
-    auto finalSubjectOutputDir = outputDir_final + "/" + subjectID;
+    auto interimOutputDir = outputDir_qc + "/" + csvContents[i]["ID"];
+    auto finalSubjectOutputDir = outputDir_final + "/" + csvContents[i]["ID"];
     cbica::createDir(finalSubjectOutputDir);
 
     auto command = bratsPipeline_exe + " -t1 " + csvContents[i]["T1"] + " -t1c " + csvContents[i]["T1GD"] + " -t2 " + csvContents[i]["T2"] + " -fl " + csvContents[i]["FLAIR"] + " -o " + interimOutputDir + " -s 1";
