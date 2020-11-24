@@ -1,3 +1,8 @@
+#include <array>
+#include <stdio.h>
+#include <iostream>
+#include <fstream>
+
 #include "cbicaCmdParser.h"
 #include "cbicaUtilities.h"
 
@@ -71,6 +76,29 @@ std::vector< std::map< std::string, std::string > > GetCSVContents(const std::st
   return csvContents;
 }
 
+std::string getStdoutFromCommand(const std::string command)
+{
+  std::array<char, 256> buffer;
+  std::string result;
+#ifdef WIN32
+#define PCLOSE _pclose
+#define POPEN _popen
+#else
+#define PCLOSE pclose
+#define POPEN popen
+#endif
+  std::unique_ptr<FILE, decltype(&PCLOSE)> pipe(POPEN(command.c_str(), "r"), PCLOSE);
+  if (!pipe)
+  {
+    throw std::runtime_error("popen() failed!");
+  }
+  while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr)
+  {
+    result += buffer.data();
+  }
+  return result;
+}
+
 int main(int argc, char** argv)
 {
   cbica::CmdParser parser(argc, argv, "PrepareDataset");
@@ -123,16 +151,45 @@ int main(int argc, char** argv)
     cbica::createDir(finalSubjectOutputDir);
 
     auto command = bratsPipeline_exe + " -t1 " + csvContents[i]["T1"] + " -t1c " + csvContents[i]["T1GD"] + " -t2 " + csvContents[i]["T2"] + " -fl " + csvContents[i]["FLAIR"] + " -o " + interimOutputDir + " -s 1";
-    if (std::system(command.c_str()) != 0)
+
+    auto log = getStdoutFromCommand(command);
+    std::ofstream myfile;
+    myfile.open(interimOutputDir + "/log.txt");
+    myfile << log;
+    myfile.close();
+
+    auto msg = "BraTSPipeline failed for subject " + csvContents[i]["ID"];
+    if (cbica::isFile(interimOutputDir + "/brain_T1CE.nii.gz"))
     {
-      std::cerr << "BraTSPipeline failed for subject " << csvContents[i]["ID"] << "\n";
+      cbica::copyFile(interimOutputDir + "/brain_T1CE.nii.gz", finalSubjectOutputDir + "/brain_t1gd.nii.gz");
     }
     else
     {
-      cbica::copyFile(interimOutputDir + "/brain_T1CE.nii.gz", finalSubjectOutputDir + "/brain_t1gd.nii.gz");
+      std::cerr << msg << "\n";
+    }
+    if (cbica::isFile(interimOutputDir + "/brain_T1.nii.gz"))
+    {
       cbica::copyFile(interimOutputDir + "/brain_T1.nii.gz", finalSubjectOutputDir + "/brain_t1.nii.gz");
+    }
+    else
+    {
+      std::cerr << msg << "\n";
+    }
+    if (cbica::isFile(interimOutputDir + "/brain_T2.nii.gz"))
+    {
       cbica::copyFile(interimOutputDir + "/brain_T2.nii.gz", finalSubjectOutputDir + "/brain_t2.nii.gz");
+    }
+    else
+    {
+      std::cerr << msg << "\n";
+    }
+    if (cbica::isFile(interimOutputDir + "/brain_FL.nii.gz"))
+    {
       cbica::copyFile(interimOutputDir + "/brain_FL.nii.gz", finalSubjectOutputDir + "/brain_flair.nii.gz");
+    }
+    else
+    {
+      std::cerr << msg << "\n";
     }
   }
 
