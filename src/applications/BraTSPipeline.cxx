@@ -43,10 +43,7 @@ int main(int argc, char** argv)
   parser.getParameterValue("fl", inputFiles["FL"]);
   parser.getParameterValue("o", outputDir);
 
-  if (!cbica::isDir)
-  {
-    cbica::createDir(outputDir);
-  }
+  cbica::createDir(outputDir);
 
   if (parser.isPresent("s"))
   {
@@ -275,7 +272,7 @@ int main(int argc, char** argv)
   auto atlasImage = captkDataDir + "/sri24/atlasImage.nii.gz";
   outputMatFiles["T1CE"] = outputDir + "/" + outputNames["T1CE"] + ".mat";
   outputRegisteredImages["T1CE"] = outputDir + "/" + outputNames["T1CE"] + ".nii.gz";
-  outputRegisteredMaskedImages["T1CE"] = outputDir + "/brain_T1GD.nii.gz";
+  outputRegisteredMaskedImages["T1CE"] = outputDir + "/brain_T1CE.nii.gz";
 
   std::string fullCommand;
 
