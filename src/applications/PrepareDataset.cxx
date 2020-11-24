@@ -18,10 +18,38 @@ std::vector< std::map< std::string, std::string > > GetCSVContents(const std::st
     {
       if (i == 0)
       {
-        headers.push_back(cell);
+        auto temp = cell;
+        std::transform(temp.begin(), temp.end(), temp.begin(), ::tolower);
+        temp = cbica::stringReplace(temp, "-", ""); // remove all hyphens
+        temp = cbica::stringReplace(temp, "_", ""); // remove all underscores
+
+        if ((temp == "patientid") || (temp == "subjectid") || (temp == "subject") || (temp == "subid"))
+        {
+          headers.push_back("ID");
+        }
+        else if ((temp == "t1gd") || (temp == "t1ce") || (temp == "t1post"))
+        {
+          headers.push_back("T1GD");
+        }
+        else if ((temp == "t1") || (temp == "t1pre"))
+        {
+          headers.push_back("T1");
+        }
+        else if (temp == "t2")
+        {
+          headers.push_back("T2");
+        }
+        else if ((temp == "t2flair") || (temp == "flair") || (temp == "fl"))
+        { 
+          headers.push_back("T1");
+        }
       }
       else
       {
+        if (headers.size() != 5)
+        {
+          std::cerr << "All required headers were not found in CSV. Please ensure the following are present: 'PatientID,T1,T1GD,T2,T2FLAIR'";
+        }
         if (cell.find(" ") != std::string::npos)
         {
           std::cerr << "Please ensure that there are no spaces in the file paths.";
