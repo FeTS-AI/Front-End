@@ -14,19 +14,19 @@ Input_Data
 │
 └───Patient_001
 │   │
-│   └───Patient_001_T1
+│   └───T1
 │       │   image_001.dcm
 │       │   image_002.dcm
 │       │   ...
-│   └───Patient_001_T1GD
+│   └───T1GD
 │       │   image_001.dcm
 │       │   image_002.dcm
 │       │   ...
-│   └───Patient_001_T2
+│   └───T2
 │       │   image_001.dcm
 │       │   image_002.dcm
 │       │   ...
-│   └───Patient_001_T2FLAIR
+│   └───T2FLAIR
 │       │   image_001.dcm
 │       │   image_002.dcm
 │       │   ...
