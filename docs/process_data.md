@@ -37,10 +37,10 @@ Input_Data
 - Construct a CSV (let's call this **raw_data.csv**) containing the first DICOM images from each modality:
 ```
 PatientID,T1,T1GD,T2,T2FLAIR
-Patient_001,/path/to/T1/image_001.dcm,/path/to/T1GD/image_001.dcm,/path/to/T2/image_001.dcm,/path/to/T2FLAIR/image_001.dcm
-Patient_002,/path/to/T1/image_001.dcm,/path/to/T1GD/image_001.dcm,/path/to/T2/image_001.dcm,/path/to/T2FLAIR/image_001.dcm
+Patient_001,/path/to/Patient_001/T1/image_001.dcm,/path/to/Patient_001/T1GD/image_001.dcm,/path/to/Patient_001/T2/image_001.dcm,/path/to/Patient_001/T2FLAIR/image_001.dcm
+Patient_002,/path/to/Patient_002/T1/image_001.dcm,/path/to/Patient_002/T1GD/image_001.dcm,/path/to/Patient_002/T2/image_001.dcm,/path/to/Patient_002/T2FLAIR/image_001.dcm
 ...
-Patient_X,/path/to/T1/image_001.dcm,/path/to/T1GD/image_001.dcm,/path/to/T2/image_001.dcm,/path/to/T2FLAIR/image_001.dcm
+Patient_X,/path/to/Patient_X/T1/image_001.dcm,/path/to/Patient_X/T1GD/image_001.dcm,/path/to/Patient_X/T2/image_001.dcm,/path/to/Patient_X/T2FLAIR/image_001.dcm
 ```
 - Pass **raw_data.csv** as an input, along with an output directory, to the `PrepareDataset` executable (which interally calls the `BraTSPipeline` executable):
 ```bash
@@ -51,7 +51,7 @@ ${fets_root_dir}/bin/PrepareDataset -i /path/to/raw_data.csv -o /path/to/output
   ```
   DataForFeTS
   │
-  └───Patient_001
+  └───Patient_001 # this is constructed from the ${PatientID} header of CSV
   │   │ brain_t1.nii.gz
   │   │ brain_t1gd.nii.gz
   │   │ brain_t2.nii.gz
@@ -64,7 +64,7 @@ ${fets_root_dir}/bin/PrepareDataset -i /path/to/raw_data.csv -o /path/to/output
   ```
   DataForQC 
   │
-  └───Patient_001
+  └───Patient_001 # this is constructed from the ${PatientID} header of CSV
   │   │ raw_${modality}.nii.gz
   │   │ raw_rai_${modality}.nii.gz
   │   │ raw_rai_n4_${modality}.nii.gz
