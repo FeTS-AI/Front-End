@@ -80,7 +80,15 @@ int main(int argc, char** argv)
     std::cerr << "Training cannot be currently be performed on more than 1 architecture.\n";
     return EXIT_FAILURE;
   }
-  
+
+  std::string hardcodedPlanName,
+    hardcodedOpenFLPath = (fetsApplicationPath + "/OpenFederatedLearning/"),
+    hardcodedModelWeightPath = (hardcodedOpenFLPath + "/bin/federations/weights/"), // start with the common location
+    hardcodedPythonPath = (hardcodedOpenFLPath + "/venv/bin/python"), // this needs to change for Windows (wonder what happens for macOS?)
+    hardcodedModelName = "",
+    args = "",
+    specialArgs = "";
+
   if (!trainingRequested)
   {
     std::string subjectsWithMissingModalities, subjectsWithErrors; // string to store error cases
@@ -134,7 +142,7 @@ int main(int argc, char** argv)
       {
         for (size_t i = 0; i < archs_split.size(); i++) // iterate through all requested architectures
         {
-          if (archs_split[i] == "deepmedic")
+          if (archs_split[i] == "deepmedic") // special case 
           {
             auto brainMaskFile = dataDir + "/" + subjectDirs[s] + "/deepmedic_seg.nii.gz";
 
@@ -149,25 +157,69 @@ int main(int argc, char** argv)
             {
               subjectsWithErrors += subjectDirs[s] + ",";
             }
+          } // deepmedic check
+          else
+          {
+            // check for all other models written in pytorch here
+            auto fullCommandToRun = hardcodedPythonPath + " " + hardcodedOpenFLPath + "/bin/run_inference_from_flplan.py";
 
+            // check between different architectures
+            if (archs_split[i] == "3dunet")
+            {
+
+            }
+            else if (archs_split[i] == "3dresunet")
+            {
+              hardcodedPlanName = "pt_3dresunet_brainmagebrats";
+              auto hardcodedModelName = hardcodedPlanName + "_best.pbuf";
+              if (!cbica::isFile((hardcodedModelWeightPath + "/" + hardcodedModelName))) // in case the "best" model is not present, use the "init" model that is distributed with FeTS installation
+              {
+                auto hardcodedModelName = hardcodedPlanName + "_init.pbuf";
+                if (!cbica::isFile((hardcodedModelWeightPath + "/" + hardcodedModelName)))
+                {
+                  std::cerr << "A compatible model weight file was not found. Please contact admin@fets.ai for help.\n";
+                  return EXIT_FAILURE;
+                }
+              }
+              specialArgs += "-mwf " + hardcodedModelName;
+
+              args += " -p " + hardcodedPlanName + ".yaml"
+                //<< "-mwf" << hardcodedModelWeightPath // todo: doing customized solution above - change after model weights are using full paths for all
+                + " -d " + dataDir
+                + " -ld " + loggingDir;
+
+              args += " -md ";
+              if (gpuRequested)
+              {
+                args += "cuda";
+              }
+              else
+              {
+                args += "cpu";
+              }
+
+              if (std::system((fullCommandToRun + " " + args + " " + specialArgs).c_str()) != 0)
+              {
+                std::cerr << "Couldn't complete the requested task.\n";
+                return EXIT_FAILURE;
+              }
+
+            }
+            else if (archs_split[i] == "nnunet")
+            {
+              // structure according to what is needed - might need to create a function that can call run_inference_from_flplan for different hardcodedModelName
+            }
           }
         } // end of archs_split
       } // end of currentSubjectIsProblematic 
     } // end of subjectDirs
   } // end of trainingRequested check
 
-  std::string hardcodedPlanName,
-    hardcodedModelWeightPath = (fetsApplicationPath + "/OpenFederatedLearning/bin/federations/weights/"), // start with the common location
-    hardcodedPythonPath = (fetsApplicationPath + "/OpenFederatedLearning/venv/bin/python"), // this needs to change for Windows (wonder what happens for macOS?)
-    hardcodedModelName = "",
-    args = "",
-    specialArgs = "";
-
   if (trainingRequested)
   {
     specialArgs = "-col " + colName;
   }
-  if (modelName.find("_3dresunet_ss") != std::string::npos)
+  if (modelName.find("_3dresunet_ss") != std::string::npos) // let's not worry about skull-stripping right now
   {
     hardcodedPlanName = "pt_3dresunet_ss_brainmagebrats";
     hardcodedModelName = hardcodedModelWeightPath + hardcodedPlanName + "_best.pt"; // taken from https://github.com/FETS-AI/Models/blob/master/skullstripping/3dresunet/pt_3dresunet_ss_brainmagebrats_best.pt
