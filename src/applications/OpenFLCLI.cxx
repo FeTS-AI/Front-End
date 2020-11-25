@@ -59,6 +59,10 @@ int main(int argc, char** argv)
   {
     parser.getParameterValue("g", gpuRequested);
   }
+  if (parser.isPresent("lF"))
+  {
+    parser.getParameterValue("lF", fusionOptions);
+  }
 
   auto fetsApplicationPath = cbica::getExecutablePath();
 
