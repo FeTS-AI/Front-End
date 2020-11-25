@@ -84,10 +84,7 @@ int main(int argc, char** argv)
   std::string hardcodedPlanName,
     hardcodedOpenFLPath = (fetsApplicationPath + "/OpenFederatedLearning/"),
     hardcodedModelWeightPath = (hardcodedOpenFLPath + "/bin/federations/weights/"), // start with the common location
-    hardcodedPythonPath = (hardcodedOpenFLPath + "/venv/bin/python"), // this needs to change for Windows (wonder what happens for macOS?)
-    hardcodedModelName = "",
-    args = "",
-    specialArgs = "";
+    hardcodedPythonPath = (hardcodedOpenFLPath + "/venv/bin/python"); // this needs to change for Windows (wonder what happens for macOS?)
 
   if (!trainingRequested)
   {
@@ -162,28 +159,30 @@ int main(int argc, char** argv)
           {
             // check for all other models written in pytorch here
             auto fullCommandToRun = hardcodedPythonPath + " " + hardcodedOpenFLPath + "/bin/run_inference_from_flplan.py";
+            std::string args = "";
 
             // check between different architectures
             if (archs_split[i] == "3dunet")
             {
-
+              // this is currently not defined
             }
             else if (archs_split[i] == "3dresunet")
             {
               hardcodedPlanName = "pt_3dresunet_brainmagebrats";
               auto hardcodedModelName = hardcodedPlanName + "_best.pbuf";
+              auto allGood = true;
               if (!cbica::isFile((hardcodedModelWeightPath + "/" + hardcodedModelName))) // in case the "best" model is not present, use the "init" model that is distributed with FeTS installation
               {
                 auto hardcodedModelName = hardcodedPlanName + "_init.pbuf";
                 if (!cbica::isFile((hardcodedModelWeightPath + "/" + hardcodedModelName)))
                 {
-                  std::cerr << "A compatible model weight file was not found. Please contact admin@fets.ai for help.\n";
-                  return EXIT_FAILURE;
+                  std::cerr << "A compatible model weight file for the architecture '" << archs_split[i] << "' was not found. Please contact admin@fets.ai for help.\n";
+                  allGood = false;
                 }
               }
-              specialArgs += "-mwf " + hardcodedModelName;
 
-              args += " -p " + hardcodedPlanName + ".yaml"
+              args += "-mwf " + hardcodedModelName 
+                + " -p " + hardcodedPlanName + ".yaml"
                 //<< "-mwf" << hardcodedModelWeightPath // todo: doing customized solution above - change after model weights are using full paths for all
                 + " -d " + dataDir
                 + " -ld " + loggingDir;
@@ -198,7 +197,7 @@ int main(int argc, char** argv)
                 args += "cpu";
               }
 
-              if (std::system((fullCommandToRun + " " + args + " " + specialArgs).c_str()) != 0)
+              if (std::system((fullCommandToRun + " " + args).c_str()) != 0)
               {
                 std::cerr << "Couldn't complete the requested task.\n";
                 return EXIT_FAILURE;
@@ -211,6 +210,9 @@ int main(int argc, char** argv)
             }
           }
         } // end of archs_split
+        
+        /// label fusion ///
+
       } // end of currentSubjectIsProblematic 
     } // end of subjectDirs
   } // end of trainingRequested check
