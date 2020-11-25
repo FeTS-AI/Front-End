@@ -19,6 +19,7 @@ int main(int argc, char** argv)
   parser.addRequiredParameter("L", "LoggingDir", cbica::Parameter::DIRECTORY, "Dir with write access", "Location of logging directory");
   parser.addOptionalParameter("g", "gpu", cbica::Parameter::BOOLEAN, "0-1", "Whether to run the process on GPU or not", "Defaults to '0'");
   parser.addOptionalParameter("c", "colName", cbica::Parameter::STRING, "", "Common name of collaborator", "Required for training");
+  parser.addOptionalParameter("a", "archs", cbica::Parameter::STRING, "", "The architecture(s) to infer/train on", "Only a single architecture is supported for training");
   
   std::string dataDir, modelName, loggingDir, colName;
   bool gpuRequested = false;
