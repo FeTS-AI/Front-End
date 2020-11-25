@@ -42,7 +42,7 @@ Patient_002,/path/to/Patient_002/T1/image_001.dcm,/path/to/Patient_002/T1GD/imag
 ...
 Patient_X,/path/to/Patient_X/T1/image_001.dcm,/path/to/Patient_X/T1GD/image_001.dcm,/path/to/Patient_X/T2/image_001.dcm,/path/to/Patient_X/T2FLAIR/image_001.dcm
 ```
-- Pass **raw_data.csv** as an input, along with an output directory, to the `PrepareDataset` executable (which interally calls the `BraTSPipeline` executable):
+- Pass **raw_data.csv** as an input, along with an output directory, to the `PrepareDataset` executable (which internally calls the `BraTSPipeline` executable):
 ```bash
 ${fets_root_dir}/bin/PrepareDataset -i /path/to/raw_data.csv -o /path/to/output
 ```
