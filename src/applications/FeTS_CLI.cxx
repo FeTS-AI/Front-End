@@ -40,11 +40,11 @@ int main(int argc, char** argv)
   parser.getParameterValue("m", modelName);
   parser.getParameterValue("L", loggingDir);
   parser.getParameterValue("a", archs);
+  parser.getParameterValue("t", trainingRequested);
 
 
-  if (parser.isPresent("t"))
+  if (trainingRequested)
   {
-    parser.getParameterValue("t", trainingRequested);
     if (parser.isPresent("c"))
     {
       parser.getParameterValue("c", colName);
@@ -64,7 +64,20 @@ int main(int argc, char** argv)
     parser.getParameterValue("lF", fusionOptions);
   }
 
+  // convert everything to lower-case for easier comparison
+  std::transform(archs.begin(), archs.end(), archs.begin(), ::tolower);
+  std::transform(fusionOptions.begin(), fusionOptions.end(), fusionOptions.begin(), ::tolower);
+
   auto fetsApplicationPath = cbica::getExecutablePath();
+  auto deepMedicExe = getApplicationPath("DeepMedic");
+
+  auto archs_split = cbica::stringSplit(archs, ",");
+
+  if (trainingRequested && (archs_split.size() > 1))
+  {
+    std::cerr << "Training cannot be currently be performed on more than 1 architecture.\n";
+    return EXIT_FAILURE;
+  }
 
   std::string hardcodedPlanName,
     hardcodedModelWeightPath = (fetsApplicationPath + "/OpenFederatedLearning/bin/federations/weights/"), // start with the common location
