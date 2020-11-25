@@ -9,7 +9,6 @@
 
 #include <map>
 
-
 int main(int argc, char** argv)
 {
   cbica::CmdParser parser(argc, argv, "OpenFLCLI");
@@ -72,12 +71,90 @@ int main(int argc, char** argv)
   auto deepMedicExe = getApplicationPath("DeepMedic");
 
   auto archs_split = cbica::stringSplit(archs, ",");
+  auto fusion_split = cbica::stringSplit(fusionOptions, ",");
+
+  auto subjectDirs = cbica::subdirectoriesInDirectory(dataDir);
 
   if (trainingRequested && (archs_split.size() > 1))
   {
     std::cerr << "Training cannot be currently be performed on more than 1 architecture.\n";
     return EXIT_FAILURE;
   }
+  
+  if (!trainingRequested)
+  {
+    std::string subjectsWithMissingModalities, subjectsWithErrors; // string to store error cases
+    for (size_t s = 0; s < subjectDirs.size(); s++) // iterate through all subjects
+    {
+      auto currentSubjectIsProblematic = false;
+      std::string file_t1gd, file_t1, file_t2, file_flair;
+      auto fileToCheck = dataDir + "/" + subjectDirs[s] + "/brain_t1gd.nii.gz";
+      if (cbica::fileExists(fileToCheck))
+      {
+        file_t1gd = fileToCheck;
+      }
+      else
+      {
+        subjectsWithMissingModalities += subjectDirs[s] + ",";
+        currentSubjectIsProblematic = true;
+      }
+
+      fileToCheck = dataDir + "/" + subjectDirs[s] + "/brain_t1.nii.gz";
+      if (cbica::fileExists(fileToCheck))
+      {
+        file_t1 = fileToCheck;
+      }
+      else
+      {
+        subjectsWithMissingModalities += subjectDirs[s] + ",";
+        currentSubjectIsProblematic = true;
+      }
+      fileToCheck = dataDir + "/" + subjectDirs[s] + "/brain_t2.nii.gz";
+      if (cbica::fileExists(fileToCheck))
+      {
+        file_t2 = fileToCheck;
+      }
+      else
+      {
+        subjectsWithMissingModalities += subjectDirs[s] + ",";
+        currentSubjectIsProblematic = true;
+      }
+      fileToCheck = dataDir + "/" + subjectDirs[s] + "/brain_flair.nii.gz";
+      if (cbica::fileExists(fileToCheck))
+      {
+        file_flair = fileToCheck;
+      }
+      else
+      {
+        subjectsWithMissingModalities += subjectDirs[s] + ",";
+        currentSubjectIsProblematic = true;
+      }
+
+      if (!currentSubjectIsProblematic) // proceed only if all modalities for the current subject are present
+      {
+        for (size_t i = 0; i < archs_split.size(); i++) // iterate through all requested architectures
+        {
+          if (archs_split[i] == "deepmedic")
+          {
+            auto brainMaskFile = dataDir + "/" + subjectDirs[s] + "/deepmedic_seg.nii.gz";
+
+            auto fullCommand = deepMedicExe + " -md " + getCaPTkDataDir() + "/fets/deepMedic/saved_models/brainTumorSegmentation/ " +
+              "-i " + file_t1 + "," +
+              file_t1gd + "," +
+              file_t2 + "," +
+              file_flair + " -o " +
+              brainMaskFile;
+
+            if (std::system(fullCommand.c_str()) != 0)
+            {
+              subjectsWithErrors += subjectDirs[s] + ",";
+            }
+
+          }
+        } // end of archs_split
+      } // end of currentSubjectIsProblematic 
+    } // end of subjectDirs
+  } // end of trainingRequested check
 
   std::string hardcodedPlanName,
     hardcodedModelWeightPath = (fetsApplicationPath + "/OpenFederatedLearning/bin/federations/weights/"), // start with the common location
