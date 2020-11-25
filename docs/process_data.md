@@ -8,9 +8,39 @@ For the first application of FeTS in volumetric brain tumor MRI scans, you shoul
   - T1-weighted post-contrast (T1Gd)
   - T2-weighted (T2)
   - T2 Fluid Attenuated Inversion Recovery (T2-FLAIR)
-- Convert the DICOM files to NIfTI: feel free to use your preferred tool or via the `Utilities` executable:
-```bash
-${fets_root_dir}/bin/Utilities -i C:/test/1.dcm -o C:/test.nii.gz -d2n
+- Each subject's DICOM (or NIfTI) image is to be put in a separate folder:
+```
+Input_Data
+│
+└───Patient_001
+│   │
+│   └───Patient_001_T1
+│       │   image_001.dcm
+│       │   image_002.dcm
+│       │   ...
+│   └───Patient_001_T1GD
+│       │   image_001.dcm
+│       │   image_002.dcm
+│       │   ...
+│   └───Patient_001_T2
+│       │   image_001.dcm
+│       │   image_002.dcm
+│       │   ...
+│   └───Patient_001_T2FLAIR
+│       │   image_001.dcm
+│       │   image_002.dcm
+│       │   ...
+│   
+└───Patient_002
+│   │ ...
+```
+- Construct a CSV containing the first DICOM images from each modality:
+```
+PatientID,T1,T1GD,T2,T2FLAIR
+Patient_001,/path/to/T1/image_001.dcm,/path/to/T1GD/image_001.dcm,/path/to/T2/image_001.dcm,/path/to/T2FLAIR/image_001.dcm
+Patient_002,/path/to/T1/image_001.dcm,/path/to/T1GD/image_001.dcm,/path/to/T2/image_001.dcm,/path/to/T2FLAIR/image_001.dcm
+...
+Patient_X,/path/to/T1/image_001.dcm,/path/to/T1GD/image_001.dcm,/path/to/T2/image_001.dcm,/path/to/T2FLAIR/image_001.dcm
 ```
 - The complete official BraTS pre-processing pipeline is provided through FeTS in a single executable called `BraTSPipeline`, which performs the following steps:
   
