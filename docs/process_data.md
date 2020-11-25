@@ -34,7 +34,7 @@ Input_Data
 └───Patient_002
 │   │ ...
 ```
-- Construct a CSV containing the first DICOM images from each modality:
+- Construct a CSV (let's call this **raw_data.csv**) containing the first DICOM images from each modality:
 ```
 PatientID,T1,T1GD,T2,T2FLAIR
 Patient_001,/path/to/T1/image_001.dcm,/path/to/T1GD/image_001.dcm,/path/to/T2/image_001.dcm,/path/to/T2FLAIR/image_001.dcm
@@ -42,33 +42,36 @@ Patient_002,/path/to/T1/image_001.dcm,/path/to/T1GD/image_001.dcm,/path/to/T2/im
 ...
 Patient_X,/path/to/T1/image_001.dcm,/path/to/T1GD/image_001.dcm,/path/to/T2/image_001.dcm,/path/to/T2FLAIR/image_001.dcm
 ```
-- The complete official BraTS pre-processing pipeline is provided through FeTS in a single executable called `BraTSPipeline`, which performs the following steps:
-  
-  1. Re-orientation to LPS/RAI
-  2. N4 Bias correction (only for facilitating the registration process)
-  3. Co-registration to T1Gd
-  4. Registration to [SRI-24 anatomical atlas](https://www.nitrc.org/projects/sri24/) (Note that the 2 registration steps are applied as one transformation matrix, thereby avoiding multiple intensity interpolations)
-  5. Application of the registration/transformation matrix to the re-oriented image (prior to N4 bias correction) to maximize image fidelity
-
-  ```bash
-  ${fets_root_dir}/bin/BraTSPipeline \
-    -t1 C:/test/t1.nii.gz \ # you can pass first dicom image series 
-    -t1c C:/test/t1gd.nii.gz \ # you can pass first dicom image series 
-    -t2 C:/test/t2.nii.gz \ # you can pass first dicom image series 
-    -fl C:/test/flair.nii.gz \ # you can pass first dicom image series 
-    -o C:/test/outputDir 
+- Pass **raw_data.csv** as an input, along with an output directory, to the `PrepareDataset` executable (which interally calls the `BraTSPipeline` executable):
+```bash
+${fets_root_dir}/bin/PrepareDataset -i /path/to/raw_data.csv -o /path/to/output
+```
+- Two output directories will be created under `/path/to/output`:
+  - `DataForFeTS`: this is to be passed for inference/training:
   ```
-- After finishing the pre-processing, the data needs to be organized in the BraTS format:
-```
-/data_folder/ 
-            /patient_1/
-                      /patient_1_t1.nii.gz
-                      /patient_1_t2.nii.gz
-                      /patient_1_t1ce.nii.gz
-                      /patient_1_flair.nii.gz
-                      /patient_1_seg.nii.gz
-            /patient_2/
-                      ...
-            ...
-            /patient_n/
-```
+  DataForFeTS
+  │
+  └───Patient_001
+  │   │ brain_t1.nii.gz
+  │   │ brain_t1gd.nii.gz
+  │   │ brain_t2.nii.gz
+  │   │ brain_t2flair.nii.gz
+  │   
+  └───Patient_002
+  │   │ ...
+  ```
+  - `DataForQC`: this is to be used for quality-control:
+  ```
+  DataForQC 
+  │
+  └───Patient_001
+  │   │ raw_${modality}.nii.gz
+  │   │ raw_rai_${modality}.nii.gz
+  │   │ raw_rai_n4_${modality}.nii.gz
+  │   │ ${modality}_to_SRI.nii.gz
+  │   │ brainMask_SRI.nii.gz # generated using DeepMedic
+  │   │ log.txt
+  │   
+  └───Patient_002
+  │   │ ...
+  ```
