@@ -1,6 +1,6 @@
 cwlVersion: v1.0
 class: CommandLineTool
-baseCommand: OpenFLCLI
+baseCommand: FeTS_CLI
 inputs:
   dataDir:
     type: Directory
@@ -30,6 +30,13 @@ inputs:
       position: 1
       prefix: -L
     doc: Location of logging directory.
+  archs:
+    type: string
+    label: 3DResUNet,3DUNet,deepMedic
+    inputBinding:
+      position: 1
+      prefix: -a
+    doc: The architecture(s) to infer/train on.Only a single architecture is supported for training.Comma-separated values for multiple options.
   runtest:
     type: string?
     label: none
@@ -44,6 +51,13 @@ inputs:
       position: 1
       prefix: -cwl
     doc: Generates a .cwl file for the software.
+  labelFuse:
+    type: string?
+    label: STAPLE,ITKVoting,SIMPLE,MajorityVoting
+    inputBinding:
+      position: 1
+      prefix: -lF
+    doc: "The label fusion strategy to follow for multi-arch inference.Defaults to: STAPLE."
   gpu:
     type: boolean?
     label: 0-1
@@ -61,6 +75,6 @@ inputs:
 hints:
   SoftwareRequirement:
     packages:
-      OpenFLCLI:
+      FeTS_CLI:
         version:
           - 0.0.1
