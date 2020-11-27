@@ -193,6 +193,7 @@ int main(int argc, char** argv)
                   + " -p " + hardcodedPlanName + ".yaml"
                   //<< "-mwf" << hardcodedModelWeightPath // todo: doing customized solution above - change after model weights are using full paths for all
                   + " -d " + dataDir
+                  + " -inference_patient " + subjectDirs[s]
                   + " -ld " + loggingDir;
 
                 args += " -md ";
