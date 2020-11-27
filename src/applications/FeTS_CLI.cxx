@@ -229,14 +229,19 @@ int main(int argc, char** argv)
           {
             auto filesInSubjectDir = cbica::filesInDirectory(dataDir + "/" + subjectDirs[s]);
             auto labelFusion_command = hardcodedPythonPath + " " + hardcodedLabelFusionPath + " ";
-            std::string filesForFusion;
+            std::string filesForFusion, dataForSegmentation = dataDir + "/" + subjectDirs[s] + "/SegmentationsForQC/";
+            cbica::createDir(dataForSegmentation);
+
             for (size_t f = 0; f < filesInSubjectDir.size(); f++)
             {
               if (filesInSubjectDir[f].find("_seg.nii.gz") != std::string::npos) // find all files that have "_seg.nii.gz" in file name
               {
                 if (filesInSubjectDir[f].find("final") == std::string::npos) // only do fusion for the files where "final" is not present
                 {
-                  filesForFusion += filesInSubjectDir[f] + ",";
+                  auto fileToCopy = dataForSegmentation + cbica::getFilenameBase(filesInSubjectDir[f]) + ".nii.gz";
+                  cbica::copyFile(filesInSubjectDir[f], fileToCopy);
+                  filesForFusion += fileToCopy + ",";
+                  std::remove(filesInSubjectDir[f].c_str());
                 }
               }
             } // files loop in subject directory
@@ -244,7 +249,7 @@ int main(int argc, char** argv)
 
             for (size_t f = 0; f < fusion_split.size(); f++)
             {
-              auto final_fused_file = dataDir + "/" + subjectDirs[s] + "/fused_" + fusion_split[f] + "_seg.nii.gz";
+              auto final_fused_file = dataForSegmentation + "/fused_" + fusion_split[f] + "_seg.nii.gz";
               auto full_fusion_command = labelFusion_command + "-inputs " + filesForFusion + " -classes 0,1,2,4 " // this needs to change after different segmentation algorithms are put in place
                 + " -method " + fusion_split[f] + " -output " + final_fused_file;
               if (std::system(full_fusion_command.c_str()) != 0)
