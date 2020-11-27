@@ -82,9 +82,16 @@ int main(int argc, char** argv)
   }
 
   std::string hardcodedPlanName,
-    hardcodedOpenFLPath = (fetsApplicationPath + "/OpenFederatedLearning/"),
-    hardcodedModelWeightPath = (hardcodedOpenFLPath + "/bin/federations/weights/"), // start with the common location
-    hardcodedPythonPath = (hardcodedOpenFLPath + "/venv/bin/python"); // this needs to change for Windows (wonder what happens for macOS?)
+    hardcodedOpenFLPath = fetsApplicationPath + "/OpenFederatedLearning/",
+    hardcodedLabelFusionPath = fetsApplicationPath + "/LabelFusion/label_fusion",
+    hardcodedModelWeightPath = hardcodedOpenFLPath + "/bin/federations/weights/", // start with the common location
+    hardcodedPythonPath = hardcodedOpenFLPath + "/venv/bin/python"; // this needs to change for Windows (wonder what happens for macOS?)
+
+  auto pythonEnvironmentFound = false;
+  if (cbica::isFile(hardcodedPythonPath))
+  {
+    pythonEnvironmentFound = true;
+  }
 
   if (!trainingRequested)
   {
@@ -157,61 +164,98 @@ int main(int argc, char** argv)
           } // deepmedic check
           else
           {
-            // check for all other models written in pytorch here
-            auto fullCommandToRun = hardcodedPythonPath + " " + hardcodedOpenFLPath + "/bin/run_inference_from_flplan.py";
-            std::string args = "";
+            if (pythonEnvironmentFound)
+            {
+              // check for all other models written in pytorch here
+              auto fullCommandToRun = hardcodedPythonPath + " " + hardcodedOpenFLPath + "/bin/run_inference_from_flplan.py";
+              std::string args = "";
 
-            // check between different architectures
-            if (archs_split[i] == "3dunet")
-            {
-              // this is currently not defined
-            }
-            else if (archs_split[i] == "3dresunet")
-            {
-              hardcodedPlanName = "pt_3dresunet_brainmagebrats";
-              auto hardcodedModelName = hardcodedPlanName + "_best.pbuf";
-              auto allGood = true;
-              if (!cbica::isFile((hardcodedModelWeightPath + "/" + hardcodedModelName))) // in case the "best" model is not present, use the "init" model that is distributed with FeTS installation
+              // check between different architectures
+              if (archs_split[i] == "3dunet")
               {
-                auto hardcodedModelName = hardcodedPlanName + "_init.pbuf";
-                if (!cbica::isFile((hardcodedModelWeightPath + "/" + hardcodedModelName)))
+                // this is currently not defined
+              }
+              else if (archs_split[i] == "3dresunet")
+              {
+                hardcodedPlanName = "pt_3dresunet_brainmagebrats";
+                auto hardcodedModelName = hardcodedPlanName + "_best.pbuf";
+                auto allGood = true;
+                if (!cbica::isFile((hardcodedModelWeightPath + "/" + hardcodedModelName))) // in case the "best" model is not present, use the "init" model that is distributed with FeTS installation
                 {
-                  std::cerr << "A compatible model weight file for the architecture '" << archs_split[i] << "' was not found. Please contact admin@fets.ai for help.\n";
-                  allGood = false;
+                  auto hardcodedModelName = hardcodedPlanName + "_init.pbuf";
+                  if (!cbica::isFile((hardcodedModelWeightPath + "/" + hardcodedModelName)))
+                  {
+                    std::cerr << "A compatible model weight file for the architecture '" << archs_split[i] << "' was not found. Please contact admin@fets.ai for help.\n";
+                    allGood = false;
+                  }
+                }
+
+                args += "-mwf " + hardcodedModelName
+                  + " -p " + hardcodedPlanName + ".yaml"
+                  //<< "-mwf" << hardcodedModelWeightPath // todo: doing customized solution above - change after model weights are using full paths for all
+                  + " -d " + dataDir
+                  + " -ld " + loggingDir;
+
+                args += " -md ";
+                if (gpuRequested)
+                {
+                  args += "cuda";
+                }
+                else
+                {
+                  args += "cpu";
+                }
+
+                if (std::system((fullCommandToRun + " " + args).c_str()) != 0)
+                {
+                  std::cerr << "Couldn't complete the requested task.\n";
+                  return EXIT_FAILURE;
+                }
+
+              }
+              else if (archs_split[i] == "nnunet")
+              {
+                // structure according to what is needed - might need to create a function that can call run_inference_from_flplan for different hardcodedModelName
+              }
+            } // end of python check
+          } // end of non-DM archs check
+        } // end of archs_split
+
+        if (pythonEnvironmentFound)
+        {
+          if (cbica::isFile(hardcodedLabelFusionPath))
+          {
+            auto filesInSubjectDir = cbica::filesInDirectory(dataDir + "/" + subjectDirs[s]);
+            auto labelFusion_command = hardcodedPythonPath + " " + hardcodedLabelFusionPath + " ";
+            std::string filesForFusion, final_fused_file = dataDir + "/" + subjectDirs[s] + "/final_seg.nii.gz";
+            for (size_t f = 0; f < filesInSubjectDir.size(); f++)
+            {
+              if (filesInSubjectDir[f].find("_seg.nii.gz") != std::string::npos) // find all files that have "_seg.nii.gz" in file name
+              {
+                if (filesInSubjectDir[f].find("final") == std::string::npos) // only do fusion for the files where "final" is not present
+                {
+                  filesForFusion += filesInSubjectDir[f] + ",";
                 }
               }
-
-              args += "-mwf " + hardcodedModelName 
-                + " -p " + hardcodedPlanName + ".yaml"
-                //<< "-mwf" << hardcodedModelWeightPath // todo: doing customized solution above - change after model weights are using full paths for all
-                + " -d " + dataDir
-                + " -ld " + loggingDir;
-
-              args += " -md ";
-              if (gpuRequested)
-              {
-                args += "cuda";
-              }
-              else
-              {
-                args += "cpu";
-              }
-
-              if (std::system((fullCommandToRun + " " + args).c_str()) != 0)
-              {
-                std::cerr << "Couldn't complete the requested task.\n";
-                return EXIT_FAILURE;
-              }
-
-            }
-            else if (archs_split[i] == "nnunet")
+            } // files loop in subject directory
+            filesForFusion.pop_back(); // remove last ","
+            auto full_fusion_command = labelFusion_command + "-inputs " + filesForFusion + " -classes 0,1,2,4 " // this needs to change after different segmentation algorithms are put in place
+              + " -method staple -output " + final_fused_file;
+            if (std::system(full_fusion_command.c_str()) != 0)
             {
-              // structure according to what is needed - might need to create a function that can call run_inference_from_flplan for different hardcodedModelName
+              std::cerr << "Something went wrong with fusion for subject " << subjectDirs[s] << "\n";
             }
-          }
-        } // end of archs_split
+          } // end of label fusion script check
+        } // end of python check
+        /*
         
-        /// label fusion ///
+python fusion_run \
+-inputs /path/to/seg_algo_1.nii.gz,/path/to/seg_algo_2.nii.gz,/path/to/seg_algo_3.nii.gz \
+-classes 0,1,2,4 \
+-method STAPLE \
+-output /path/to/seg_fusion.nii.gz
+        */
+
 
       } // end of currentSubjectIsProblematic 
     } // end of subjectDirs
