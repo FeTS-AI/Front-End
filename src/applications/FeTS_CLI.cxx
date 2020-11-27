@@ -71,6 +71,7 @@ int main(int argc, char** argv)
   auto deepMedicExe = getApplicationPath("DeepMedic");
 
   auto archs_split = cbica::stringSplit(archs, ",");
+  auto fusion_split = cbica::stringSplit(fusionMethod, ",");
 
   auto subjectDirs = cbica::subdirectoriesInDirectory(dataDir);
 
@@ -221,13 +222,14 @@ int main(int argc, char** argv)
           } // end of non-DM archs check
         } // end of archs_split
 
+        /// fusion 
         if (pythonEnvironmentFound)
         {
           if (cbica::isFile(hardcodedLabelFusionPath))
           {
             auto filesInSubjectDir = cbica::filesInDirectory(dataDir + "/" + subjectDirs[s]);
             auto labelFusion_command = hardcodedPythonPath + " " + hardcodedLabelFusionPath + " ";
-            std::string filesForFusion, final_fused_file = dataDir + "/" + subjectDirs[s] + "/final_seg.nii.gz";
+            std::string filesForFusion;
             for (size_t f = 0; f < filesInSubjectDir.size(); f++)
             {
               if (filesInSubjectDir[f].find("_seg.nii.gz") != std::string::npos) // find all files that have "_seg.nii.gz" in file name
@@ -239,11 +241,16 @@ int main(int argc, char** argv)
               }
             } // files loop in subject directory
             filesForFusion.pop_back(); // remove last ","
-            auto full_fusion_command = labelFusion_command + "-inputs " + filesForFusion + " -classes 0,1,2,4 " // this needs to change after different segmentation algorithms are put in place
-              + " -method " + fusionMethod + " -output " + final_fused_file;
-            if (std::system(full_fusion_command.c_str()) != 0)
+
+            for (size_t f = 0; f < fusion_split.size(); f++)
             {
-              std::cerr << "Something went wrong with fusion for subject " << subjectDirs[s] << "\n";
+              auto final_fused_file = dataDir + "/" + subjectDirs[s] + "/fused_" + fusion_split[f] + "_seg.nii.gz";
+              auto full_fusion_command = labelFusion_command + "-inputs " + filesForFusion + " -classes 0,1,2,4 " // this needs to change after different segmentation algorithms are put in place
+                + " -method " + fusion_split[f] + " -output " + final_fused_file;
+              if (std::system(full_fusion_command.c_str()) != 0)
+              {
+                std::cerr << "Something went wrong with fusion for subject '" << subjectDirs[s] << "' using fusion method '" << fusion_split[f] << "'\n";
+              }
             }
           } // end of label fusion script check
         } // end of python check
