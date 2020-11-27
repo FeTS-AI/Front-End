@@ -11,7 +11,7 @@
 
 int main(int argc, char** argv)
 {
-  cbica::CmdParser parser(argc, argv, "OpenFLCLI");
+  cbica::CmdParser parser(argc, argv, "FeTS_CLI");
 
   auto allArchs = cbica::subdirectoriesInDirectory(getCaPTkDataDir() + "/fets");
   std::string allArchsString;
