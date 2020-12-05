@@ -75,6 +75,17 @@ int main(int argc, char** argv)
     parser.getParameterValue("g", gpuRequested);
   }
 
+  std::string device_arg = " -md ";
+  if (gpuRequested)
+  {
+    device_arg += "cuda";
+  }
+  else
+  {
+    device_arg += "cpu";
+  }
+
+
   // convert everything to lower-case for easier comparison
   std::transform(archs.begin(), archs.end(), archs.begin(), ::tolower);
   std::transform(fusionMethod.begin(), fusionMethod.end(), fusionMethod.begin(), ::tolower);
@@ -209,15 +220,7 @@ int main(int argc, char** argv)
                   + " -inference_patient " + subjectDirs[s]
                   + " -ld " + loggingDir;
 
-                args += " -md ";
-                if (gpuRequested)
-                {
-                  args += "cuda";
-                }
-                else
-                {
-                  args += "cpu";
-                }
+                args += device_arg;
 
                 if (std::system((fullCommandToRun + " " + args).c_str()) != 0)
                 {
@@ -271,96 +274,82 @@ int main(int argc, char** argv)
             }
           } // end of label fusion script check
         } // end of python check
-        /*
-        
-python fusion_run \
--inputs /path/to/seg_algo_1.nii.gz,/path/to/seg_algo_2.nii.gz,/path/to/seg_algo_3.nii.gz \
--classes 0,1,2,4 \
--method STAPLE \
--output /path/to/seg_fusion.nii.gz
-        */
-
-
       } // end of currentSubjectIsProblematic 
     } // end of subjectDirs
   } // end of trainingRequested check
-
-  std::string specialArgs, args, hardcodedModelName;
-  if (trainingRequested)
+  else // for training
   {
-    specialArgs = "-col " + colName;
-  }
-  if (modelName.find("_3dresunet_ss") != std::string::npos) // let's not worry about skull-stripping right now
-  {
-    hardcodedPlanName = "pt_3dresunet_ss_brainmagebrats";
-    hardcodedModelName = hardcodedModelWeightPath + hardcodedPlanName + "_best.pt"; // taken from https://github.com/FETS-AI/Models/blob/master/skullstripping/3dresunet/pt_3dresunet_ss_brainmagebrats_best.pt
-    if (!trainingRequested)
+    std::string specialArgs, args, hardcodedModelName;
+    if (trainingRequested)
     {
-      specialArgs += "-nmwf " + hardcodedModelName;
+      specialArgs = "-col " + colName;
     }
-  }
-  else
-  {
-    hardcodedPlanName = "pt_3dresunet_brainmagebrats";
-    auto hardcodedModelName = hardcodedPlanName + "_best.pbuf";
-    if (!cbica::isFile((hardcodedModelWeightPath + "/" + hardcodedModelName)))
+    /// no longer checking for skull-stripping model - handled in PrepareDataset
+    //if (modelName.find("_3dresunet_ss") != std::string::npos) // let's not worry about skull-stripping right now
+    //{
+    //  hardcodedPlanName = "pt_3dresunet_ss_brainmagebrats";
+    //  hardcodedModelName = hardcodedModelWeightPath + hardcodedPlanName + "_best.pt"; // taken from https://github.com/FETS-AI/Models/blob/master/skullstripping/3dresunet/pt_3dresunet_ss_brainmagebrats_best.pt
+    //  if (!trainingRequested)
+    //  {
+    //    specialArgs += "-nmwf " + hardcodedModelName;
+    //  }
+    //}
+    //else
     {
-      auto hardcodedModelName = hardcodedPlanName + "_init.pbuf";
+      hardcodedPlanName = "pt_3dresunet_brainmagebrats"; // todo: this would need to changed based on the input arch in a future release
+      auto hardcodedModelName = hardcodedPlanName + "_best.pbuf";
       if (!cbica::isFile((hardcodedModelWeightPath + "/" + hardcodedModelName)))
       {
-        std::cerr << "A compatible model weight file was not found. Please contact admin@fets.ai for help.\n";
-        return EXIT_FAILURE;
+        auto hardcodedModelName = hardcodedPlanName + "_init.pbuf";
+        if (!cbica::isFile((hardcodedModelWeightPath + "/" + hardcodedModelName)))
+        {
+          std::cerr << "A compatible model weight file was not found. Please contact admin@fets.ai for help.\n";
+          return EXIT_FAILURE;
+        }
+      }
+      if (!trainingRequested)
+      {
+        specialArgs += "-mwf " + hardcodedModelName;
       }
     }
-    if (!trainingRequested)
+
+    // sanity checks
+    //if (!cbica::isFile(hardcodedModelWeightPath.toStdString())) // todo: renable after model weights are using full paths for all
+    //{
+    //  ShowErrorMessage("The requested inference model was not found (it needs to be in ${FeTS_installDir}/bin/OpenFederatedLearning/bin/federations/weights/${planName}_best.pbuf");
+    //  return;
+    //}
+    if (!cbica::isFile(hardcodedPythonPath))
     {
-      specialArgs += "-mwf " + hardcodedModelName;
+      std::cerr << "The python virtual environment was not found, please refer to documentation to initialize it.\n";
+      return EXIT_FAILURE;
     }
-  }
 
-  // sanity checks
-  //if (!cbica::isFile(hardcodedModelWeightPath.toStdString())) // todo: renable after model weights are using full paths for all
-  //{
-  //  ShowErrorMessage("The requested inference model was not found (it needs to be in ${FeTS_installDir}/bin/OpenFederatedLearning/bin/federations/weights/${planName}_best.pbuf");
-  //  return;
-  //}
-  if (!cbica::isFile(hardcodedPythonPath))
-  {
-    std::cerr << "The python virtual environment was not found, please refer to documentation to initialize it.\n";
-    return EXIT_FAILURE;
-  }
+    std::string fullCommandToRun = hardcodedPythonPath + " " + fetsApplicationPath;
+    if (trainingRequested)
+    {
+      fullCommandToRun += "/OpenFederatedLearning/bin/run_inference_from_flplan.py";
+    }
+    else
+    {
+      fullCommandToRun += "/OpenFederatedLearning/bin/run_collaborator_from_flplan.py";
+    }
 
-  std::string fullCommandToRun = hardcodedPythonPath + " " + fetsApplicationPath;
-  if (trainingRequested)
-  {
-    fullCommandToRun += "/OpenFederatedLearning/bin/run_inference_from_flplan.py";
-  }
-  else
-  {
-    fullCommandToRun += "/OpenFederatedLearning/bin/run_collaborator_from_flplan.py";
-  }
+    args += " -p " + hardcodedPlanName + ".yaml"
+      //<< "-mwf" << hardcodedModelWeightPath // todo: doing customized solution above - change after model weights are using full paths for all
+      + " -d " + dataDir
+      + " -ld " + loggingDir;
 
-  args += " -p " + hardcodedPlanName + ".yaml"
-    //<< "-mwf" << hardcodedModelWeightPath // todo: doing customized solution above - change after model weights are using full paths for all
-    + " -d " + dataDir
-    + " -ld " + loggingDir;
+    args += device_arg;
 
-  args += " -md ";
-  if (gpuRequested)
-  {
-    args += "cuda";
-  }
-  else
-  {
-    args += "cpu";
-  }
+    if (std::system((fullCommandToRun + " " + args + " " + specialArgs).c_str()) != 0)
+    {
+      std::cerr << "Couldn't complete the requested task.\n";
+      return EXIT_FAILURE;
+    }
 
-  if (std::system((fullCommandToRun + " " + args + " " + specialArgs).c_str()) != 0)
-  {
-    std::cerr << "Couldn't complete the requested task.\n";
-    return EXIT_FAILURE;
-  }
-    
+  } // end of trainingRequested check
+
   std::cout << "Finished.\n";
 
   return EXIT_SUCCESS;
