@@ -78,7 +78,7 @@ The aforementioned command will perform the following steps:
 ${fets_root_dir}/bin/FeTS_CLI -d /path/to/output/DataForFeTS -g 1 -t 1
 ```
 The aforementioned command will perform the following steps:
-- Train a 3DResUNet model for all the *complete* subjects (i.e., with `final_seg.nii.gz` and all 4 structural modalities present) in a collaborative manner
+- Train a model with a 3DResUNet architecture (more architectures will be made available in future releases) for all the *complete* subjects (i.e., with `final_seg.nii.gz` and all 4 structural modalities present) in a collaborative manner
 - Leverage the GPU
 
 ---
