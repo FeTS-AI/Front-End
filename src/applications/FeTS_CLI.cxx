@@ -24,21 +24,22 @@ int main(int argc, char** argv)
   std::string dataDir, modelName, loggingDir, colName, archs, fusionMethod = "STAPLE";
 
   parser.addRequiredParameter("d", "dataDir", cbica::Parameter::DIRECTORY, "Dir with Read/Write access", "Input data directory");
-  parser.addRequiredParameter("m", "modelName", cbica::Parameter::FILE, "Model file", "Input model weights file");
   parser.addRequiredParameter("t", "training", cbica::Parameter::BOOLEAN, "0 or 1", "Whether performing training or inference", "1==Train and 0==Inference");
   parser.addRequiredParameter("L", "LoggingDir", cbica::Parameter::DIRECTORY, "Dir with write access", "Location of logging directory");
-  parser.addRequiredParameter("a", "archs", cbica::Parameter::STRING, allArchsString, "The architecture(s) to infer/train on", "Only a single architecture is supported for training", "Comma-separated values for multiple options");
+  parser.addOptionalParameter("a", "archs", cbica::Parameter::STRING, allArchsString, "The architecture(s) to infer/train on", "Only a single architecture is supported for training", "Comma-separated values for multiple options");
   parser.addOptionalParameter("lF", "labelFuse", cbica::Parameter::STRING, "STAPLE,ITKVoting,SIMPLE,MajorityVoting", "The label fusion strategy to follow for multi-arch inference", "Comma-separated values for multiple options", "Defaults to: " + fusionMethod);
   parser.addOptionalParameter("g", "gpu", cbica::Parameter::BOOLEAN, "0-1", "Whether to run the process on GPU or not", "Defaults to '0'");
   parser.addOptionalParameter("c", "colName", cbica::Parameter::STRING, "", "Common name of collaborator", "Required for training");
+
+  parser.addApplicationDescription("This is the CLI interface for FeTS");
+  parser.addExampleUsage("-d /path/DataForFeTS -a deepMedic,nnUNet -lF STAPLE,ITKVoting,SIMPLE -g 1 -t 0", "This command performs inference using deepMedic,nnUNet using multiple fusion strategies on GPU and saves in data directory");
+  parser.addExampleUsage("-d /path/DataForFeTS -t 1 -g 1 -c upenn", "This command starts training performs inference using deepMedic,nnUNet using multiple fusion strategies on GPU and saves in data directory");
   
   bool gpuRequested = false;
   bool trainingRequested = false;
 
   parser.getParameterValue("d", dataDir);
-  parser.getParameterValue("m", modelName);
   parser.getParameterValue("L", loggingDir);
-  parser.getParameterValue("a", archs);
   parser.getParameterValue("t", trainingRequested);
 
 
@@ -54,13 +55,24 @@ int main(int argc, char** argv)
       return EXIT_FAILURE;
     }
   }
+  else
+  {
+    if (parser.isPresent("a"))
+    {
+      parser.getParameterValue("a", archs);
+    }
+    else
+    {
+      std::cerr << "Please specify the architectures on which to perform inference.\n";
+    }
+    if (parser.isPresent("lF"))
+    {
+      parser.getParameterValue("lF", fusionMethod);
+    }
+  }
   if (parser.isPresent("g"))
   {
     parser.getParameterValue("g", gpuRequested);
-  }
-  if (parser.isPresent("lF"))
-  {
-    parser.getParameterValue("lF", fusionMethod);
   }
 
   // convert everything to lower-case for easier comparison
