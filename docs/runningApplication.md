@@ -42,6 +42,14 @@ The aforementioned command will perform the following steps:
   │   │ ...
   ```
 
+## Manual corrections
+- Use the FeTS graphical interface (or your preferred GUI annotation tool) to load each subject's images:
+
+  ![LoadImages](./images/loadImages.png)
+- And each segmentation (either individual architectures or the fusions) separately:
+
+  ![LoadROI](./images/loadROI.png)
+- Perform quality control and appropriate manual corrections for each tumor region:
 # Older documentation
 ## Inference
 
