@@ -9,7 +9,40 @@ cd ${download_location}
 ./squashfs-root/usr/bin/FeTS # launches application
 ```
 
-Please add the following path to your `LD_LIBRARY_PATH` when using FeTS: `${fets_root_dir}/lib`
+Please add the following path to your `LD_LIBRARY_PATH` when using FeTS: `${fets_root_dir}/lib`:
+```bash
+export LD_LIBRARY_PATH=${fets_root_dir}/lib:$LD_LIBRARY_PATH
+```
+
+## Inference_New
+
+```bash
+${fets_root_dir}/bin/FeTS_CLI -d /path/to/output/DataForFeTS -a deepMedic,nnUNet -lF STAPLE,ITKVoting,SIMPLE -g 1 -t 0
+```
+
+The aforementioned command will perform the following steps:
+- Perform inference on the prepared dataset based on selected architectures and label fusion strategies
+- Place inference results on a per-subject basis for quality-control:
+  ```
+  DataForFeTS
+  │
+  └───Patient_001 # this is constructed from the ${PatientID} header of CSV
+  │   │ brain_t1.nii.gz
+  │   │ brain_t1gd.nii.gz
+  │   │ brain_t2.nii.gz
+  │   │ brain_t2flair.nii.gz
+  |   └───SegmentationsForQC
+  │   │   │ deepMedic_seg.nii.gz
+  │   │   │ nnUNet_seg.nii.gz
+  │   │   │ nnUNet_seg.nii.gz
+  │   │   │ fused_staple_seg.nii.gz
+  │   │   │ fused_itkvoting_seg.nii.gz
+  │   │   │ fused_simple_seg.nii.gz
+  └───Patient_002
+  │   │ ...
+  ```
+
+# Older documentation
 ## Inference
 
 <p align="center">
