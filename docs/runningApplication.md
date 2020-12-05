@@ -22,6 +22,7 @@ ${fets_root_dir}/bin/FeTS_CLI -d /path/to/output/DataForFeTS -a deepMedic,nnUNet
 
 The aforementioned command will perform the following steps:
 - Perform inference on the prepared dataset based on selected architectures and label fusion strategies
+- Leverage the GPU
 - Place inference results on a per-subject basis for quality-control:
   ```
   DataForFeTS
@@ -70,6 +71,17 @@ The aforementioned command will perform the following steps:
   │   │ ...
   ```
   - **NOTE**: this file is is used during training and the subject will be skipped if this is absent
+
+## Training
+
+```bash
+${fets_root_dir}/bin/FeTS_CLI -d /path/to/output/DataForFeTS -g 1 -t 1
+```
+The aforementioned command will perform the following steps:
+- Train a 3DResUNet model for all the *complete* subjects (i.e., with `final_seg.nii.gz` and all 4 structural modalities present) in a collaborative manner
+- Leverage the GPU
+
+---
 # Older documentation
 ## Inference
 
