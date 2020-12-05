@@ -56,6 +56,20 @@ The aforementioned command will perform the following steps:
     - 1: Necrotic + Non-Enhancing-Tumor core - NET
     - 2: Edema - ED
     - 4: Enhancing - ET
+- Save the final tumor segmentation as `final_seg.nii.gz` under the subject's directory:
+  ```
+  DataForFeTS
+  │
+  └───Patient_001 # this is constructed from the ${PatientID} header of CSV
+  │   │ brain_t1.nii.gz
+  │   │ brain_t1gd.nii.gz
+  │   │ brain_t2.nii.gz
+  │   │ brain_t2flair.nii.gz
+  │   │ final_seg.nii.gz # used for training
+  └───Patient_002
+  │   │ ...
+  ```
+  - **NOTE**: this is is used during training
 # Older documentation
 ## Inference
 
