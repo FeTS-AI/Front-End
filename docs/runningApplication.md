@@ -49,7 +49,13 @@ The aforementioned command will perform the following steps:
 - And each segmentation (either individual architectures or the fusions) separately:
 
   ![LoadROI](./images/loadROI.png)
-- Perform quality control and appropriate manual corrections for each tumor region:
+- Perform quality control and appropriate manual corrections for each tumor region using the annotation tools:
+
+  ![Annotation](./images/drawing_resize.png)
+  - Ensure BraTS annotation protocol is followed for labels:
+    - 1: Necrotic + Non-Enhancing-Tumor core - NET
+    - 2: Edema - ED
+    - 4: Enhancing - ET
 # Older documentation
 ## Inference
 
