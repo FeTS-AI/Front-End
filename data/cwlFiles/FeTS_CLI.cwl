@@ -9,13 +9,6 @@ inputs:
       position: 1
       prefix: -d
     doc: Input data directory.
-  modelName:
-    type: File
-    label: Model file
-    inputBinding:
-      position: 1
-      prefix: -m
-    doc: Input model weights file.
   training:
     type: boolean
     label: 0 or 1
@@ -30,13 +23,6 @@ inputs:
       position: 1
       prefix: -L
     doc: Location of logging directory.
-  archs:
-    type: string
-    label: 3DResUNet,3DUNet,deepMedic
-    inputBinding:
-      position: 1
-      prefix: -a
-    doc: The architecture(s) to infer/train on.Only a single architecture is supported for training.Comma-separated values for multiple options.
   runtest:
     type: string?
     label: none
@@ -51,13 +37,20 @@ inputs:
       position: 1
       prefix: -cwl
     doc: Generates a .cwl file for the software.
+  archs:
+    type: string?
+    label: 3DResUNet,3DUNet,deepMedic
+    inputBinding:
+      position: 1
+      prefix: -a
+    doc: "The architecture(s) to infer/train on.Only a single architecture is supported for training.Comma-separated values for multiple options.Defaults to: 3dresunet."
   labelFuse:
     type: string?
     label: STAPLE,ITKVoting,SIMPLE,MajorityVoting
     inputBinding:
       position: 1
       prefix: -lF
-    doc: "The label fusion strategy to follow for multi-arch inference.Defaults to: STAPLE."
+    doc: "The label fusion strategy to follow for multi-arch inference.Comma-separated values for multiple options.Defaults to: STAPLE."
   gpu:
     type: boolean?
     label: 0-1
