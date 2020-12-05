@@ -65,11 +65,11 @@ The aforementioned command will perform the following steps:
   │   │ brain_t1gd.nii.gz
   │   │ brain_t2.nii.gz
   │   │ brain_t2flair.nii.gz
-  │   │ final_seg.nii.gz # used for training
+  │   │ final_seg.nii.gz 
   └───Patient_002
   │   │ ...
   ```
-  - **NOTE**: this is is used during training
+  - **NOTE**: this file is is used during training and the subject will be skipped if this is absent
 # Older documentation
 ## Inference
 
