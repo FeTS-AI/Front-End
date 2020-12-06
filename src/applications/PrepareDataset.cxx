@@ -156,7 +156,11 @@ int main(int argc, char** argv)
     auto msg = "BraTSPipeline failed for subject " + csvContents[i]["ID"];
     if (cbica::isFile(interimOutputDir + "/brain_T1CE.nii.gz"))
     {
-      cbica::copyFile(interimOutputDir + "/brain_T1CE.nii.gz", finalSubjectOutputDir + "/brain_t1gd.nii.gz");
+      cbica::copyFile(interimOutputDir + "/brain_T1CE.nii.gz", finalSubjectOutputDir + "/brain_t1ce.nii.gz");
+    }
+    else if (cbica::isFile(interimOutputDir + "/brain_T1GD.nii.gz"))
+    {
+      cbica::copyFile(interimOutputDir + "/brain_T1GD.nii.gz", finalSubjectOutputDir + "/brain_t1ce.nii.gz");
     }
     else
     {
