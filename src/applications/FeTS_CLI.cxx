@@ -118,19 +118,24 @@ int main(int argc, char** argv)
 
   if (!trainingRequested)
   {
-    std::string subjectsWithMissingModalities, subjectsWithErrors; // string to store error cases
+    std::vector< std::pair< std::string, std::string > > subjectsWithMissingModalities, subjectsWithErrors; // vector of string-pairs to store error cases
+    
     for (size_t s = 0; s < subjectDirs.size(); s++) // iterate through all subjects
     {
       auto currentSubjectIsProblematic = false;
       std::string file_t1gd, file_t1, file_t2, file_flair;
-      auto fileToCheck = dataDir + "/" + subjectDirs[s] + "/brain_t1gd.nii.gz";
+      auto fileToCheck = dataDir + "/" + subjectDirs[s] + "/brain_t1ce.nii.gz";
       if (cbica::fileExists(fileToCheck))
       {
         file_t1gd = fileToCheck;
       }
+      else if (cbica::fileExists(dataDir + "/" + subjectDirs[s] + "/brain_t1gd.nii.gz"))
+      {
+        file_t1gd = dataDir + "/" + subjectDirs[s] + "/brain_t1gd.nii.gz";
+      }
       else
       {
-        subjectsWithMissingModalities += subjectDirs[s] + ",";
+        subjectsWithMissingModalities.push_back(std::make_pair(subjectDirs[s], "t1ce"));
         currentSubjectIsProblematic = true;
       }
 
@@ -141,7 +146,7 @@ int main(int argc, char** argv)
       }
       else
       {
-        subjectsWithMissingModalities += subjectDirs[s] + ",";
+        subjectsWithMissingModalities.push_back(std::make_pair(subjectDirs[s], "t1"));
         currentSubjectIsProblematic = true;
       }
       fileToCheck = dataDir + "/" + subjectDirs[s] + "/brain_t2.nii.gz";
@@ -151,7 +156,7 @@ int main(int argc, char** argv)
       }
       else
       {
-        subjectsWithMissingModalities += subjectDirs[s] + ",";
+        subjectsWithMissingModalities.push_back(std::make_pair(subjectDirs[s], "t2"));
         currentSubjectIsProblematic = true;
       }
       fileToCheck = dataDir + "/" + subjectDirs[s] + "/brain_flair.nii.gz";
@@ -161,15 +166,15 @@ int main(int argc, char** argv)
       }
       else
       {
-        subjectsWithMissingModalities += subjectDirs[s] + ",";
+        subjectsWithMissingModalities.push_back(std::make_pair(subjectDirs[s], "flair"));
         currentSubjectIsProblematic = true;
       }
 
       if (!currentSubjectIsProblematic) // proceed only if all modalities for the current subject are present
       {
-        for (size_t i = 0; i < archs_split.size(); i++) // iterate through all requested architectures
+        for (size_t a = 0; a < archs_split.size(); a++) // iterate through all requested architectures
         {
-          if (archs_split[i] == "deepmedic") // special case 
+          if (archs_split[a] == "deepmedic") // special case 
           {
             auto brainMaskFile = dataDir + "/" + subjectDirs[s] + "/deepmedic_seg.nii.gz";
 
@@ -182,23 +187,24 @@ int main(int argc, char** argv)
 
             if (std::system(fullCommand.c_str()) != 0)
             {
-              subjectsWithErrors += subjectDirs[s] + ",";
+              std::cerr << "Couldn't complete the inference for deepmedic for subject " << subjectDirs[s] << ".\n";
+              subjectsWithErrors.push_back(std::make_pair(subjectDirs[s], "inference,deepmedic"));
             }
           } // deepmedic check
           else
           {
+            auto fullCommandToRun = hardcodedPythonPath + " " + hardcodedOpenFLPath + "/bin/run_inference_from_flplan.py";
+            std::string args = "";
             if (pythonEnvironmentFound)
             {
               // check for all other models written in pytorch here
-              auto fullCommandToRun = hardcodedPythonPath + " " + hardcodedOpenFLPath + "/bin/run_inference_from_flplan.py";
-              std::string args = "";
 
               // check between different architectures
-              if (archs_split[i] == "3dunet")
+              if (archs_split[a] == "3dunet")
               {
                 // this is currently not defined
               }
-              else if (archs_split[i] == "3dresunet")
+              else if (archs_split[a] == "3dresunet")
               {
                 hardcodedPlanName = "pt_3dresunet_brainmagebrats";
                 auto hardcodedModelName = hardcodedPlanName + "_best.pbuf";
@@ -208,7 +214,7 @@ int main(int argc, char** argv)
                   auto hardcodedModelName = hardcodedPlanName + "_init.pbuf";
                   if (!cbica::isFile((hardcodedModelWeightPath + "/" + hardcodedModelName)))
                   {
-                    std::cerr << "A compatible model weight file for the architecture '" << archs_split[i] << "' was not found. Please contact admin@fets.ai for help.\n";
+                    std::cerr << "A compatible model weight file for the architecture '" << archs_split[a] << "' was not found. Please contact admin@fets.ai for help.\n";
                     allGood = false;
                   }
                 }
@@ -217,22 +223,48 @@ int main(int argc, char** argv)
                   + " -p " + hardcodedPlanName + ".yaml"
                   //<< "-mwf" << hardcodedModelWeightPath // todo: doing customized solution above - change after model weights are using full paths for all
                   + " -d " + dataDir
-                  + " -inference_patient " + subjectDirs[s]
+                  + " -ip " + subjectDirs[s]
                   + " -ld " + loggingDir;
 
                 args += device_arg;
 
                 if (std::system((fullCommandToRun + " " + args).c_str()) != 0)
                 {
-                  std::cerr << "Couldn't complete the requested task.\n";
-                  return EXIT_FAILURE;
+                  std::cerr << "Couldn't complete the inference for 3dresunet for subject " << subjectDirs[s] << ".\n";
+                  subjectsWithErrors.push_back(std::make_pair(subjectDirs[s], "inference,3dresunet"));
                 }
-
-              }
-              else if (archs_split[i] == "nnunet")
+              } // end of 3dresunet check
+              else
               {
-                // structure according to what is needed - might need to create a function that can call run_inference_from_flplan for different hardcodedModelName
-              }
+                std::string hardcodedPlanName;
+                if (archs_split[a].find("nnunet") != std::string::npos)
+                {
+                  hardcodedPlanName = "nnunet";
+                }
+                else if (archs_split[a].find("deepscan") != std::string::npos)
+                {
+                  hardcodedPlanName = "deepscan";
+                }
+                if (!hardcodedPlanName.empty())
+                {
+                  hardcodedPlanName += "_inference.yaml";
+                  // structure according to what is needed - might need to create a function that can call run_inference_from_flplan for different hardcodedModelName
+                  args += "-nmwf " + hardcodedModelWeightPath // <abs path to folder containing all model weights folders> 
+                    + " -p " + hardcodedPlanName
+                    + " -d " + dataDir
+                    + " -ip " + subjectDirs[s]
+                    + " -ld " + loggingDir;
+
+                  args += device_arg;
+                  args += "-pwai";
+
+                  if (std::system((fullCommandToRun + " " + args).c_str()) != 0)
+                  {
+                    std::cerr << "Couldn't complete the inference for " << archs_split[a] << " for subject " << subjectDirs[s] << ".\n";
+                    subjectsWithErrors.push_back(std::make_pair(subjectDirs[s], "inference," + archs_split[a]));
+                  }
+                } // end of hardcodedPlanName check
+              } // end of non-3dresunet check
             } // end of python check
           } // end of non-DM archs check
         } // end of archs_split
@@ -264,18 +296,37 @@ int main(int argc, char** argv)
 
             for (size_t f = 0; f < fusion_split.size(); f++)
             {
-              auto final_fused_file = dataForSegmentation + "/fused_" + fusion_split[f] + "_seg.nii.gz";
+              auto final_fused_file = dataForSegmentation + "/" + subjectDirs[s] + "_fused_" + fusion_split[f] + "_seg.nii.gz";
               auto full_fusion_command = labelFusion_command + "-inputs " + filesForFusion + " -classes 0,1,2,4 " // this needs to change after different segmentation algorithms are put in place
                 + " -method " + fusion_split[f] + " -output " + final_fused_file;
               if (std::system(full_fusion_command.c_str()) != 0)
               {
                 std::cerr << "Something went wrong with fusion for subject '" << subjectDirs[s] << "' using fusion method '" << fusion_split[f] << "'\n";
+                subjectsWithErrors.push_back(std::make_pair(subjectDirs[s], "fusion," + fusion_split[f]));
               }
             }
           } // end of label fusion script check
         } // end of python check
       } // end of currentSubjectIsProblematic 
     } // end of subjectDirs
+
+    // provide error message
+    if (!subjectsWithMissingModalities.empty())
+    {
+      std::cerr << "The following subjects did not have all the 4 structural modalities to proceed with preprocessing:\nSubjectID,Modality";
+      for (size_t i = 0; i < subjectsWithMissingModalities.size(); i++)
+      {
+        std::cerr << subjectsWithMissingModalities[i].first << "," << subjectsWithMissingModalities[i].second << "\n";
+      }
+    }
+    if (!subjectsWithErrors.empty())
+    {
+      std::cerr << "The following subjects were problematic:\nSubjectID,Application,Algorithm";
+      for (size_t i = 0; i < subjectsWithErrors.size(); i++)
+      {
+        std::cerr << subjectsWithErrors[i].first << "," << subjectsWithErrors[i].second << "\n";
+      }
+    }
   } // end of trainingRequested check
   else // for training
   {
