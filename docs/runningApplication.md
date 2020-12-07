@@ -28,17 +28,18 @@ The aforementioned command will perform the following steps:
   DataForFeTS
   │
   └───Patient_001 # this is constructed from the ${PatientID} header of CSV
-  │   │ brain_t1.nii.gz
-  │   │ brain_t1gd.nii.gz
-  │   │ brain_t2.nii.gz
-  │   │ brain_t2flair.nii.gz
-  |   └───SegmentationsForQC
-  │   │   │ deepMedic_seg.nii.gz
-  │   │   │ nnUNet_seg.nii.gz
-  │   │   │ nnUNet_seg.nii.gz
-  │   │   │ fused_staple_seg.nii.gz
-  │   │   │ fused_itkvoting_seg.nii.gz
-  │   │   │ fused_simple_seg.nii.gz
+  │   │ Patient_001_brain_t1.nii.gz
+  │   │ Patient_001_brain_t1gd.nii.gz
+  │   │ Patient_001_brain_t2.nii.gz
+  │   │ Patient_001_brain_t2flair.nii.gz
+  │    └──SegmentationsForQC
+  │   │   │ Patient_001_deepmedic_seg.nii.gz
+  │   │   │ Patient_001_nnunet_seg.nii.gz
+  │   │   │ Patient_001_deepscan_seg.nii.gz
+  │   │   │ Patient_001_fused_staple_seg.nii.gz
+  │   │   │ Patient_001_fused_simple_seg.nii.gz
+  │   │   │ Patient_001_fused_itkvoting_seg.nii.gz
+  │
   └───Patient_002
   │   │ ...
   ```
