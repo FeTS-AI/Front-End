@@ -55,19 +55,24 @@ The aforementioned command will perform the following steps:
 
   ![Annotation](./images/drawing_resize.png)
   - Ensure BraTS annotation protocol is followed for labels:
-    - 1: Necrotic + Non-Enhancing-Tumor core - NET
-    - 2: Edema - ED
-    - 4: Enhancing - ET
-- Save the final tumor segmentation as `final_seg.nii.gz` under the subject's directory:
+
+  | Label |  Region  | Acronym |
+  |:-----:|:--------:|:-------:|
+  |   1   |    Necrotic + Non-Enhancing-Tumor core   |   NET   |
+  |   2   |   Edema   |    ED   |
+  |   4   | Enhancing |    ET   |
+  
+- Save the final tumor segmentation as `${SubjectID}_final_seg.nii.gz` under the subject's directory:
   ```
   DataForFeTS
   │
   └───Patient_001 # this is constructed from the ${PatientID} header of CSV
-  │   │ brain_t1.nii.gz
-  │   │ brain_t1gd.nii.gz
-  │   │ brain_t2.nii.gz
-  │   │ brain_t2flair.nii.gz
-  │   │ final_seg.nii.gz 
+  │   │ Patient_001_brain_t1.nii.gz
+  │   │ Patient_001_brain_t1gd.nii.gz
+  │   │ Patient_001_brain_t2.nii.gz
+  │   │ Patient_001_brain_t2flair.nii.gz
+  │   │ Patient_001_final_seg.nii.gz 
+  │
   └───Patient_002
   │   │ ...
   ```
@@ -79,7 +84,7 @@ The aforementioned command will perform the following steps:
 ${fets_root_dir}/bin/FeTS_CLI -d /path/to/output/DataForFeTS -g 1 -t 1
 ```
 The aforementioned command will perform the following steps:
-- Train a model with a 3DResUNet architecture (more architectures will be made available in future releases) for all the *complete* subjects (i.e., with `final_seg.nii.gz` and all 4 structural modalities present) in a collaborative manner
+- Train a model with a 3DResUNet architecture (more architectures will be made available in future releases) for all the *complete* subjects (i.e., with `${SubjectID}_final_seg.nii.gz` and all 4 structural modalities present) in a collaborative manner
 - Leverage the GPU
 
 ---
