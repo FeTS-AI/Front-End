@@ -108,6 +108,7 @@ int main(int argc, char** argv)
     hardcodedOpenFLPath = fetsApplicationPath + "/OpenFederatedLearning/",
     hardcodedLabelFusionPath = fetsApplicationPath + "/LabelFusion/label_fusion",
     hardcodedModelWeightPath = hardcodedOpenFLPath + "/bin/federations/weights/", // start with the common location
+    hardcodedNativeModelWeightPath = hardcodedOpenFLPath + "/bin/federations/weights/native/", // start with the common location
     hardcodedPythonPath = hardcodedOpenFLPath + "/venv/bin/python"; // this needs to change for Windows (wonder what happens for macOS?)
 
   auto pythonEnvironmentFound = false;
@@ -194,7 +195,7 @@ int main(int argc, char** argv)
           else
           {
             auto fullCommandToRun = hardcodedPythonPath + " " + hardcodedOpenFLPath + "/bin/run_inference_from_flplan.py";
-            std::string args = "";
+            auto args = " -d " + dataDir + device_arg + " -ld " + loggingDir + " -d " + dataDir + " -ip " + subjectDirs[s];
             if (pythonEnvironmentFound)
             {
               // check for all other models written in pytorch here
@@ -219,16 +220,11 @@ int main(int argc, char** argv)
                   }
                 }
 
-                args += "-mwf " + hardcodedModelName
-                  + " -p " + hardcodedPlanName + ".yaml"
+                auto args_to_run = args + " -mwf " + hardcodedModelName
+                  + " -p " + hardcodedPlanName + ".yaml";
                   //<< "-mwf" << hardcodedModelWeightPath // todo: doing customized solution above - change after model weights are using full paths for all
-                  + " -d " + dataDir
-                  + " -ip " + subjectDirs[s]
-                  + " -ld " + loggingDir;
-
-                args += device_arg;
-
-                if (std::system((fullCommandToRun + " " + args).c_str()) != 0)
+               
+                if (std::system((fullCommandToRun + " " + args_to_run).c_str()) != 0)
                 {
                   std::cerr << "Couldn't complete the inference for 3dresunet for subject " << subjectDirs[s] << ".\n";
                   subjectsWithErrors += subjectDirs[s] + ",inference,3dresunet\n";
@@ -249,16 +245,11 @@ int main(int argc, char** argv)
                 {
                   hardcodedPlanName += "_inference.yaml";
                   // structure according to what is needed - might need to create a function that can call run_inference_from_flplan for different hardcodedModelName
-                  args += "-nmwf " + hardcodedModelWeightPath // <abs path to folder containing all model weights folders> 
+                  auto args_to_run = args + " -nmwf " + hardcodedNativeModelWeightPath // <abs path to folder containing all model weights folders> 
                     + " -p " + hardcodedPlanName
-                    + " -d " + dataDir
-                    + " -ip " + subjectDirs[s]
-                    + " -ld " + loggingDir;
+                    + " -pwai";
 
-                  args += device_arg;
-                  args += "-pwai";
-
-                  if (std::system((fullCommandToRun + " " + args).c_str()) != 0)
+                  if (std::system((fullCommandToRun + " " + args_to_run).c_str()) != 0)
                   {
                     std::cerr << "Couldn't complete the inference for " << archs_split[a] << " for subject " << subjectDirs[s] << ".\n";
                     subjectsWithErrors += subjectDirs[s] + ",inference," + archs_split[a] + "\n";
