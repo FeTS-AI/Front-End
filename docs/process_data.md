@@ -1,5 +1,17 @@
 # Processing the Data for FeTS
 
+## Application Path
+
+```bash
+cd ${download_location}
+./squashfs-root/usr/bin/FeTS # launches application
+```
+
+Please add the following path to your `LD_LIBRARY_PATH` when using FeTS: `${fets_root_dir}/lib`:
+```bash
+export LD_LIBRARY_PATH=${fets_root_dir}/lib:$LD_LIBRARY_PATH
+```
+
 **Note** the `${fets_root_dir}` from [Setup](./setup.md#set-up-the-environment).
 
 For the first application of FeTS in volumetric brain tumor MRI scans, you should follow the pre-processing pipeline defined in the [International Brain Tumor Segmentation (BraTS) Challenge](http://braintumorsegmentation.org/):
