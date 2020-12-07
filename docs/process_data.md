@@ -48,7 +48,7 @@ ${fets_root_dir}/bin/PrepareDataset -i /path/to/raw_data.csv -o /path/to/output
 ```
 - Two output directories will be created under `/path/to/output`:
   - `DataForFeTS`: this is to be passed for inference/training:
-  ```
+  ```bash
   DataForFeTS
   │
   └───Patient_001 # this is constructed from the ${PatientID} header of CSV
@@ -61,7 +61,7 @@ ${fets_root_dir}/bin/PrepareDataset -i /path/to/raw_data.csv -o /path/to/output
   │   │ ...
   ```
   - `DataForQC`: this is to be used for quality-control:
-  ```
+  ```bash
   DataForQC 
   │
   └───Patient_001 # this is constructed from the ${PatientID} header of CSV
