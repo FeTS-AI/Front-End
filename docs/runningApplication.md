@@ -72,7 +72,7 @@ The aforementioned command will perform the following steps:
   │   │ Patient_001_brain_t1gd.nii.gz
   │   │ Patient_001_brain_t2.nii.gz
   │   │ Patient_001_brain_t2flair.nii.gz
-  │   │ Patient_001_final_seg.nii.gz 
+  │   │ Patient_001_final_seg.nii.gz # NOTE: training will not work without any of these files!!!
   │
   └───Patient_002
   │   │ ...
