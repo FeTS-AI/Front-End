@@ -156,11 +156,11 @@ int main(int argc, char** argv)
     auto msg = "BraTSPipeline failed for subject " + csvContents[i]["ID"];
     if (cbica::isFile(interimOutputDir + "/brain_T1CE.nii.gz"))
     {
-      cbica::copyFile(interimOutputDir + "/brain_T1CE.nii.gz", finalSubjectOutputDir + "/brain_t1ce.nii.gz");
+      cbica::copyFile(interimOutputDir + "/brain_T1CE.nii.gz", finalSubjectOutputDir + "/" + csvContents[i]["ID"] + "_brain_t1ce.nii.gz");
     }
     else if (cbica::isFile(interimOutputDir + "/brain_T1GD.nii.gz"))
     {
-      cbica::copyFile(interimOutputDir + "/brain_T1GD.nii.gz", finalSubjectOutputDir + "/brain_t1ce.nii.gz");
+      cbica::copyFile(interimOutputDir + "/brain_T1GD.nii.gz", finalSubjectOutputDir + "/" + csvContents[i]["ID"] + "_brain_t1ce.nii.gz");
     }
     else
     {
@@ -168,7 +168,7 @@ int main(int argc, char** argv)
     }
     if (cbica::isFile(interimOutputDir + "/brain_T1.nii.gz"))
     {
-      cbica::copyFile(interimOutputDir + "/brain_T1.nii.gz", finalSubjectOutputDir + "/brain_t1.nii.gz");
+      cbica::copyFile(interimOutputDir + "/brain_T1.nii.gz", finalSubjectOutputDir + "/" + csvContents[i]["ID"] + "_brain_t1.nii.gz");
     }
     else
     {
@@ -176,7 +176,7 @@ int main(int argc, char** argv)
     }
     if (cbica::isFile(interimOutputDir + "/brain_T2.nii.gz"))
     {
-      cbica::copyFile(interimOutputDir + "/brain_T2.nii.gz", finalSubjectOutputDir + "/brain_t2.nii.gz");
+      cbica::copyFile(interimOutputDir + "/brain_T2.nii.gz", finalSubjectOutputDir + "/" + csvContents[i]["ID"] + "_brain_t2.nii.gz");
     }
     else
     {
@@ -184,7 +184,7 @@ int main(int argc, char** argv)
     }
     if (cbica::isFile(interimOutputDir + "/brain_FL.nii.gz"))
     {
-      cbica::copyFile(interimOutputDir + "/brain_FL.nii.gz", finalSubjectOutputDir + "/brain_flair.nii.gz");
+      cbica::copyFile(interimOutputDir + "/brain_FL.nii.gz", finalSubjectOutputDir + "/" + csvContents[i]["ID"] + "_brain_flair.nii.gz");
     }
     else
     {
