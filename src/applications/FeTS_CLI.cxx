@@ -118,7 +118,7 @@ int main(int argc, char** argv)
 
   if (!trainingRequested)
   {
-    std::vector< std::pair< std::string, std::string > > subjectsWithMissingModalities, subjectsWithErrors; // vector of string-pairs to store error cases
+    std::string subjectsWithMissingModalities, subjectsWithErrors; // string to store error cases
     
     for (size_t s = 0; s < subjectDirs.size(); s++) // iterate through all subjects
     {
@@ -135,7 +135,7 @@ int main(int argc, char** argv)
       }
       else
       {
-        subjectsWithMissingModalities.push_back(std::make_pair(subjectDirs[s], "t1ce"));
+        subjectsWithMissingModalities += subjectDirs[s] + ",t1ce\n";
         currentSubjectIsProblematic = true;
       }
 
@@ -146,7 +146,7 @@ int main(int argc, char** argv)
       }
       else
       {
-        subjectsWithMissingModalities.push_back(std::make_pair(subjectDirs[s], "t1"));
+        subjectsWithMissingModalities += subjectDirs[s] + ",t1\n";
         currentSubjectIsProblematic = true;
       }
       fileToCheck = dataDir + "/" + subjectDirs[s] + "/brain_t2.nii.gz";
@@ -156,7 +156,7 @@ int main(int argc, char** argv)
       }
       else
       {
-        subjectsWithMissingModalities.push_back(std::make_pair(subjectDirs[s], "t2"));
+        subjectsWithMissingModalities += subjectDirs[s] + ",t2\n";
         currentSubjectIsProblematic = true;
       }
       fileToCheck = dataDir + "/" + subjectDirs[s] + "/brain_flair.nii.gz";
@@ -166,7 +166,7 @@ int main(int argc, char** argv)
       }
       else
       {
-        subjectsWithMissingModalities.push_back(std::make_pair(subjectDirs[s], "flair"));
+        subjectsWithMissingModalities += subjectDirs[s] + ",flair\n";
         currentSubjectIsProblematic = true;
       }
 
@@ -188,7 +188,7 @@ int main(int argc, char** argv)
             if (std::system(fullCommand.c_str()) != 0)
             {
               std::cerr << "Couldn't complete the inference for deepmedic for subject " << subjectDirs[s] << ".\n";
-              subjectsWithErrors.push_back(std::make_pair(subjectDirs[s], "inference,deepmedic"));
+              subjectsWithErrors += subjectDirs[s] + ",inference,deepmedic\n";
             }
           } // deepmedic check
           else
@@ -231,7 +231,7 @@ int main(int argc, char** argv)
                 if (std::system((fullCommandToRun + " " + args).c_str()) != 0)
                 {
                   std::cerr << "Couldn't complete the inference for 3dresunet for subject " << subjectDirs[s] << ".\n";
-                  subjectsWithErrors.push_back(std::make_pair(subjectDirs[s], "inference,3dresunet"));
+                  subjectsWithErrors += subjectDirs[s] + ",inference,3dresunet\n";
                 }
               } // end of 3dresunet check
               else
@@ -261,7 +261,7 @@ int main(int argc, char** argv)
                   if (std::system((fullCommandToRun + " " + args).c_str()) != 0)
                   {
                     std::cerr << "Couldn't complete the inference for " << archs_split[a] << " for subject " << subjectDirs[s] << ".\n";
-                    subjectsWithErrors.push_back(std::make_pair(subjectDirs[s], "inference," + archs_split[a]));
+                    subjectsWithErrors += subjectDirs[s] + ",inference," + archs_split[a] + "\n";
                   }
                 } // end of hardcodedPlanName check
               } // end of non-3dresunet check
@@ -302,7 +302,7 @@ int main(int argc, char** argv)
               if (std::system(full_fusion_command.c_str()) != 0)
               {
                 std::cerr << "Something went wrong with fusion for subject '" << subjectDirs[s] << "' using fusion method '" << fusion_split[f] << "'\n";
-                subjectsWithErrors.push_back(std::make_pair(subjectDirs[s], "fusion," + fusion_split[f]));
+                subjectsWithErrors += subjectDirs[s] + ",fusion," + fusion_split[f] + "\n";
               }
             }
           } // end of label fusion script check
@@ -313,19 +313,11 @@ int main(int argc, char** argv)
     // provide error message
     if (!subjectsWithMissingModalities.empty())
     {
-      std::cerr << "The following subjects did not have all the 4 structural modalities to proceed with preprocessing:\nSubjectID,Modality";
-      for (size_t i = 0; i < subjectsWithMissingModalities.size(); i++)
-      {
-        std::cerr << subjectsWithMissingModalities[i].first << "," << subjectsWithMissingModalities[i].second << "\n";
-      }
+      std::cerr << "\nThe following subjects did not have all the 4 structural modalities to proceed with preprocessing:\nSubjectID,Modality\n" << subjectsWithMissingModalities;
     }
     if (!subjectsWithErrors.empty())
     {
-      std::cerr << "The following subjects were problematic:\nSubjectID,Application,Algorithm";
-      for (size_t i = 0; i < subjectsWithErrors.size(); i++)
-      {
-        std::cerr << subjectsWithErrors[i].first << "," << subjectsWithErrors[i].second << "\n";
-      }
+      std::cerr << "\nThe following subjects were problematic:\nSubjectID,Application,Algorithm\n" << subjectsWithErrors;
     }
   } // end of trainingRequested check
   else // for training
