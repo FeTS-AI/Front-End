@@ -24,7 +24,7 @@ The aforementioned command will perform the following steps:
 - Perform inference on the prepared dataset based on selected architectures and label fusion strategies
 - Leverage the GPU
 - Place inference results on a per-subject basis for quality-control:
-  ```
+  ```bash
   DataForFeTS
   │
   └───Patient_001 # this is constructed from the ${PatientID} header of CSV
@@ -33,10 +33,11 @@ The aforementioned command will perform the following steps:
   │   │ Patient_001_brain_t2.nii.gz
   │   │ Patient_001_brain_t2flair.nii.gz
   │    └──SegmentationsForQC
+  │   │   │ Patient_001_3dresunet_seg.nii.gz # individual architecture results
   │   │   │ Patient_001_deepmedic_seg.nii.gz
   │   │   │ Patient_001_nnunet_seg.nii.gz
   │   │   │ Patient_001_deepscan_seg.nii.gz
-  │   │   │ Patient_001_fused_staple_seg.nii.gz
+  │   │   │ Patient_001_fused_staple_seg.nii.gz # label fusions using different methods
   │   │   │ Patient_001_fused_simple_seg.nii.gz
   │   │   │ Patient_001_fused_itkvoting_seg.nii.gz
   │
@@ -63,7 +64,7 @@ The aforementioned command will perform the following steps:
   |   4   | Enhancing |    ET   |
   
 - Save the final tumor segmentation as `${SubjectID}_final_seg.nii.gz` under the subject's directory:
-  ```
+  ```bash
   DataForFeTS
   │
   └───Patient_001 # this is constructed from the ${PatientID} header of CSV
