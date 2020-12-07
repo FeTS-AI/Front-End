@@ -13,7 +13,8 @@ int main(int argc, char** argv)
 {
   cbica::CmdParser parser(argc, argv, "FeTS_CLI");
 
-  auto allArchs = cbica::subdirectoriesInDirectory(getCaPTkDataDir() + "/fets");
+  auto hardcodedNativeModelWeightPath = getCaPTkDataDir() + "/fets";
+  auto allArchs = cbica::subdirectoriesInDirectory(hardcodedNativeModelWeightPath);
   std::string allArchsString;
   for (size_t i = 0; i < allArchs.size(); i++)
   {
@@ -108,7 +109,7 @@ int main(int argc, char** argv)
     hardcodedOpenFLPath = fetsApplicationPath + "/OpenFederatedLearning/",
     hardcodedLabelFusionPath = fetsApplicationPath + "/LabelFusion/label_fusion",
     hardcodedModelWeightPath = hardcodedOpenFLPath + "/bin/federations/weights/", // start with the common location
-    hardcodedNativeModelWeightPath = hardcodedOpenFLPath + "/bin/federations/weights/native/", // start with the common location
+    //hardcodedNativeModelWeightPath = hardcodedOpenFLPath + "/bin/federations/weights/native/", // the native weights are going in fets_data_dir/fets
     hardcodedPythonPath = hardcodedOpenFLPath + "/venv/bin/python"; // this needs to change for Windows (wonder what happens for macOS?)
 
   auto pythonEnvironmentFound = false;
