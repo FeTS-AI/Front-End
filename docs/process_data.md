@@ -65,7 +65,7 @@ ${fets_root_dir}/bin/PrepareDataset -i /path/to/raw_data.csv -o /path/to/output
   │
   └───Patient_001 # this is constructed from the ${PatientID} header of CSV
   │   │ Patient_001_brain_t1.nii.gz
-  │   │ Patient_001_brain_t1gd.nii.gz
+  │   │ Patient_001_brain_t1ce.nii.gz
   │   │ Patient_001_brain_t2.nii.gz
   │   │ Patient_001_brain_t2flair.nii.gz
   │   
