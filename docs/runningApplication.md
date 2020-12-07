@@ -17,11 +17,29 @@ export LD_LIBRARY_PATH=${fets_root_dir}/lib:$LD_LIBRARY_PATH
 ## Inference_New
 
 ```bash
-${fets_root_dir}/bin/FeTS_CLI -d /path/to/output/DataForFeTS -a deepMedic,nnUNet -lF STAPLE,ITKVoting,SIMPLE -g 1 -t 0
+${fets_root_dir}/bin/FeTS_CLI -d /path/to/output/DataForFeTS -a deepMedic,deepscan -lF STAPLE,ITKVoting,SIMPLE -g 1 -t 0
 ```
 
 The aforementioned command will perform the following steps:
 - Perform inference on the prepared dataset based on selected architectures and label fusion strategies
+  - **NOTE**: To run [nnUNet](https://github.com/MIC-DKFZ/nnunet), follow these steps:
+    - Download weights from the following URL: ftp://www.nitrc.org/home/groups/fets/downloads/model_weights/nnunet.zip
+    - Unzip it in `${fets_root_dir}/data/fets`. The directory structure should look like this:
+      ```bash
+      ${fets_root_dir}
+      │
+      └───data 
+      │   │
+      │   └──fets
+      │   │   │
+      │   │   └───nnunet
+      │   │   │   │
+      │   │   │   └───${training_strategy}.1_bs5 # the specific training strategy
+      │   │   │   │   │
+      │   │   │   │   └───fold_${k} # different folds
+      │   │   │   │   │   │ ...
+      ```
+    - This will now be available as a model for inference using the `FeTS_CLI` application under the `-a` parameter.
 - Leverage the GPU
 - Place inference results on a per-subject basis for quality-control:
   ```bash
@@ -32,7 +50,8 @@ The aforementioned command will perform the following steps:
   │   │ Patient_001_brain_t1ce.nii.gz
   │   │ Patient_001_brain_t2.nii.gz
   │   │ Patient_001_brain_t2flair.nii.gz
-  │    └──SegmentationsForQC
+  │   │
+  │   └──SegmentationsForQC
   │   │   │ Patient_001_3dresunet_seg.nii.gz # individual architecture results
   │   │   │ Patient_001_deepmedic_seg.nii.gz
   │   │   │ Patient_001_nnunet_seg.nii.gz
@@ -79,7 +98,7 @@ The aforementioned command will perform the following steps:
   ```
   - **NOTE**: this file is is used during training and the subject will be skipped if this is absent
 
-## Training
+## Training_New
 
 ```bash
 ${fets_root_dir}/bin/FeTS_CLI -d /path/to/output/DataForFeTS -g 1 -t 1
