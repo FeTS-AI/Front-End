@@ -26,7 +26,7 @@ int main(int argc, char** argv)
 
   parser.addRequiredParameter("d", "dataDir", cbica::Parameter::DIRECTORY, "Dir with Read/Write access", "Input data directory");
   parser.addRequiredParameter("t", "training", cbica::Parameter::BOOLEAN, "0 or 1", "Whether performing training or inference", "1==Train and 0==Inference");
-  parser.addRequiredParameter("L", "LoggingDir", cbica::Parameter::DIRECTORY, "Dir with write access", "Location of logging directory");
+  parser.addOptionalParameter("L", "LoggingDir", cbica::Parameter::DIRECTORY, "Dir with write access", "Location of logging directory");
   parser.addOptionalParameter("a", "archs", cbica::Parameter::STRING, allArchsString, "The architecture(s) to infer/train on", "Only a single architecture is supported for training", "Comma-separated values for multiple options", "Defaults to: " + archs);
   parser.addOptionalParameter("lF", "labelFuse", cbica::Parameter::STRING, "STAPLE,ITKVoting,SIMPLE,MajorityVoting", "The label fusion strategy to follow for multi-arch inference", "Comma-separated values for multiple options", "Defaults to: " + fusionMethod);
   parser.addOptionalParameter("g", "gpu", cbica::Parameter::BOOLEAN, "0-1", "Whether to run the process on GPU or not", "Defaults to '0'");
@@ -40,9 +40,17 @@ int main(int argc, char** argv)
   bool trainingRequested = false;
 
   parser.getParameterValue("d", dataDir);
-  parser.getParameterValue("L", loggingDir);
   parser.getParameterValue("t", trainingRequested);
 
+  if (parser.isPresent("L"))
+  {
+    parser.getParameterValue("L", loggingDir);
+  }
+  else
+  {
+    loggingDir = dataDir + "/logs";
+    cbica::createDir(loggingDir);
+  }
 
   if (trainingRequested)
   {
@@ -122,6 +130,7 @@ int main(int argc, char** argv)
   {
     std::string subjectsWithMissingModalities, subjectsWithErrors; // string to store error cases
     
+    std::cout << "Starting subject directory iteration.\n";
     for (size_t s = 0; s < subjectDirs.size(); s++) // iterate through all subjects
     {
       auto currentSubjectIsProblematic = false;
@@ -178,20 +187,26 @@ int main(int argc, char** argv)
         {
           if (archs_split[a] == "deepmedic") // special case 
           {
+            std::cout << "DeepMedic selected.\n";
             auto brainMaskFile = dataDir + "/" + subjectDirs[s] + "/" + subjectDirs[s] + "_deepmedic_seg.nii.gz";
             if (!cbica::isFile(brainMaskFile))
             {
+              auto dm_tempOut = dataDir + "/" + subjectDirs[s] + "/dmOut/mask.nii.gz";
               auto fullCommand = deepMedicExe + " -md " + getCaPTkDataDir() + "/fets/deepMedic/saved_models/brainTumorSegmentation/ " +
                 "-i " + file_t1 + "," +
                 file_t1gd + "," +
                 file_t2 + "," +
                 file_flair + " -o " +
-                brainMaskFile;
+                dm_tempOut;
 
               if (std::system(fullCommand.c_str()) != 0)
               {
                 std::cerr << "Couldn't complete the inference for deepmedic for subject " << subjectDirs[s] << ".\n";
                 subjectsWithErrors += subjectDirs[s] + ",inference,deepmedic\n";
+              }
+              else
+              {
+                cbica::copyFile(dm_tempOut, brainMaskFile);
               }
             }
           } // deepmedic check
@@ -210,6 +225,7 @@ int main(int argc, char** argv)
               }
               else if (archs_split[a] == "3dresunet")
               {
+                std::cout << "3DResUNet selected.\n";
                 hardcodedPlanName = "pt_3dresunet_brainmagebrats";
                 auto hardcodedModelName = hardcodedPlanName + "_best.pbuf";
                 auto allGood = true;
@@ -239,10 +255,12 @@ int main(int argc, char** argv)
                 if (archs_split[a].find("nnunet") != std::string::npos)
                 {
                   hardcodedPlanName = "nnunet";
+                  std::cout << "nnUNet selected.\n";
                 }
                 else if (archs_split[a].find("deepscan") != std::string::npos)
                 {
                   hardcodedPlanName = "deepscan";
+                  std::cout << "DeepScan selected.\n";
                 }
                 if (!hardcodedPlanName.empty())
                 {
