@@ -178,19 +178,21 @@ int main(int argc, char** argv)
         {
           if (archs_split[a] == "deepmedic") // special case 
           {
-            auto brainMaskFile = dataDir + "/" + subjectDirs[s] + "/deepmedic_seg.nii.gz";
-
-            auto fullCommand = deepMedicExe + " -md " + getCaPTkDataDir() + "/fets/deepMedic/saved_models/brainTumorSegmentation/ " +
-              "-i " + file_t1 + "," +
-              file_t1gd + "," +
-              file_t2 + "," +
-              file_flair + " -o " +
-              brainMaskFile;
-
-            if (std::system(fullCommand.c_str()) != 0)
+            auto brainMaskFile = dataDir + "/" + subjectDirs[s] + "/" + subjectDirs[s] + "_deepmedic_seg.nii.gz";
+            if (!cbica::isFile(brainMaskFile))
             {
-              std::cerr << "Couldn't complete the inference for deepmedic for subject " << subjectDirs[s] << ".\n";
-              subjectsWithErrors += subjectDirs[s] + ",inference,deepmedic\n";
+              auto fullCommand = deepMedicExe + " -md " + getCaPTkDataDir() + "/fets/deepMedic/saved_models/brainTumorSegmentation/ " +
+                "-i " + file_t1 + "," +
+                file_t1gd + "," +
+                file_t2 + "," +
+                file_flair + " -o " +
+                brainMaskFile;
+
+              if (std::system(fullCommand.c_str()) != 0)
+              {
+                std::cerr << "Couldn't complete the inference for deepmedic for subject " << subjectDirs[s] << ".\n";
+                subjectsWithErrors += subjectDirs[s] + ",inference,deepmedic\n";
+              }
             }
           } // deepmedic check
           else
