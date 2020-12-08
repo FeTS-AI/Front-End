@@ -16,13 +16,6 @@ inputs:
       position: 1
       prefix: -t
     doc: Whether performing training or inference.1==Train and 0==Inference.
-  LoggingDir:
-    type: Directory
-    label: Dir with write access
-    inputBinding:
-      position: 1
-      prefix: -L
-    doc: Location of logging directory.
   runtest:
     type: string?
     label: none
@@ -37,9 +30,16 @@ inputs:
       position: 1
       prefix: -cwl
     doc: Generates a .cwl file for the software.
+  LoggingDir:
+    type: Directory?
+    label: Dir with write access
+    inputBinding:
+      position: 1
+      prefix: -L
+    doc: Location of logging directory.
   archs:
     type: string?
-    label: 3DResUNet,3DUNet,deepMedic
+    label: 3DResUNet,3DUNet,deepMedic,deepscan
     inputBinding:
       position: 1
       prefix: -a
