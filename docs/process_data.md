@@ -27,21 +27,21 @@ Input_Data
 └───Patient_001
 │   │
 │   └───T1
-│       │   image_001.dcm
-│       │   image_002.dcm
-│       │   ...
+│   │   │ image_001.dcm
+│   │   │ image_002.dcm
+│   │   │ ...
 │   └───T1GD
-│       │   image_001.dcm
-│       │   image_002.dcm
-│       │   ...
+│   │   │ image_001.dcm
+│   │   │ image_002.dcm
+│   │   │ ...
 │   └───T2
-│       │   image_001.dcm
-│       │   image_002.dcm
-│       │   ...
+│   │   │ image_001.dcm
+│   │   │ image_002.dcm
+│   │   │ ...
 │   └───T2FLAIR
-│       │   image_001.dcm
-│       │   image_002.dcm
-│       │   ...
+│   │   │ image_001.dcm
+│   │   │ image_002.dcm
+│   │   │ .....
 │   
 └───Patient_002
 │   │ ...
