@@ -52,11 +52,11 @@ The aforementioned command will perform the following steps:
   │   │ Patient_001_brain_t2flair.nii.gz
   │   │
   │   └──SegmentationsForQC
-  │   │   │ Patient_001_3dresunet_seg.nii.gz # individual architecture results
+  │   │   │ Patient_001_3dresunet_seg.nii.gz     # individual architecture results
   │   │   │ Patient_001_deepmedic_seg.nii.gz
   │   │   │ Patient_001_nnunet_seg.nii.gz
   │   │   │ Patient_001_deepscan_seg.nii.gz
-  │   │   │ Patient_001_fused_staple_seg.nii.gz # label fusions using different methods
+  │   │   │ Patient_001_fused_staple_seg.nii.gz  # label fusions using different methods
   │   │   │ Patient_001_fused_simple_seg.nii.gz
   │   │   │ Patient_001_fused_itkvoting_seg.nii.gz
   │
