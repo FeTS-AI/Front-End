@@ -58,32 +58,32 @@ Patient_X,/path/to/Patient_X/T1/image_001.dcm,/path/to/Patient_X/T1GD/image_001.
 ```bash
 ${fets_root_dir}/bin/PrepareDataset -i /path/to/raw_data.csv -o /path/to/output
 ```
-- Two output directories will be created under `/path/to/output`:
-  - `DataForFeTS`: this is to be passed for inference/training:
+- Two output directories will be created under the specified output directory with the following structure::
   ```bash
-  DataForFeTS
-  │
-  └───Patient_001 # this is constructed from the ${PatientID} header of CSV
-  │   │ Patient_001_brain_t1.nii.gz
-  │   │ Patient_001_brain_t1ce.nii.gz
-  │   │ Patient_001_brain_t2.nii.gz
-  │   │ Patient_001_brain_t2flair.nii.gz
-  │   
-  └───Patient_002
-  │   │ ...
-  ```
-  - `DataForQC`: this is to be used for quality-control:
-  ```bash
-  DataForQC 
-  │
-  └───Patient_001 # this is constructed from the ${PatientID} header of CSV
-  │   │ raw_${modality}.nii.gz
-  │   │ raw_rai_${modality}.nii.gz
-  │   │ raw_rai_n4_${modality}.nii.gz
-  │   │ ${modality}_to_SRI.nii.gz
-  │   │ brainMask_SRI.nii.gz # generated using DeepMedic
-  │   │ log.txt
-  │   
-  └───Patient_002
-  │   │ ...
+  /path/to/output
+  │   │
+  │   └───DataForFeTS # this is to be passed for inference/training
+  │   │   │
+  │   │   └───Patient_001 # this is constructed from the ${PatientID} header of CSV
+  │   │   │   │ Patient_001_brain_t1.nii.gz
+  │   │   │   │ Patient_001_brain_t1ce.nii.gz
+  │   │   │   │ Patient_001_brain_t2.nii.gz
+  │   │   │   │ Patient_001_brain_t2flair.nii.gz
+  │   │   │   
+  │   │   └───Patient_002
+  │   │   │   │ ...
+  │   │
+  │   │
+  │   └───DataForQC # this is to be used for quality-control
+  │   │   │
+  │   │   └───Patient_001 # this is constructed from the ${PatientID} header of CSV
+  │   │   │   │ raw_${modality}.nii.gz
+  │   │   │   │ raw_rai_${modality}.nii.gz
+  │   │   │   │ raw_rai_n4_${modality}.nii.gz
+  │   │   │   │ ${modality}_to_SRI.nii.gz
+  │   │   │   │ brainMask_SRI.nii.gz # generated using DeepMedic
+  │   │   │   │ log.txt
+  │   │   │   
+  │   │   └───Patient_002
+  │   │   │   │ ...
   ```
