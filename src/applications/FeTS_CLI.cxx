@@ -135,47 +135,58 @@ int main(int argc, char** argv)
     {
       auto currentSubjectIsProblematic = false;
       std::string file_t1gd, file_t1, file_t2, file_flair;
-      auto fileToCheck = dataDir + "/" + subjectDirs[s] + "/" + subjectDirs[s] + "_brain_t1ce.nii.gz";
-      if (cbica::fileExists(fileToCheck))
+
+      auto filesInDir = cbica::filesInDirectory(dataDir + "/" + subjectDirs[s]); // get files in current subject directory
+      // iterate through all files and pick up individual modalities
+      for (size_t f = 0; f < filesInDir.size(); f++)
       {
-        file_t1gd = fileToCheck;
+        if (file_t1gd.empty())
+        {
+          if ((filesInDir[f].find("_t1ce.nii.gz") != std::string::npos) || (filesInDir[f].find("_t1gd.nii.gz") != std::string::npos))
+          {
+            file_t1gd = filesInDir[f];
+          }
+        }
+        if (file_t1.empty())
+        {
+          if (filesInDir[f].find("_t1.nii.gz") != std::string::npos)
+          {
+            file_t1 = filesInDir[f];
+          }
+        }
+        if (file_t2.empty())
+        {
+          if (filesInDir[f].find("_t2.nii.gz") != std::string::npos)
+          {
+            file_t2 = filesInDir[f];
+          }
+        }
+        if (file_flair.empty())
+        {
+          if ((filesInDir[f].find("_flair.nii.gz") != std::string::npos) || (filesInDir[f].find("_fl.nii.gz") != std::string::npos))
+          {
+            file_flair = filesInDir[f];
+          }
+        }
       }
-      else if (cbica::fileExists(dataDir + "/" + subjectDirs[s] + "/" + subjectDirs[s] + "_brain_t1gd.nii.gz"))
-      {
-        file_t1gd = dataDir + "/" + subjectDirs[s] + "/" + subjectDirs[s] + "_brain_t1gd.nii.gz";
-      }
-      else
+
+      // ensure problematic cases are detected
+      if (file_t1gd.empty())
       {
         subjectsWithMissingModalities += subjectDirs[s] + ",t1ce\n";
         currentSubjectIsProblematic = true;
       }
-
-      fileToCheck = dataDir + "/" + subjectDirs[s] + "/" + subjectDirs[s] + "_brain_t1.nii.gz";
-      if (cbica::fileExists(fileToCheck))
-      {
-        file_t1 = fileToCheck;
-      }
-      else
+      if (file_t1.empty())
       {
         subjectsWithMissingModalities += subjectDirs[s] + ",t1\n";
         currentSubjectIsProblematic = true;
       }
-      fileToCheck = dataDir + "/" + subjectDirs[s] + "/" + subjectDirs[s] + "_brain_t2.nii.gz";
-      if (cbica::fileExists(fileToCheck))
-      {
-        file_t2 = fileToCheck;
-      }
-      else
+      if (file_t2.empty())
       {
         subjectsWithMissingModalities += subjectDirs[s] + ",t2\n";
         currentSubjectIsProblematic = true;
       }
-      fileToCheck = dataDir + "/" + subjectDirs[s] + "/" + subjectDirs[s] + "_brain_flair.nii.gz";
-      if (cbica::fileExists(fileToCheck))
-      {
-        file_flair = fileToCheck;
-      }
-      else
+      if (file_flair.empty())
       {
         subjectsWithMissingModalities += subjectDirs[s] + ",flair\n";
         currentSubjectIsProblematic = true;
