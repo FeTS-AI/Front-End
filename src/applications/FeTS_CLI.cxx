@@ -128,7 +128,7 @@ int main(int argc, char** argv)
   {
     std::string subjectsWithMissingModalities, subjectsWithErrors; // string to store error cases
     
-    std::cout << "Starting subject directory iteration.\n";
+    std::cout << "Starting subject directory iteration...\n";
     for (size_t s = 0; s < subjectDirs.size(); s++) // iterate through all subjects
     {
       auto currentSubjectIsProblematic = false;
@@ -192,11 +192,12 @@ int main(int argc, char** argv)
 
       if (!currentSubjectIsProblematic) // proceed only if all modalities for the current subject are present
       {
+        std::cout << "= Starting inference for subject: " << subjectDirs[s] << "\n";
         for (size_t a = 0; a < archs_split.size(); a++) // iterate through all requested architectures
         {
           if (archs_split[a] == "deepmedic") // special case 
           {
-            std::cout << "DeepMedic selected.\n";
+            std::cout << "== Starting inference using DeepMedic...\n";
             auto brainMaskFile = dataDir + "/" + subjectDirs[s] + "/" + subjectDirs[s] + "_deepmedic_seg.nii.gz";
             if (!cbica::isFile(brainMaskFile))
             {
@@ -210,7 +211,7 @@ int main(int argc, char** argv)
 
               if (std::system(fullCommand.c_str()) != 0)
               {
-                std::cerr << "Couldn't complete the inference for deepmedic for subject " << subjectDirs[s] << ".\n";
+                std::cerr << "=== Couldn't complete the inference for deepmedic for subject " << subjectDirs[s] << ".\n";
                 subjectsWithErrors += subjectDirs[s] + ",inference,deepmedic\n";
               }
               else
@@ -234,7 +235,7 @@ int main(int argc, char** argv)
               }
               else if (archs_split[a] == "3dresunet")
               {
-                std::cout << "3DResUNet selected.\n";
+                std::cout << "== Starting inference using 3DResUNet...\n";
                 hardcodedPlanName = "pt_3dresunet_brainmagebrats";
                 auto hardcodedModelName = hardcodedPlanName + "_best.pbuf";
                 auto allGood = true;
@@ -243,7 +244,7 @@ int main(int argc, char** argv)
                   auto hardcodedModelName = hardcodedPlanName + "_init.pbuf";
                   if (!cbica::isFile((hardcodedModelWeightPath + "/" + hardcodedModelName)))
                   {
-                    std::cerr << "A compatible model weight file for the architecture '" << archs_split[a] << "' was not found. Please contact admin@fets.ai for help.\n";
+                    std::cerr << "=== A compatible model weight file for the architecture '" << archs_split[a] << "' was not found. Please contact admin@fets.ai for help.\n";
                     allGood = false;
                   }
                 }
@@ -254,7 +255,7 @@ int main(int argc, char** argv)
                
                 if (std::system((fullCommandToRun + " " + args_to_run).c_str()) != 0)
                 {
-                  std::cerr << "Couldn't complete the inference for 3dresunet for subject " << subjectDirs[s] << ".\n";
+                  std::cerr << "=== Couldn't complete the inference for 3dresunet for subject " << subjectDirs[s] << ".\n";
                   subjectsWithErrors += subjectDirs[s] + ",inference,3dresunet\n";
                 }
               } // end of 3dresunet check
@@ -264,12 +265,12 @@ int main(int argc, char** argv)
                 if (archs_split[a].find("nnunet") != std::string::npos)
                 {
                   hardcodedPlanName = "nnunet";
-                  std::cout << "nnUNet selected.\n";
+                  std::cout << "== Starting inference using nnUNet...\n";
                 }
                 else if (archs_split[a].find("deepscan") != std::string::npos)
                 {
                   hardcodedPlanName = "deepscan";
-                  std::cout << "DeepScan selected.\n";
+                  std::cout << "== Starting inference using DeepScan...\n";
                 }
                 if (!hardcodedPlanName.empty())
                 {
@@ -281,7 +282,7 @@ int main(int argc, char** argv)
 
                   if (std::system((fullCommandToRun + " " + args_to_run).c_str()) != 0)
                   {
-                    std::cerr << "Couldn't complete the inference for " << archs_split[a] << " for subject " << subjectDirs[s] << ".\n";
+                    std::cerr << "=== Couldn't complete the inference for " << archs_split[a] << " for subject " << subjectDirs[s] << ".\n";
                     subjectsWithErrors += subjectDirs[s] + ",inference," + archs_split[a] + "\n";
                   }
                 } // end of hardcodedPlanName check
@@ -295,6 +296,7 @@ int main(int argc, char** argv)
         {
           if (cbica::isFile(hardcodedLabelFusionPath))
           {
+            std::cout << "== Starting label fusion...\n";
             auto filesInSubjectDir = cbica::filesInDirectory(dataDir + "/" + subjectDirs[s]);
             auto labelFusion_command = hardcodedPythonPath + " " + hardcodedLabelFusionPath + " ";
             std::string filesForFusion, dataForSegmentation = dataDir + "/" + subjectDirs[s] + "/SegmentationsForQC/";
@@ -322,7 +324,7 @@ int main(int argc, char** argv)
                 + " -method " + fusion_split[f] + " -output " + final_fused_file;
               if (std::system(full_fusion_command.c_str()) != 0)
               {
-                std::cerr << "Something went wrong with fusion for subject '" << subjectDirs[s] << "' using fusion method '" << fusion_split[f] << "'\n";
+                std::cerr << "=== Something went wrong with fusion for subject '" << subjectDirs[s] << "' using fusion method '" << fusion_split[f] << "'\n";
                 subjectsWithErrors += subjectDirs[s] + ",fusion," + fusion_split[f] + "\n";
               }
             }
