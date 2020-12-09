@@ -405,6 +405,8 @@ int main(int argc, char** argv)
 
     args += device_arg;
 
+    std::cout << "Starting training...\n";
+
     if (std::system((fullCommandToRun + " " + args + " " + specialArgs).c_str()) != 0)
     {
       std::cerr << "Couldn't complete the requested task.\n";
