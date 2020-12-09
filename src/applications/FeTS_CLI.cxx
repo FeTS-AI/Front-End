@@ -223,7 +223,7 @@ int main(int argc, char** argv)
           else
           {
             auto fullCommandToRun = hardcodedPythonPath + " " + hardcodedOpenFLPath + "/bin/run_inference_from_flplan.py";
-            auto args = " -d " + dataDir + device_arg + " -ld " + loggingDir + " -d " + dataDir + " -ip " + subjectDirs[s];
+            auto args = " -d " + dataDir + device_arg + " -ld " + loggingDir + " -ip " + subjectDirs[s];
             if (pythonEnvironmentFound)
             {
               // check for all other models written in pytorch here
@@ -248,6 +248,8 @@ int main(int argc, char** argv)
                     allGood = false;
                   }
                 }
+
+                std::cout << "=== hardcodedModelName: " << hardcodedModelName << "\n";
 
                 auto args_to_run = args + " -mwf " + hardcodedModelName
                   + " -p " + hardcodedPlanName + ".yaml";
