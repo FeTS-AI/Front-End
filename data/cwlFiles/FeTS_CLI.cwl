@@ -39,7 +39,7 @@ inputs:
     doc: Location of logging directory.
   archs:
     type: string?
-    label: 3DResUNet,3DUNet,deepMedic,deepscan
+    label: 3DResUNet,deepMedic,deepscan
     inputBinding:
       position: 1
       prefix: -a
