@@ -135,14 +135,14 @@ int main(int argc, char** argv)
     {
       auto currentSubjectIsProblematic = false;
       std::string file_t1gd, file_t1, file_t2, file_flair;
-      auto fileToCheck = dataDir + "/" + subjectDirs[s] + "/brain_t1ce.nii.gz";
+      auto fileToCheck = dataDir + "/" + subjectDirs[s] + "/" + subjectDirs[s] + "_brain_t1ce.nii.gz";
       if (cbica::fileExists(fileToCheck))
       {
         file_t1gd = fileToCheck;
       }
-      else if (cbica::fileExists(dataDir + "/" + subjectDirs[s] + "/brain_t1gd.nii.gz"))
+      else if (cbica::fileExists(dataDir + "/" + subjectDirs[s] + "/" + subjectDirs[s] + "_brain_t1gd.nii.gz"))
       {
-        file_t1gd = dataDir + "/" + subjectDirs[s] + "/brain_t1gd.nii.gz";
+        file_t1gd = dataDir + "/" + subjectDirs[s] + "/" + subjectDirs[s] + "_brain_t1gd.nii.gz";
       }
       else
       {
@@ -150,7 +150,7 @@ int main(int argc, char** argv)
         currentSubjectIsProblematic = true;
       }
 
-      fileToCheck = dataDir + "/" + subjectDirs[s] + "/brain_t1.nii.gz";
+      fileToCheck = dataDir + "/" + subjectDirs[s] + "/" + subjectDirs[s] + "_brain_t1.nii.gz";
       if (cbica::fileExists(fileToCheck))
       {
         file_t1 = fileToCheck;
@@ -160,7 +160,7 @@ int main(int argc, char** argv)
         subjectsWithMissingModalities += subjectDirs[s] + ",t1\n";
         currentSubjectIsProblematic = true;
       }
-      fileToCheck = dataDir + "/" + subjectDirs[s] + "/brain_t2.nii.gz";
+      fileToCheck = dataDir + "/" + subjectDirs[s] + "/" + subjectDirs[s] + "_brain_t2.nii.gz";
       if (cbica::fileExists(fileToCheck))
       {
         file_t2 = fileToCheck;
@@ -170,7 +170,7 @@ int main(int argc, char** argv)
         subjectsWithMissingModalities += subjectDirs[s] + ",t2\n";
         currentSubjectIsProblematic = true;
       }
-      fileToCheck = dataDir + "/" + subjectDirs[s] + "/brain_flair.nii.gz";
+      fileToCheck = dataDir + "/" + subjectDirs[s] + "/" + subjectDirs[s] + "_brain_flair.nii.gz";
       if (cbica::fileExists(fileToCheck))
       {
         file_flair = fileToCheck;
