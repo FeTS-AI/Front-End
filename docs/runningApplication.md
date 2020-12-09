@@ -101,7 +101,7 @@ The aforementioned command will perform the following steps:
 ## Training_New
 
 ```bash
-${fets_root_dir}/bin/FeTS_CLI -d /path/to/output/DataForFeTS -g 1 -t 1
+${fets_root_dir}/bin/FeTS_CLI -d /path/to/output/DataForFeTS -g 1 -t 1 -c ${collaborator_common_name}
 ```
 The aforementioned command will perform the following steps:
 - Train a model with a 3DResUNet architecture (more architectures will be made available in future releases) for all the *complete* subjects (i.e., with `${SubjectID}_final_seg.nii.gz` and all 4 structural modalities present) in a collaborative manner
