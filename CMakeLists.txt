@@ -598,7 +598,18 @@ IF( NOT BUILD_DOCUMENTATION_ONLY )
   CONFIGURE_FILE("${PROJECT_SOURCE_DIR}/data/fets/network.yaml" "${PROJECT_SOURCE_DIR}/OpenFederatedLearning/bin/federations/plans/defaults/network.yaml")
   CONFIGURE_FILE("${PROJECT_SOURCE_DIR}/data/fets/cert_chain.crt" "${PROJECT_SOURCE_DIR}/OpenFederatedLearning/bin/federations/pki/cert_chain.crt")
   CONFIGURE_FILE("${PROJECT_SOURCE_DIR}/data/fets/pt_3dresunet_brainmagebrats.yaml" "${PROJECT_SOURCE_DIR}/OpenFederatedLearning/bin/federations/plans/pt_3dresunet_brainmagebrats.yaml" COPYONLY) 
+  CONFIGURE_FILE("${PROJECT_SOURCE_DIR}/data/fets/deepscan_inference.yaml" "${PROJECT_SOURCE_DIR}/OpenFederatedLearning/bin/federations/plans/deepscan_inference.yaml" COPYONLY) 
+  CONFIGURE_FILE("${PROJECT_SOURCE_DIR}/data/fets/nnunet_inference.yaml" "${PROJECT_SOURCE_DIR}/OpenFederatedLearning/bin/federations/plans/nnunet_inference.yaml" COPYONLY) 
   
+  # find stand-alone CMD applications
+  FILE( GLOB DeepScan_Weights
+    "${PROJECT_SOURCE_DIR}/data/fets/*.tar"
+  )
+  file(MAKE_DIRECTORY "${PROJECT_SOURCE_DIR}/OpenFederatedLearning/bin/federations/weights/deepscan/")
+  FOREACH(deepScan_weight ${DeepScan_Weights})
+    CONFIGURE_FILE("${deepScan_weight}" "${PROJECT_SOURCE_DIR}/OpenFederatedLearning/bin/federations/weights/deepscan/" COPYONLY) 
+  ENDFOREACH()
+
   INSTALL(
     DIRECTORY "${PROJECT_SOURCE_DIR}/OpenFederatedLearning" 
     DESTINATION bin
