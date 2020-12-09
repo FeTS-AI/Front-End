@@ -238,14 +238,12 @@ int main(int argc, char** argv)
                 std::cout << "== Starting inference using 3DResUNet...\n";
                 hardcodedPlanName = "pt_3dresunet_brainmagebrats";
                 auto hardcodedModelName = hardcodedPlanName + "_best.pbuf";
-                auto allGood = true;
                 if (!cbica::isFile((hardcodedModelWeightPath + "/" + hardcodedModelName))) // in case the "best" model is not present, use the "init" model that is distributed with FeTS installation
                 {
-                  auto hardcodedModelName = hardcodedPlanName + "_init.pbuf";
+                  hardcodedModelName = hardcodedPlanName + "_init.pbuf";
                   if (!cbica::isFile((hardcodedModelWeightPath + "/" + hardcodedModelName)))
                   {
                     std::cerr << "=== A compatible model weight file for the architecture '" << archs_split[a] << "' was not found. Please contact admin@fets.ai for help.\n";
-                    allGood = false;
                   }
                 }
 
