@@ -40,6 +40,7 @@ chmod +x ./FeTS_${version}.bin # optional addition of execution permission
 cd ${install_path}/squashfs-root/usr/ # this is the ${fets_root_dir}
 cd bin/OpenFederatedLearning
 make install_openfl 
+./venv/bin/pip install opencv-python==4.2.0.34 # this fixes the issue highlighted in https://stackoverflow.com/questions/63669752/building-wheel-for-opencv-python-pep-517-runs-forever
 make install_fets
 ./venv/bin/pip install torch torchvision # installs latest stable pytorch (we have tested with 1.6.0 with cuda-10.2), change to appropriate cuda version; see https://pytorch.org/get-started/locally/
 # for cuda 9.2, this would be './venv/bin/pip install torch==1.6.0+cu92 torchvision==0.7.0+cu92 -f https://download.pytorch.org/whl/torch_stable.html'
