@@ -59,10 +59,10 @@ bash create-collaborator.sh ${collaborator_common_name} # keep a note of the ${c
 ## a string of alpha-numeric numbers for hash verification 
 ```
 
-- Send the CSR file (`${fets_root_dir}/bin/OpenFederatedLearning/bin/federations/pki/client/${collaborator_common_name}.csr`), and **not the verificiation hash**, to your UPenn point-of-contact, Sarthak Pati
-- Set up a call/meeting with Sarthak and provide the verification hash to him.
+- Send the CSR file (`${fets_root_dir}/bin/OpenFederatedLearning/bin/federations/pki/client/${collaborator_common_name}.csr`), and **not the verificiation hash**, to your UPenn point-of-contact (*FeTS_Admin*)
+- Set up a call/meeting with FeTS_Admin and provide the verification hash.
   - *On Aggregator*: `bash sign-csr.sh ${collaborator_common_name}.csr ${hashVerification}`
-  - Sarthak will send the following file back: `${collaborator_common_name}.crt`
+  - FeTS_Admin will send the following file back: `${collaborator_common_name}.crt`
   - Copy this file to the following location: `${fets_root_dir}/bin/OpenFederatedLearning/bin/federations/pki/client/`
   - (**Verification**) This location should contain the following files:
     - `${collaborator_common_name}.crt`
