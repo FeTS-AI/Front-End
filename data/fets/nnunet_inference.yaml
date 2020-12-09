@@ -1,0 +1,30 @@
+# Compose an FL plan in JSON/YAML.
+# The plan is consumed by
+#  bin/create_pki_for_flplan.py, 
+# bin/run_inference_from_flplan.py, bin/run_simulation_from_flplan.py,
+# bin/run_aggregator_from_flplan, bin/run_collaborator_from_flplan, and
+# bin/create_initial_weights_file_from_plan.py 
+
+aggregator_object_init:
+  init_kwargs: {}
+
+model_object_init:
+  class_to_init: fets.models.pytorch.nnunet.nnunet.NNUnetInferenceOnlyModel
+  init_kwargs: {}
+
+collaborator_object_init:
+  init_kwargs: {}
+
+network_object_init:
+  defaults_file: defaults/network.yaml
+ 
+data_object_init:
+  class_to_init: fets.data.pytorch.file_lists_data.FileListsData
+  init_kwargs: 
+    feature_modes: ["_t1.nii.gz", "_t2.nii.gz", "_flair.nii.gz", "_t1ce.nii.gz"]
+
+inference:
+  allowed: True
+  kwargs:
+    output_file_tag: ''
+  
