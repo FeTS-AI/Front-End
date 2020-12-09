@@ -276,10 +276,9 @@ int main(int argc, char** argv)
                 }
                 if (!hardcodedPlanName.empty())
                 {
-                  hardcodedPlanName += "_inference.yaml";
                   // structure according to what is needed - might need to create a function that can call run_inference_from_flplan for different hardcodedModelName
                   auto args_to_run = args + " -nmwf " + hardcodedNativeModelWeightPath + "/" + hardcodedPlanName // <abs path to folder containing all model weights folders> 
-                    + " -p " + hardcodedPlanName
+                    + " -p " + hardcodedPlanName + "_inference.yaml"
                     + " -pwai";
 
                   if (std::system((fullCommandToRun + " " + args_to_run).c_str()) != 0)
