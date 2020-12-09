@@ -247,8 +247,6 @@ int main(int argc, char** argv)
                   }
                 }
 
-                std::cout << "=== hardcodedModelName: " << hardcodedModelName << "\n";
-
                 auto args_to_run = args + " -mwf " + hardcodedModelName
                   + " -p " + hardcodedPlanName + ".yaml";
                   //<< "-mwf" << hardcodedModelWeightPath // todo: doing customized solution above - change after model weights are using full paths for all
