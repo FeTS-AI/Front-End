@@ -278,7 +278,7 @@ int main(int argc, char** argv)
                 {
                   hardcodedPlanName += "_inference.yaml";
                   // structure according to what is needed - might need to create a function that can call run_inference_from_flplan for different hardcodedModelName
-                  auto args_to_run = args + " -nmwf " + hardcodedNativeModelWeightPath // <abs path to folder containing all model weights folders> 
+                  auto args_to_run = args + " -nmwf " + hardcodedNativeModelWeightPath + "/" + hardcodedPlanName // <abs path to folder containing all model weights folders> 
                     + " -p " + hardcodedPlanName
                     + " -pwai";
 
