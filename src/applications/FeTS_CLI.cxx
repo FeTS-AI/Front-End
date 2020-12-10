@@ -235,27 +235,33 @@ int main(int argc, char** argv)
               }
               else if (archs_split[a] == "3dresunet")
               {
-                std::cout << "== Starting inference using 3DResUNet...\n";
-                hardcodedPlanName = "pt_3dresunet_brainmagebrats";
-                auto hardcodedModelName = hardcodedPlanName + "_best.pbuf";
-                if (!cbica::isFile((hardcodedModelWeightPath + "/" + hardcodedModelName))) // in case the "best" model is not present, use the "init" model that is distributed with FeTS installation
+                auto fileNameToCheck = subjectDirs[s] + "_resunet_seg.nii.gz";
+                auto fileToCheck_1 = dataDir + "/" + subjectDirs[s] + "/" + fileNameToCheck;
+                auto fileToCheck_2 = dataDir + "/" + subjectDirs[s] + "/SegmentationsForQC/" + fileNameToCheck;
+                if (!(cbica::isFile(fileToCheck_1) || cbica::isFile(fileToCheck_2))) // don't run if file is present
                 {
-                  hardcodedModelName = hardcodedPlanName + "_init.pbuf";
-                  if (!cbica::isFile((hardcodedModelWeightPath + "/" + hardcodedModelName)))
+                  std::cout << "== Starting inference using 3DResUNet...\n";
+                  hardcodedPlanName = "pt_3dresunet_brainmagebrats";
+                  auto hardcodedModelName = hardcodedPlanName + "_best.pbuf";
+                  if (!cbica::isFile((hardcodedModelWeightPath + "/" + hardcodedModelName))) // in case the "best" model is not present, use the "init" model that is distributed with FeTS installation
                   {
-                    std::cerr << "=== A compatible model weight file for the architecture '" << archs_split[a] << "' was not found. Please contact admin@fets.ai for help.\n";
+                    hardcodedModelName = hardcodedPlanName + "_init.pbuf";
+                    if (!cbica::isFile((hardcodedModelWeightPath + "/" + hardcodedModelName)))
+                    {
+                      std::cerr << "=== A compatible model weight file for the architecture '" << archs_split[a] << "' was not found. Please contact admin@fets.ai for help.\n";
+                    }
                   }
-                }
 
-                auto args_to_run = args + " -mwf " + hardcodedModelName
-                  + " -p " + hardcodedPlanName + ".yaml";
+                  auto args_to_run = args + " -mwf " + hardcodedModelName
+                    + " -p " + hardcodedPlanName + ".yaml";
                   //<< "-mwf" << hardcodedModelWeightPath // todo: doing customized solution above - change after model weights are using full paths for all
-               
-                if (std::system((fullCommandToRun + " " + args_to_run).c_str()) != 0)
-                {
-                  std::cerr << "=== Couldn't complete the inference for 3dresunet for subject " << subjectDirs[s] << ".\n";
-                  subjectsWithErrors += subjectDirs[s] + ",inference,3dresunet\n";
-                }
+
+                  if (std::system((fullCommandToRun + " " + args_to_run).c_str()) != 0)
+                  {
+                    std::cerr << "=== Couldn't complete the inference for 3dresunet for subject " << subjectDirs[s] << ".\n";
+                    subjectsWithErrors += subjectDirs[s] + ",inference,3dresunet\n";
+                  }
+                } // end of previous run file check
               } // end of 3dresunet check
               else
               {
@@ -272,16 +278,22 @@ int main(int argc, char** argv)
                 }
                 if (!hardcodedPlanName.empty())
                 {
-                  // structure according to what is needed - might need to create a function that can call run_inference_from_flplan for different hardcodedModelName
-                  auto args_to_run = args + " -nmwf " + hardcodedNativeModelWeightPath + "/" + hardcodedPlanName // <abs path to folder containing all model weights folders> 
-                    + " -p " + hardcodedPlanName + "_inference.yaml"
-                    + " -pwai";
-
-                  if (std::system((fullCommandToRun + " " + args_to_run).c_str()) != 0)
+                  auto fileNameToCheck = subjectDirs[s] + "_" + hardcodedPlanName + "_seg.nii.gz";
+                  auto fileToCheck_1 = dataDir + "/" + subjectDirs[s] + "/" + fileNameToCheck;
+                  auto fileToCheck_2 = dataDir + "/" + subjectDirs[s] + "/SegmentationsForQC/" + fileNameToCheck;
+                  if (!(cbica::isFile(fileToCheck_1) || cbica::isFile(fileToCheck_2))) // don't run if file is present
                   {
-                    std::cerr << "=== Couldn't complete the inference for " << archs_split[a] << " for subject " << subjectDirs[s] << ".\n";
-                    subjectsWithErrors += subjectDirs[s] + ",inference," + archs_split[a] + "\n";
-                  }
+                    // structure according to what is needed - might need to create a function that can call run_inference_from_flplan for different hardcodedModelName
+                    auto args_to_run = args + " -nmwf " + hardcodedNativeModelWeightPath + "/" + hardcodedPlanName // <abs path to folder containing all model weights folders> 
+                      + " -p " + hardcodedPlanName + "_inference.yaml"
+                      + " -pwai";
+
+                    if (std::system((fullCommandToRun + " " + args_to_run).c_str()) != 0)
+                    {
+                      std::cerr << "=== Couldn't complete the inference for " << archs_split[a] << " for subject " << subjectDirs[s] << ".\n";
+                      subjectsWithErrors += subjectDirs[s] + ",inference," + archs_split[a] + "\n";
+                    }
+                  } // end of previous run file check
                 } // end of hardcodedPlanName check
               } // end of non-3dresunet check
             } // end of python check
