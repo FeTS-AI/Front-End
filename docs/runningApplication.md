@@ -23,7 +23,7 @@ ${fets_root_dir}/bin/FeTS_CLI -d /path/to/output/DataForFeTS -a deepMedic,deepsc
 The aforementioned command will perform the following steps:
 - Perform inference on the prepared dataset based on selected architectures and label fusion strategies
   - **NOTE**: To run [nnUNet](https://github.com/MIC-DKFZ/nnunet), follow these steps:
-    - Download weights from [this URL](https://bit.ly/3ozyTeU).
+    - Download weights from [this URL](https://upenn.box.com/v/fets-weights-nnunet).
     - Unzip it in `${fets_root_dir}/data/fets`. The directory structure should look like this:
       ```bash
       ${fets_root_dir}
