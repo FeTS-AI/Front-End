@@ -770,8 +770,8 @@ IF( NOT BUILD_DOCUMENTATION_ONLY )
     SET(META_FILES_TO_INCLUDE ${META_FILES_TO_INCLUDE} ${DEEPMEDIC_SAVEDMODELS_SKULL})
     
   ELSE()
-    #INSTALL(DIRECTORY "${DATA_DIR}/deepMedic/configFiles" DESTINATION data/deepMedic)
-    #INSTALL(DIRECTORY "${DATA_DIR}/deepMedic/saved_models" DESTINATION data/deepMedic)
+    INSTALL(DIRECTORY "${DATA_DIR}/deepMedic/configFiles" DESTINATION data/deepMedic)
+    INSTALL(DIRECTORY "${DATA_DIR}/deepMedic/saved_models" DESTINATION data/deepMedic)
   ENDIF()
   
   # install FeTS files
