@@ -202,7 +202,7 @@ int main(int argc, char** argv)
             if (!cbica::isFile(brainMaskFile))
             {
               auto dm_tempOut = dataDir + "/" + subjectDirs[s] + "/dmOut/mask.nii.gz";
-              auto fullCommand = deepMedicExe + " -md " + getCaPTkDataDir() + "/fets/deepMedic/saved_models/brainTumorSegmentation/ " +
+              auto fullCommand = deepMedicExe + " -md " + hardcodedNativeModelWeightPath + "/deepMedic/saved_models/brainTumorSegmentation/ " +
                 "-i " + file_t1 + "," +
                 file_t1gd + "," +
                 file_t2 + "," +
