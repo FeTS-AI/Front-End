@@ -290,6 +290,9 @@ int main(int argc, char** argv)
                         + " -p " + hardcodedPlanName + "_inference.yaml"
                         + " -pwai";
 
+                      /// remove before final packaging
+                      std::cerr << "=== \n=== Command to run: \n" << fullCommandToRun + " " + args_to_run << "\n===\n";
+
                       if (std::system((fullCommandToRun + " " + args_to_run).c_str()) != 0)
                       {
                         std::cerr << "=== Couldn't complete the inference for " << archs_split[a] << " for subject " << subjectDirs[s] << ".\n";
