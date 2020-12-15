@@ -280,7 +280,8 @@ int main(int argc, char** argv)
                     {
                       auto fileToOverWrite = (hardcodedOpenFLPath + "/venv/lib/python3.6/site-packages/nnunet/__init__.py").c_str();
                       std::remove(fileToOverWrite);
-                      std::ofstream outfile(fileToOverWrite);
+                      std::ofstream outfile;
+                      outfile.open(fileToOverWrite);
                       outfile <<
                         "from __future__ import absolute_import\n\n"
                         "print('\nPlease cite the following paper when using nnUNet:\n" <<
