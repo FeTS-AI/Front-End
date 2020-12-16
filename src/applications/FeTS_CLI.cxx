@@ -127,9 +127,7 @@ int main(int argc, char** argv)
   if (!trainingRequested)
   {
     std::string subjectsWithMissingModalities, subjectsWithErrors; // string to store error cases
-    
-    bool nnunet_fileOverwritten = false;
-    
+        
     std::cout << "Starting subject directory iteration...\n";
     for (size_t s = 0; s < subjectDirs.size(); s++) // iterate through all subjects
     {
@@ -274,25 +272,6 @@ int main(int argc, char** argv)
                   {
                     hardcodedPlanName = "nnunet";
                     std::cout << "== Starting inference using nnUNet...\n";
-
-                    // this is needed because the code has "a-umlaut", which causes python to crash. shouldn't be an issue with nnunet 1.6.6
-                    if (!nnunet_fileOverwritten)
-                    {
-                      auto fileToOverWrite = (hardcodedOpenFLPath + "/venv/lib/python3.6/site-packages/nnunet/__init__.py").c_str();
-                      std::remove(fileToOverWrite);
-                      std::ofstream outfile;
-                      outfile.open(fileToOverWrite);
-                      outfile <<
-                        "from __future__ import absolute_import\n\n"
-                        "print('\nPlease cite the following paper when using nnUNet:\n" <<
-                        "Fabian Isensee, Paul F.Jaeger, Simon A.A.Kohl, Jens Petersen, Klaus H. Maier-Hein. " <<
-                        "nnU-Net: a self-configuring method for deep learning-based biomedical image segmentation. " <<
-                        "Nat Methods (2020). https://doi.org/10.1038/s41592-020-01008-z \n" <<
-                        "If you have questions or suggestions, feel free to open an issue at https://github.com/MIC-DKFZ/nnUNet \n')\n\nfrom . import *(base)\n";
-                      outfile.close();
-                      nnunet_fileOverwritten = true;
-                    }
-                    // this is needed because the code has "a-umlaut", which causes python to crash. shouldn't be an issue with nnunet 1.6.6
                   }
                   else if (archs_split[a].find("deepscan") != std::string::npos)
                   {
