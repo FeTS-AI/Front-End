@@ -3456,7 +3456,31 @@ void fMainWindow::dropEvent(QDropEvent *event)
   {
     vectorOfFiles.push_back(urls[i].toLocalFile());
   }
-  openImages(vectorOfFiles);
+  // if more than 1 files are dropped, assume they are images
+  if ((vectorOfFiles.size() > 1) || mSlicerManagers.empty())
+  {
+    openImages(vectorOfFiles);
+  }
+  else
+  {
+    // ask if it is an image or roi
+    QMessageBox *box = new QMessageBox(QMessageBox::Question, 
+      "Image Type", 
+      "Please select the type of image being loaded", QMessageBox::Ok | QMessageBox::Cancel);
+    box->button(QMessageBox::Ok)->setText("Image");
+    box->button(QMessageBox::Cancel)->setText("ROI");
+    box->setAttribute(Qt::WA_DeleteOnClose); //makes sure the msgbox is deleted automatically when closed
+    box->setWindowModality(Qt::NonModal);
+    QCoreApplication::processEvents();
+    if (box->exec() == QMessageBox::Ok)
+    {
+      openImages(vectorOfFiles);
+    }
+    else
+    {
+      readMaskFile(vectorOfFiles[0].toStdString());
+    }
+  }
 }
 
 
