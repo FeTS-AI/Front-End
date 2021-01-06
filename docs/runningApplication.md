@@ -17,7 +17,10 @@ export LD_LIBRARY_PATH=${fets_root_dir}/lib:$LD_LIBRARY_PATH
 ## Inference_New
 
 ```bash
-${fets_root_dir}/bin/FeTS_CLI -d /path/to/output/DataForFeTS -a deepMedic,deepscan -lF STAPLE,ITKVoting,SIMPLE -g 1 -t 0
+${fets_root_dir}/bin/FeTS_CLI -d /path/to/output/DataForFeTS \ # data directory from process data
+  -a 3dresunet,deepMedic,nnunet,deepscan \ # all pre-trained models available in FeTS
+  -lF STAPLE,ITKVoting,SIMPLE \ # select the most appropriate after Ujjwal's analysis
+  -g 1 -t 0 # request gpu and inference mode
 ```
 
 The aforementioned command will perform the following steps:
