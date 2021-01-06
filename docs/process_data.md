@@ -43,7 +43,7 @@ Input_Data
 │   │   │ image_002.dcm
 │   │   │ .....
 │   
-└───Patient_JohnDoe
+└───Pat_JohnDoe
 │   │ ...
 │   
 │ ...   
@@ -55,7 +55,7 @@ Input_Data
 ```
 PatientID,T1,T1GD,T2,T2FLAIR
 Patient_001,/path/to/Patient_001/T1/image_001.dcm,/path/to/Patient_001/T1GD/image_001.dcm,/path/to/Patient_001/T2/image_001.dcm,/path/to/Patient_001/T2FLAIR/image_001.dcm
-Patient_JohnDoe,/path/to/Patient_JohnDoe/T1/image_001.dcm,/path/to/Patient_JohnDoe/T1GD/image_001.dcm,/path/to/Patient_JohnDoe/T2/image_001.dcm,/path/to/Patient_JohnDoe/T2FLAIR/image_001.dcm
+Pat_JohnDoe,/path/to/Pat_JohnDoe/T1/image_001.dcm,/path/to/Pat_JohnDoe/T1GD/image_001.dcm,/path/to/Pat_JohnDoe/T2/image_001.dcm,/path/to/Pat_JohnDoe/T2FLAIR/image_001.dcm
 ...
 SmithJoe,/path/to/SmithJoe/T1/image_001.dcm,/path/to/SmithJoe/T1GD/image_001.dcm,/path/to/SmithJoe/T2/image_001.dcm,/path/to/SmithJoe/T2FLAIR/image_001.dcm
 ```
@@ -75,7 +75,7 @@ ${fets_root_dir}/bin/PrepareDataset -i /path/to/raw_data.csv -o /path/to/output
   │   │   │   │ Patient_001_brain_t2.nii.gz
   │   │   │   │ Patient_001_brain_t2flair.nii.gz
   │   │   │   
-  │   │   └───Patient_JohnDoe # this is constructed from the ${PatientID} header of CSV
+  │   │   └───Pat_JohnDoe # this is constructed from the ${PatientID} header of CSV
   │   │   │   │ ...
   │   │
   │   │
@@ -89,6 +89,6 @@ ${fets_root_dir}/bin/PrepareDataset -i /path/to/raw_data.csv -o /path/to/output
   │   │   │   │ brainMask_SRI.nii.gz # generated using DeepMedic
   │   │   │   │ log.txt
   │   │   │   
-  │   │   └───Patient_JohnDoe # this is constructed from the ${PatientID} header of CSV
+  │   │   └───Pat_JohnDoe # this is constructed from the ${PatientID} header of CSV
   │   │   │   │ ...
   ```
