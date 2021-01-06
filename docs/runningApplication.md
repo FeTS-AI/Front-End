@@ -65,7 +65,7 @@ The aforementioned command will perform the following steps:
   │   │   │ Patient_001_fused_simple_seg.nii.gz
   │   │   │ Patient_001_fused_itkvoting_seg.nii.gz
   │
-  └───Patient_002
+  └───Pat_JohnDoe
   │   │ ...
   ```
 
@@ -98,7 +98,7 @@ The aforementioned command will perform the following steps:
   │   │ Patient_001_brain_t2flair.nii.gz
   │   │ Patient_001_final_seg.nii.gz # NOTE: training will not work if this is absent!!!
   │
-  └───Patient_002
+  └───Pat_JohnDoe
   │   │ ...
   ```
   - **NOTE**: this file is is used during training and the subject will be skipped if this is absent
