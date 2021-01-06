@@ -75,7 +75,7 @@ ${fets_root_dir}/bin/PrepareDataset -i /path/to/raw_data.csv -o /path/to/output
   │   │   │   │ Patient_001_brain_t2.nii.gz
   │   │   │   │ Patient_001_brain_t2flair.nii.gz
   │   │   │   
-  │   │   └───Patient_JohnDoe
+  │   │   └───Patient_JohnDoe # this is constructed from the ${PatientID} header of CSV
   │   │   │   │ ...
   │   │
   │   │
@@ -89,6 +89,6 @@ ${fets_root_dir}/bin/PrepareDataset -i /path/to/raw_data.csv -o /path/to/output
   │   │   │   │ brainMask_SRI.nii.gz # generated using DeepMedic
   │   │   │   │ log.txt
   │   │   │   
-  │   │   └───Patient_JohnDoe
+  │   │   └───Patient_JohnDoe # this is constructed from the ${PatientID} header of CSV
   │   │   │   │ ...
   ```
