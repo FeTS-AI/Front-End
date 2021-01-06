@@ -70,7 +70,7 @@ The aforementioned command will perform the following steps:
   ```
 
 ## Manual corrections
-- Use the FeTS graphical interface (or your preferred GUI annotation tool) to load each subject's images:
+- Use the FeTS graphical interface (or your preferred GUI annotation tool such as [ITK-SNAP](http://www.itksnap.org/pmwiki/pmwiki.php) or [3D-Slicer](https://www.slicer.org/)) to load each subject's images:
 
   ![LoadImages](./images/loadImages.png)
 - And each segmentation (either individual architectures or the fusions) separately:
