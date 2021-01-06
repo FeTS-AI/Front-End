@@ -43,16 +43,21 @@ Input_Data
 │   │   │ image_002.dcm
 │   │   │ .....
 │   
-└───Patient_002
+└───Patient_JohnDoe
+│   │ ...
+│   
+│ ...   
+│   
+└───Patient_JohnSmith
 │   │ ...
 ```
 - Construct a CSV (let's call this **raw_data.csv**) containing the first DICOM images from each modality:
 ```
 PatientID,T1,T1GD,T2,T2FLAIR
 Patient_001,/path/to/Patient_001/T1/image_001.dcm,/path/to/Patient_001/T1GD/image_001.dcm,/path/to/Patient_001/T2/image_001.dcm,/path/to/Patient_001/T2FLAIR/image_001.dcm
-Patient_002,/path/to/Patient_002/T1/image_001.dcm,/path/to/Patient_002/T1GD/image_001.dcm,/path/to/Patient_002/T2/image_001.dcm,/path/to/Patient_002/T2FLAIR/image_001.dcm
+Patient_JohnDoe,/path/to/Patient_JohnDoe/T1/image_001.dcm,/path/to/Patient_JohnDoe/T1GD/image_001.dcm,/path/to/Patient_JohnDoe/T2/image_001.dcm,/path/to/Patient_JohnDoe/T2FLAIR/image_001.dcm
 ...
-Patient_X,/path/to/Patient_X/T1/image_001.dcm,/path/to/Patient_X/T1GD/image_001.dcm,/path/to/Patient_X/T2/image_001.dcm,/path/to/Patient_X/T2FLAIR/image_001.dcm
+Patient_JohnSmith,/path/to/Patient_JohnSmith/T1/image_001.dcm,/path/to/Patient_JohnSmith/T1GD/image_001.dcm,/path/to/Patient_JohnSmith/T2/image_001.dcm,/path/to/Patient_JohnSmith/T2FLAIR/image_001.dcm
 ```
 - Pass **raw_data.csv** as an input, along with an output directory, to the `PrepareDataset` executable (which internally calls the `BraTSPipeline` executable):
 ```bash
@@ -70,7 +75,7 @@ ${fets_root_dir}/bin/PrepareDataset -i /path/to/raw_data.csv -o /path/to/output
   │   │   │   │ Patient_001_brain_t2.nii.gz
   │   │   │   │ Patient_001_brain_t2flair.nii.gz
   │   │   │   
-  │   │   └───Patient_002
+  │   │   └───Patient_JohnDoe
   │   │   │   │ ...
   │   │
   │   │
@@ -84,6 +89,6 @@ ${fets_root_dir}/bin/PrepareDataset -i /path/to/raw_data.csv -o /path/to/output
   │   │   │   │ brainMask_SRI.nii.gz # generated using DeepMedic
   │   │   │   │ log.txt
   │   │   │   
-  │   │   └───Patient_002
+  │   │   └───Patient_JohnDoe
   │   │   │   │ ...
   ```
