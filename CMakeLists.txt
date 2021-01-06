@@ -616,6 +616,12 @@ IF( NOT BUILD_DOCUMENTATION_ONLY )
     PATTERN ".git" EXCLUDE
   )
 
+  INSTALL(
+    DIRECTORY "${PROJECT_SOURCE_DIR}/LabelFusion" 
+    DESTINATION bin
+    PATTERN ".git" EXCLUDE
+  )
+
   # find stand-alone CMD applications
   FILE( GLOB STANDALONE_APPS
     "${PROJECT_SOURCE_DIR}/src/applications/*.cxx"
