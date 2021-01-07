@@ -18,36 +18,38 @@ export LD_LIBRARY_PATH=${fets_root_dir}/lib:$LD_LIBRARY_PATH
 
 ```bash
 ${fets_root_dir}/bin/FeTS_CLI -d /path/to/output/DataForFeTS \ # data directory after invoking ${fets_root_dir}/bin/PrepareDataset
-  -a 3dresunet,deepMedic,nnunet,deepscan \ # all pre-trained models currently available in FeTS
+  -a 3dresunet,deepMedic,nnunet,deepscan \ # all pre-trained models currently available in FeTS see notes below for more details
   -lF STAPLE,ITKVoting,SIMPLE \ # select the most appropriate after Ujjwal's analysis
   -g 1 -t 0 # request gpu and inference mode
 ```
 
 The aforementioned command will perform the following steps:
 - Perform inference on the prepared dataset based on selected architectures and label fusion strategies
-  - **NOTE**: To run [nnUNet](https://github.com/MIC-DKFZ/nnunet), follow these steps:
-    - Download weights from [this URL](https://upenn.box.com/v/fets-weights-nnunet) or from the command line:
-      ```bash
-      cd ${fets_root_dir}/data/fets
-      wget https://upenn.box.com/shared/static/f7zt19d08c545qt3tcaeg7b37z6qafum.zip -O nnunet.zip
-      unzip nnunet.zip
-      ```
-    - Unzip it in `${fets_root_dir}/data/fets`. The directory structure should look like this:
-      ```bash
-      ${fets_root_dir}
-      │
-      └───data 
-      │   │
-      │   └──fets
-      │   │   │
-      │   │   └───nnunet
-      │   │   │   │
-      │   │   │   └───${training_strategy}.1_bs5 # the specific training strategy
-      │   │   │   │   │
-      │   │   │   │   └───fold_${k} # different folds
-      │   │   │   │   │   │ ...
-      ```
-    - This will now be available as a model for inference using the `FeTS_CLI` application under the `-a` parameter.
+  - **NOTES**: 
+    - To run [nnUNet](https://github.com/MIC-DKFZ/nnunet), follow these steps:
+      - Download weights from [this URL](https://upenn.box.com/v/fets-weights-nnunet) or from the command line:
+        ```bash
+        cd ${fets_root_dir}/data/fets
+        wget https://upenn.box.com/shared/static/f7zt19d08c545qt3tcaeg7b37z6qafum.zip -O nnunet.zip
+        unzip nnunet.zip
+        ```
+      - Unzip it in `${fets_root_dir}/data/fets`. The directory structure should look like this:
+        ```bash
+        ${fets_root_dir}
+        │
+        └───data 
+        │   │
+        │   └──fets
+        │   │   │
+        │   │   └───nnunet
+        │   │   │   │
+        │   │   │   └───${training_strategy}.1_bs5 # the specific training strategy
+        │   │   │   │   │
+        │   │   │   │   └───fold_${k} # different folds
+        │   │   │   │   │   │ ...
+        ```
+      - This will now be available as a model for inference using the `FeTS_CLI` application under the `-a` parameter.
+    - To run [DeepScan](https://doi.org/10.1007/978-3-030-11726-9_40), at least 120G of RAM is needed. 
 - Leverage the GPU
 - Place inference results on a per-subject basis for quality-control:
   ```bash
