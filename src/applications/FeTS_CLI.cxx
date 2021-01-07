@@ -113,7 +113,7 @@ int main(int argc, char** argv)
 
   std::string hardcodedPlanName,
     hardcodedOpenFLPath = fetsApplicationPath + "/OpenFederatedLearning/",
-    hardcodedLabelFusionPath = fetsApplicationPath + "/LabelFusion/label_fusion",
+    hardcodedLabelFusionPath = fetsApplicationPath + "/LabelFusion/fusion_run",
     hardcodedModelWeightPath = hardcodedOpenFLPath + "/bin/federations/weights/", // start with the common location
     //hardcodedNativeModelWeightPath = hardcodedOpenFLPath + "/bin/federations/weights/native/", // the native weights are going in fets_data_dir/fets
     hardcodedPythonPath = hardcodedOpenFLPath + "/venv/bin/python"; // this needs to change for Windows (wonder what happens for macOS?)
