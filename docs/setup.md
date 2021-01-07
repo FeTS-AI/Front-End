@@ -46,6 +46,7 @@ make install_fets
 # for cuda 9.2, this would be './venv/bin/pip install torch==1.6.0+cu92 torchvision==0.7.0+cu92 -f https://download.pytorch.org/whl/torch_stable.html'
 # for cuda 10.1, this would be './venv/bin/pip install torch==1.6.0+cu101 torchvision==0.7.0+cu101 -f https://download.pytorch.org/whl/torch_stable.html'
 # after this, the federated backend is ready
+./venv/bin/pip install ../LabelFusion # label fusion
 ```
 
 ## Set up the Collaborator
