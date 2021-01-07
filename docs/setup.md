@@ -1,5 +1,10 @@
 # Application Setup
 
+## Table of Contents
+- [Requirements](#requirements)
+- [Set up the Environment](#set-up-the-environment)
+- [Set up the Collaborator](#set-up-the-collaborator)
+
 ## Requirements
 
 - OS: Linux (Ubuntu 18.04) [note that Ubuntu 20.04 does **not** work, and we will support Windows for Phase-2]
@@ -28,6 +33,8 @@ sudo apt install python3.6 python3.6-venv python3.6-dev
     - Necrotic + Non-Enhancing-Tumor core - NET
   - No instrumentation, pre-resection
 
+[Back To ToC](#table-of-contents)
+
 ## Set up the Environment
 
 - Download the pre-built binaries from [this link](https://www.nitrc.org/frs/downloadlink.php/11892)
@@ -48,6 +55,8 @@ make install_fets
 # after this, the federated backend is ready
 ./venv/bin/pip install ../LabelFusion # label fusion
 ```
+
+[Back To ToC](#table-of-contents)
 
 ## Set up the Collaborator
 
@@ -70,3 +79,5 @@ bash create-collaborator.sh ${collaborator_common_name} # keep a note of the ${c
     - `${collaborator_common_name}.crt`
     - `${collaborator_common_name}.csr`
     - `${collaborator_common_name}.key`
+
+[Back To ToC](#table-of-contents)
