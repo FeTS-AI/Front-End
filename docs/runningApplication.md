@@ -19,7 +19,7 @@ export LD_LIBRARY_PATH=${fets_root_dir}/lib:$LD_LIBRARY_PATH
 ```bash
 ${fets_root_dir}/bin/FeTS_CLI -d /path/to/output/DataForFeTS \ # data directory after invoking ${fets_root_dir}/bin/PrepareDataset
   -a 3dresunet,deepMedic,nnunet,deepscan \ # all pre-trained models currently available in FeTS see notes below for more details
-  -lF STAPLE,ITKVoting,SIMPLE \ # select the most appropriate after Ujjwal's analysis
+  -lF STAPLE,ITKVoting,SIMPLE \ # todo: select the most appropriate after Ujjwal's analysis
   -g 1 -t 0 # request gpu and inference mode
 ```
 
