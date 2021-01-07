@@ -54,7 +54,13 @@ std::vector< std::map< std::string, std::string > > GetCSVContents(const std::st
       {
         if (headers.size() != 5)
         {
+          std::cout << "Detected headers:\n";
+          for (size_t j = 0; j < headers.size(); j++)
+          {
+            std::cout << headers[j] << "\n";
+          }
           std::cerr << "All required headers were not found in CSV. Please ensure the following are present: 'PatientID,T1,T1GD,T2,T2FLAIR'";
+          return csvContents;
         }
         if (cell.find(" ") != std::string::npos)
         {
