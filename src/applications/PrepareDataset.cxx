@@ -512,7 +512,7 @@ int main(int argc, char** argv)
 
     std::map< std::string, std::string > inputFiles;
     inputFiles["T1"] = csvContents[i]["T1"];
-    inputFiles["T1GD"] = csvContents[i]["T1GD"];
+    inputFiles["T1CE"] = csvContents[i]["T1GD"];
     inputFiles["T2"] = csvContents[i]["T2"];
     inputFiles["FLAIR"] = csvContents[i]["FLAIR"];
     
