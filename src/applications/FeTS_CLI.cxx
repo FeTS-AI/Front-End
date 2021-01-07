@@ -117,6 +117,9 @@ int main(int argc, char** argv)
     hardcodedModelWeightPath = hardcodedOpenFLPath + "/bin/federations/weights/", // start with the common location
     //hardcodedNativeModelWeightPath = hardcodedOpenFLPath + "/bin/federations/weights/native/", // the native weights are going in fets_data_dir/fets
     hardcodedPythonPath = hardcodedOpenFLPath + "/venv/bin/python"; // this needs to change for Windows (wonder what happens for macOS?)
+#if WIN32
+  hardcodedPythonPath = hardcodedOpenFLPath + "/venv/python.exe";
+#endif
 
   auto pythonEnvironmentFound = false;
   if (cbica::isFile(hardcodedPythonPath))
@@ -201,7 +204,8 @@ int main(int argc, char** argv)
             {
               std::cout << "== Starting inference using DeepMedic...\n";
               auto brainMaskFile = dataDir + "/" + subjectDirs[s] + "/" + subjectDirs[s] + "_deepmedic_seg.nii.gz";
-              if (!cbica::isFile(brainMaskFile))
+              auto fileToCheck_2 = dataDir + "/" + subjectDirs[s] + "/SegmentationsForQC/" + subjectDirs[s] + "_deepmedic_seg.nii.gz";
+              if (!(cbica::isFile(brainMaskFile) || cbica::isFile(fileToCheck_2)))
               {
                 auto dm_tempOut = dataDir + "/" + subjectDirs[s] + "/dmOut/mask.nii.gz";
                 auto fullCommand = deepMedicExe + " -md " + hardcodedNativeModelWeightPath + "/deepMedic/saved_models/brainTumorSegmentation/ " +
@@ -329,7 +333,17 @@ int main(int argc, char** argv)
                   }
                 }
               } // files loop in subject directory
-              filesForFusion.pop_back(); // remove last ","
+              filesInSubjectDir = cbica::filesInDirectory(dataForSegmentation);
+              for (size_t f = 0; f < filesInSubjectDir.size(); f++)
+              {
+                auto fileToCopy = dataForSegmentation + cbica::getFilenameBase(filesInSubjectDir[f]) + ".nii.gz";
+                filesForFusion += fileToCopy + ",";
+              } // files loop in subject directory
+
+              if (!filesForFusion.empty())
+              {
+                filesForFusion.pop_back(); // remove last ","
+              }
 
               for (size_t f = 0; f < fusion_split.size(); f++)
               {
