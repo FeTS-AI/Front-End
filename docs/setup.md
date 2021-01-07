@@ -28,9 +28,9 @@ sudo apt install python3.6 python3.6-venv python3.6-dev
   - Scanned along axial axis
   - At least 90 cases
   - Tumor regions (as defined in BraTS challenge):
-    - Edema - ED
+    -	Edematous/Invaded tissue + Non-Enhancing-Tumor - ED
     - Enhancing - ET
-    - Necrotic + Non-Enhancing-Tumor core - NET
+    - Necrotic tumor core - NET
   - No instrumentation, pre-resection
 
 [Back To ToC](#table-of-contents)
