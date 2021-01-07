@@ -105,7 +105,7 @@ std::string getStdoutFromCommand(const std::string command)
   return result;
 }
 
-bool BraTSPipeline(const std::map< std::string, std::string >& inputFiles, const std::string& outputDir)
+bool BraTSPipeline(std::map< std::string, std::string > inputFiles, const std::string& outputDir)
 {
   auto debug = false;
   // sanity checks
