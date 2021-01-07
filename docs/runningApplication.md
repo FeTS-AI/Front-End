@@ -2,6 +2,12 @@
 
 **Note** the `${fets_root_dir}` from [Setup](./setup.md#set-up-the-environment).
 
+## Table of Contents
+- [Application Path](#application-path)
+- [Inference](#inference)
+- [Manual corrections](#manual-corrections)
+- [Training](#training)
+
 ## Application Path
 
 ```bash
@@ -14,7 +20,9 @@ Please add the following path to your `LD_LIBRARY_PATH` when using FeTS: `${fets
 export LD_LIBRARY_PATH=${fets_root_dir}/lib:$LD_LIBRARY_PATH
 ```
 
-## Inference_New
+[Back To ToC](#table-of-contents)
+
+## Inference
 
 ```bash
 ${fets_root_dir}/bin/FeTS_CLI -d /path/to/output/DataForFeTS \ # data directory after invoking ${fets_root_dir}/bin/PrepareDataset
@@ -74,7 +82,9 @@ The aforementioned command will perform the following steps:
   │   │ ...
   ```
 
-## Manual corrections
+[Back To ToC](#table-of-contents)
+
+## Manual Corrections
 - Use the FeTS graphical interface (or your preferred GUI annotation tool such as [ITK-SNAP](http://www.itksnap.org/pmwiki/pmwiki.php) or [3D-Slicer](https://www.slicer.org/)) to load each subject's images:
 
   ![LoadImages](./images/loadImages.png)
@@ -108,7 +118,9 @@ The aforementioned command will perform the following steps:
   ```
   - **NOTE**: this file is is used during training and the subject will be skipped if this is absent
 
-## Training_New
+[Back To ToC](#table-of-contents)
+
+## Training
 
 ```bash
 ${fets_root_dir}/bin/FeTS_CLI -d /path/to/output/DataForFeTS -g 1 -t 1 -c ${collaborator_common_name}
@@ -117,9 +129,17 @@ The aforementioned command will perform the following steps:
 - Train a model with a 3DResUNet architecture (more architectures will be made available in future releases) for all the *complete* subjects (i.e., with `${SubjectID}_final_seg.nii.gz` and all 4 structural modalities present) in a collaborative manner
 - Leverage the GPU
 
+[Back To ToC](#table-of-contents)
+
 ---
+<a href="mailto:admin@fets.ai">Next: Contact FeTS Admin</a>
+
+---
+
+---
+
 # Older documentation
-## Inference
+## Inference_old
 
 <p align="center">
     <img src="https://github.com/FETS-AI/Front-End/blob/master/docs_sources/images/fets_inference.png?raw=true" />
@@ -158,7 +178,7 @@ The aforementioned command will perform the following steps:
   - For CPU, a run-time requirement of at least 48GB of RAM would be needed
   - For GPU, at least 11GB of dedicated VRAM would be needed
 
-## Training
+## Training_old
 
 <p align="center">
     <img src="https://github.com/FETS-AI/Front-End/blob/master/docs_sources/images/fets_training.png?raw=true" />
