@@ -77,6 +77,7 @@ def main():
     print('Command: ', command)
     subprocess.Popen(command, shell=True).wait()
 
+    # copy files to correct location for inference and training
     output_t1c_brain_file_inter = os.path.join(interimOutputDir, "/brain_T1CE.nii.gz")
     output_t1c_brain_file_final = os.path.join(finalSubjectOutputDir, row['ID'] + "_brain_t1ce.nii.gz")
     if os.path.exists(output_t1c_brain_file_inter):
