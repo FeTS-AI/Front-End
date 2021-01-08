@@ -463,6 +463,72 @@ bool BraTSPipeline(std::map< std::string, std::string > inputFiles, const std::s
 
 }
 
+bool copyFilesToCorrectLocation(const std::string& interimOutputDir, const std::string& finalSubjectOutputDir, const std::string& subjectID)
+{
+  bool runBratsPipeline = false;
+
+  auto fileToCopy = interimOutputDir + "/brain_T1CE.nii.gz";
+  auto fileDestination = finalSubjectOutputDir + "/" + subjectID + "_brain_t1ce.nii.gz";
+
+  if (!cbica::isFile(fileDestination))
+  {
+    if (cbica::isFile(fileToCopy))
+    {
+      cbica::copyFile(fileToCopy, fileDestination);
+    }
+    else
+    {
+      fileToCopy = interimOutputDir + "/brain_T1GD.nii.gz";
+      if (cbica::isFile(fileToCopy))
+      {
+        cbica::copyFile(fileToCopy, fileDestination);
+      }
+      else
+      {
+        runBratsPipeline = true;
+      }
+    }
+  }
+
+  fileToCopy = interimOutputDir + "/brain_T1.nii.gz";
+  fileDestination = finalSubjectOutputDir + "/" + subjectID + "_brain_t1.nii.gz";
+  if (!cbica::isFile(fileDestination))
+  {
+    if (cbica::isFile(fileToCopy))
+    {
+      cbica::copyFile(fileToCopy, fileDestination);
+    }
+    else
+    {
+      runBratsPipeline = true;
+    }
+  }
+
+  fileToCopy = interimOutputDir + "/brain_T2.nii.gz";
+  fileDestination = finalSubjectOutputDir + "/" + subjectID + "_brain_t2.nii.gz";
+  if (cbica::isFile(fileToCopy))
+  {
+    cbica::copyFile(fileToCopy, fileDestination);
+  }
+  else
+  {
+    runBratsPipeline = true;
+  }
+
+  fileToCopy = interimOutputDir + "/brain_FL.nii.gz";
+  fileDestination = finalSubjectOutputDir + "/" + subjectID + "_brain_flair.nii.gz";
+  if (cbica::isFile(fileToCopy))
+  {
+    cbica::copyFile(fileToCopy, fileDestination);
+  }
+  else
+  {
+    runBratsPipeline = true;
+  }
+
+  return runBratsPipeline;
+}
+
 int main(int argc, char** argv)
 {
   cbica::CmdParser parser(argc, argv, "PrepareDataset");
@@ -506,83 +572,25 @@ int main(int argc, char** argv)
 
     auto interimOutputDir = outputDir_qc + "/" + csvContents[i]["ID"];
     auto finalSubjectOutputDir = outputDir_final + "/" + csvContents[i]["ID"];
+    cbica::createDir(interimOutputDir);
     cbica::createDir(finalSubjectOutputDir);
 
-    auto command = bratsPipeline_exe + " -t1 " + csvContents[i]["T1"] + " -t1c " + csvContents[i]["T1GD"] + " -t2 " + csvContents[i]["T2"] + " -fl " + csvContents[i]["FLAIR"] + " -o " + interimOutputDir + " -s 1";
+    auto runBratsPipeline = copyFilesToCorrectLocation(interimOutputDir, finalSubjectOutputDir, csvContents[i]["ID"])
 
-    std::map< std::string, std::string > inputFiles;
-    inputFiles["T1"] = csvContents[i]["T1"];
-    inputFiles["T1CE"] = csvContents[i]["T1GD"];
-    inputFiles["T2"] = csvContents[i]["T2"];
-    inputFiles["FLAIR"] = csvContents[i]["FLAIR"];
-    
-    //if (BraTSPipeline(inputFiles, interimOutputDir))
-    //{
-    //  auto msg = "BraTSPipeline failed for subject " + csvContents[i]["ID"];
-    //  if (cbica::isFile(interimOutputDir + "/brain_T1CE.nii.gz"))
-    //  {
-    //    cbica::copyFile(interimOutputDir + "/brain_T1CE.nii.gz", finalSubjectOutputDir + "/" + csvContents[i]["ID"] + "_brain_t1ce.nii.gz");
-    //  }
-    //  if (cbica::isFile(interimOutputDir + "/brain_T1GD.nii.gz"))
-    //  {
-    //    cbica::copyFile(interimOutputDir + "/brain_T1GD.nii.gz", finalSubjectOutputDir + "/" + csvContents[i]["ID"] + "_brain_t1ce.nii.gz");
-    //  }
-    //  if (cbica::isFile(interimOutputDir + "/brain_T1.nii.gz"))
-    //  {
-    //    cbica::copyFile(interimOutputDir + "/brain_T1.nii.gz", finalSubjectOutputDir + "/" + csvContents[i]["ID"] + "_brain_t1.nii.gz");
-    //  }
-    //  if (cbica::isFile(interimOutputDir + "/brain_T2.nii.gz"))
-    //  {
-    //    cbica::copyFile(interimOutputDir + "/brain_T2.nii.gz", finalSubjectOutputDir + "/" + csvContents[i]["ID"] + "_brain_t2.nii.gz");
-    //  }
-    //  if (cbica::isFile(interimOutputDir + "/brain_FL.nii.gz"))
-    //  {
-    //    cbica::copyFile(interimOutputDir + "/brain_FL.nii.gz", finalSubjectOutputDir + "/" + csvContents[i]["ID"] + "_brain_flair.nii.gz");
-    //  }
-    //}
+    if (runBratsPipeline)
+    {
+      auto command = bratsPipeline_exe + " -t1 " + csvContents[i]["T1"] + " -t1c " + csvContents[i]["T1GD"] + " -t2 " + csvContents[i]["T2"] + " -fl " + csvContents[i]["FLAIR"] + " -o " + interimOutputDir + " -s 1";
 
-    auto log = getStdoutFromCommand(command);
-    std::ofstream myfile;
-    myfile.open(interimOutputDir + "/log.txt");
-    myfile << log;
-    myfile.close();
+      auto log = getStdoutFromCommand(command);
+      std::ofstream myfile;
+      myfile.open(interimOutputDir + "/log.txt");
+      myfile << log;
+      myfile.close();
+    }
 
-    auto msg = "BraTSPipeline failed for subject " + csvContents[i]["ID"];
-    if (cbica::isFile(interimOutputDir + "/brain_T1CE.nii.gz"))
+    if (copyFilesToCorrectLocation(interimOutputDir, finalSubjectOutputDir, csvContents[i]["ID"]))
     {
-      cbica::copyFile(interimOutputDir + "/brain_T1CE.nii.gz", finalSubjectOutputDir + "/" + csvContents[i]["ID"] + "_brain_t1ce.nii.gz");
-    }
-    else if (cbica::isFile(interimOutputDir + "/brain_T1GD.nii.gz"))
-    {
-      cbica::copyFile(interimOutputDir + "/brain_T1GD.nii.gz", finalSubjectOutputDir + "/" + csvContents[i]["ID"] + "_brain_t1ce.nii.gz");
-    }
-    else
-    {
-      std::cerr << msg << "\n";
-    }
-    if (cbica::isFile(interimOutputDir + "/brain_T1.nii.gz"))
-    {
-      cbica::copyFile(interimOutputDir + "/brain_T1.nii.gz", finalSubjectOutputDir + "/" + csvContents[i]["ID"] + "_brain_t1.nii.gz");
-    }
-    else
-    {
-      std::cerr << msg << "\n";
-    }
-    if (cbica::isFile(interimOutputDir + "/brain_T2.nii.gz"))
-    {
-      cbica::copyFile(interimOutputDir + "/brain_T2.nii.gz", finalSubjectOutputDir + "/" + csvContents[i]["ID"] + "_brain_t2.nii.gz");
-    }
-    else
-    {
-      std::cerr << msg << "\n";
-    }
-    if (cbica::isFile(interimOutputDir + "/brain_FL.nii.gz"))
-    {
-      cbica::copyFile(interimOutputDir + "/brain_FL.nii.gz", finalSubjectOutputDir + "/" + csvContents[i]["ID"] + "_brain_flair.nii.gz");
-    }
-    else
-    {
-      std::cerr << msg << "\n";
+      std::cerr <<"BraTSPipeline failed for subject '" << csvContents[i]["ID"] << "'\n";
     }
   }
 
