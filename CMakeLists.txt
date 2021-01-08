@@ -622,6 +622,12 @@ IF( NOT BUILD_DOCUMENTATION_ONLY )
     PATTERN ".git" EXCLUDE
   )
 
+
+  FILE( GLOB_RECURSE ALL_PY_FILES "${PROJECT_SOURCE_DIR}/src/applications/*.py" )
+  FOREACH( pyFile ${ALL_PY_FILES} )
+    INSTALL( FILES "${pyFile}" DESTINATION bin )
+  ENDFOREACH()
+
   # find stand-alone CMD applications
   FILE( GLOB STANDALONE_APPS
     "${PROJECT_SOURCE_DIR}/src/applications/*.cxx"
