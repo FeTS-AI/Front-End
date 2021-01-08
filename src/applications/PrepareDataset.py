@@ -19,16 +19,16 @@ def GetCSVContents(filename):
 
         for col in row:
           temp = col.lower() # convert to lower case
-          if ((temp == "patientid") or (temp == "subjectid") or (temp == "subject") or (temp == "subid")):
+          if ((temp == 'patientid') or (temp == 'subjectid') or (temp == 'subject') or (temp == 'subid')):
             headers.append('ID')
-          elif ((temp == "t1gd") or (temp == "t1ce") or (temp == "t1post")):
-            headers.append("T1GD")
-          elif ((temp == "t1") or (temp == "t1pre")):
-            headers.append("T1")
-          elif ((temp == "t2")):
-            headers.append("T2")
-          elif ((temp == "t2flair") or (temp == "flair") or (temp == "fl") or ('fl' in temp) or ('t2fl' in temp)):
-            headers.append("FLAIR")
+          elif ((temp == 't1gd') or (temp == 't1ce') or (temp == 't1post')):
+            headers.append('T1GD')
+          elif ((temp == 't1') or (temp == 't1pre')):
+            headers.append('T1')
+          elif ((temp == 't2')):
+            headers.append('T2')
+          elif ((temp == 't2flair') or (temp == 'flair') or (temp == 'fl') or ('fl' in temp) or ('t2fl' in temp)):
+            headers.append('FLAIR')
 
         parserHeader = False
 
@@ -51,13 +51,22 @@ def GetCSVContents(filename):
 
 def main():
   copyrightMessage = 'Contact: software@cbica.upenn.edu\n\n' + 'This program is NOT FDA/CE approved and NOT intended for clinical use.\nCopyright (c) ' + str(date.today().year) + ' University of Pennsylvania. All rights reserved.' 
-  parser = argparse.ArgumentParser(prog='PrepareDataset', formatter_class=argparse.RawTextHelpFormatter, description = "This application calls the BraTSPipeline for all input images and stores the final and intermediate files separately.\n\n" + copyrightMessage)
+  parser = argparse.ArgumentParser(prog='PrepareDataset', formatter_class=argparse.RawTextHelpFormatter, description = 'This application calls the BraTSPipeline for all input images and stores the final and intermediate files separately.\n\n' + copyrightMessage)
   parser.add_argument('-inputCSV', type=str, help = 'The absolute, comma-separated paths of labels that need to be fused', required=True)
   parser.add_argument('-outputDir', type=str, help = 'The output file to write the results', required=True)
 
   args = parser.parse_args()
+  outputDir_qc = os.path.normpath(args.outputDir + '/DataForQC')
+  outputDir_final = os.path.normpath(args.outputDir + '/DataForFeTS')
+
+  Path(outputDir_qc).mkdir(parents=True, exist_ok=True)
+  Path(outputDir_final).mkdir(parents=True, exist_ok=True)
+
   
-  GetCSVContents(args.inputCSV)
+  csvContents = GetCSVContents(args.inputCSV)
+
+  for row in csvContents:
+
 
 if __name__ == '__main__':
   main()
