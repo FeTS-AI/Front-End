@@ -4,6 +4,9 @@ from datetime import date
 import csv
 
 def GetCSVContents(filename):
+  '''
+  Read filename and return a list of dictionaries that have the csv contents
+  '''
   with open(filename, 'r') as csvfile:
     datareader = csv.reader(csvfile)
     
@@ -43,8 +46,8 @@ def GetCSVContents(filename):
           col_counter += 1
 
         csvContents.append(currentRow) # populate csv rows
-        
-      print(row)
+  
+  return csvContents
 
 def main():
   copyrightMessage = 'Contact: software@cbica.upenn.edu\n\n' + 'This program is NOT FDA/CE approved and NOT intended for clinical use.\nCopyright (c) ' + str(date.today().year) + ' University of Pennsylvania. All rights reserved.' 
