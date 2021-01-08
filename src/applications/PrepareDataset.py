@@ -33,7 +33,7 @@ def GetCSVContents(filename):
 
       else:
         if len(headers) != 5:
-          sys.exit('All required headers were not found in CSV. Please ensure the following are present: /'PatientID,T1,T1GD,T2,T2FLAIR/'')
+          sys.exit('All required headers were not found in CSV. Please ensure the following are present: \'PatientID,T1,T1GD,T2,T2FLAIR\'')
 
         col_counter = 0
         currentRow = {}
