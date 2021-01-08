@@ -516,74 +516,74 @@ int main(int argc, char** argv)
     inputFiles["T2"] = csvContents[i]["T2"];
     inputFiles["FLAIR"] = csvContents[i]["FLAIR"];
     
-    if (BraTSPipeline(inputFiles, interimOutputDir))
+    //if (BraTSPipeline(inputFiles, interimOutputDir))
+    //{
+    //  auto msg = "BraTSPipeline failed for subject " + csvContents[i]["ID"];
+    //  if (cbica::isFile(interimOutputDir + "/brain_T1CE.nii.gz"))
+    //  {
+    //    cbica::copyFile(interimOutputDir + "/brain_T1CE.nii.gz", finalSubjectOutputDir + "/" + csvContents[i]["ID"] + "_brain_t1ce.nii.gz");
+    //  }
+    //  if (cbica::isFile(interimOutputDir + "/brain_T1GD.nii.gz"))
+    //  {
+    //    cbica::copyFile(interimOutputDir + "/brain_T1GD.nii.gz", finalSubjectOutputDir + "/" + csvContents[i]["ID"] + "_brain_t1ce.nii.gz");
+    //  }
+    //  if (cbica::isFile(interimOutputDir + "/brain_T1.nii.gz"))
+    //  {
+    //    cbica::copyFile(interimOutputDir + "/brain_T1.nii.gz", finalSubjectOutputDir + "/" + csvContents[i]["ID"] + "_brain_t1.nii.gz");
+    //  }
+    //  if (cbica::isFile(interimOutputDir + "/brain_T2.nii.gz"))
+    //  {
+    //    cbica::copyFile(interimOutputDir + "/brain_T2.nii.gz", finalSubjectOutputDir + "/" + csvContents[i]["ID"] + "_brain_t2.nii.gz");
+    //  }
+    //  if (cbica::isFile(interimOutputDir + "/brain_FL.nii.gz"))
+    //  {
+    //    cbica::copyFile(interimOutputDir + "/brain_FL.nii.gz", finalSubjectOutputDir + "/" + csvContents[i]["ID"] + "_brain_flair.nii.gz");
+    //  }
+    //}
+
+    auto log = getStdoutFromCommand(command);
+    std::ofstream myfile;
+    myfile.open(interimOutputDir + "/log.txt");
+    myfile << log;
+    myfile.close();
+
+    auto msg = "BraTSPipeline failed for subject " + csvContents[i]["ID"];
+    if (cbica::isFile(interimOutputDir + "/brain_T1CE.nii.gz"))
     {
-      auto msg = "BraTSPipeline failed for subject " + csvContents[i]["ID"];
-      if (cbica::isFile(interimOutputDir + "/brain_T1CE.nii.gz"))
-      {
-        cbica::copyFile(interimOutputDir + "/brain_T1CE.nii.gz", finalSubjectOutputDir + "/" + csvContents[i]["ID"] + "_brain_t1ce.nii.gz");
-      }
-      if (cbica::isFile(interimOutputDir + "/brain_T1GD.nii.gz"))
-      {
-        cbica::copyFile(interimOutputDir + "/brain_T1GD.nii.gz", finalSubjectOutputDir + "/" + csvContents[i]["ID"] + "_brain_t1ce.nii.gz");
-      }
-      if (cbica::isFile(interimOutputDir + "/brain_T1.nii.gz"))
-      {
-        cbica::copyFile(interimOutputDir + "/brain_T1.nii.gz", finalSubjectOutputDir + "/" + csvContents[i]["ID"] + "_brain_t1.nii.gz");
-      }
-      if (cbica::isFile(interimOutputDir + "/brain_T2.nii.gz"))
-      {
-        cbica::copyFile(interimOutputDir + "/brain_T2.nii.gz", finalSubjectOutputDir + "/" + csvContents[i]["ID"] + "_brain_t2.nii.gz");
-      }
-      if (cbica::isFile(interimOutputDir + "/brain_FL.nii.gz"))
-      {
-        cbica::copyFile(interimOutputDir + "/brain_FL.nii.gz", finalSubjectOutputDir + "/" + csvContents[i]["ID"] + "_brain_flair.nii.gz");
-      }
+      cbica::copyFile(interimOutputDir + "/brain_T1CE.nii.gz", finalSubjectOutputDir + "/" + csvContents[i]["ID"] + "_brain_t1ce.nii.gz");
     }
-
-    //auto log = getStdoutFromCommand(command);
-    //std::ofstream myfile;
-    //myfile.open(interimOutputDir + "/log.txt");
-    //myfile << log;
-    //myfile.close();
-
-    //auto msg = "BraTSPipeline failed for subject " + csvContents[i]["ID"];
-    //if (cbica::isFile(interimOutputDir + "/brain_T1CE.nii.gz"))
-    //{
-    //  cbica::copyFile(interimOutputDir + "/brain_T1CE.nii.gz", finalSubjectOutputDir + "/" + csvContents[i]["ID"] + "_brain_t1ce.nii.gz");
-    //}
-    //else if (cbica::isFile(interimOutputDir + "/brain_T1GD.nii.gz"))
-    //{
-    //  cbica::copyFile(interimOutputDir + "/brain_T1GD.nii.gz", finalSubjectOutputDir + "/" + csvContents[i]["ID"] + "_brain_t1ce.nii.gz");
-    //}
-    //else
-    //{
-    //  std::cerr << msg << "\n";
-    //}
-    //if (cbica::isFile(interimOutputDir + "/brain_T1.nii.gz"))
-    //{
-    //  cbica::copyFile(interimOutputDir + "/brain_T1.nii.gz", finalSubjectOutputDir + "/" + csvContents[i]["ID"] + "_brain_t1.nii.gz");
-    //}
-    //else
-    //{
-    //  std::cerr << msg << "\n";
-    //}
-    //if (cbica::isFile(interimOutputDir + "/brain_T2.nii.gz"))
-    //{
-    //  cbica::copyFile(interimOutputDir + "/brain_T2.nii.gz", finalSubjectOutputDir + "/" + csvContents[i]["ID"] + "_brain_t2.nii.gz");
-    //}
-    //else
-    //{
-    //  std::cerr << msg << "\n";
-    //}
-    //if (cbica::isFile(interimOutputDir + "/brain_FL.nii.gz"))
-    //{
-    //  cbica::copyFile(interimOutputDir + "/brain_FL.nii.gz", finalSubjectOutputDir + "/" + csvContents[i]["ID"] + "_brain_flair.nii.gz");
-    //}
-    //else
-    //{
-    //  std::cerr << msg << "\n";
-    //}
+    else if (cbica::isFile(interimOutputDir + "/brain_T1GD.nii.gz"))
+    {
+      cbica::copyFile(interimOutputDir + "/brain_T1GD.nii.gz", finalSubjectOutputDir + "/" + csvContents[i]["ID"] + "_brain_t1ce.nii.gz");
+    }
+    else
+    {
+      std::cerr << msg << "\n";
+    }
+    if (cbica::isFile(interimOutputDir + "/brain_T1.nii.gz"))
+    {
+      cbica::copyFile(interimOutputDir + "/brain_T1.nii.gz", finalSubjectOutputDir + "/" + csvContents[i]["ID"] + "_brain_t1.nii.gz");
+    }
+    else
+    {
+      std::cerr << msg << "\n";
+    }
+    if (cbica::isFile(interimOutputDir + "/brain_T2.nii.gz"))
+    {
+      cbica::copyFile(interimOutputDir + "/brain_T2.nii.gz", finalSubjectOutputDir + "/" + csvContents[i]["ID"] + "_brain_t2.nii.gz");
+    }
+    else
+    {
+      std::cerr << msg << "\n";
+    }
+    if (cbica::isFile(interimOutputDir + "/brain_FL.nii.gz"))
+    {
+      cbica::copyFile(interimOutputDir + "/brain_FL.nii.gz", finalSubjectOutputDir + "/" + csvContents[i]["ID"] + "_brain_flair.nii.gz");
+    }
+    else
+    {
+      std::cerr << msg << "\n";
+    }
   }
 
   return EXIT_SUCCESS;
