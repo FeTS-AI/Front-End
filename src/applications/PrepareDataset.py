@@ -55,33 +55,33 @@ def copyFilesToCorrectLocation(interimOutputDir, finalSubjectOutputDir, subjectI
 
   # copy files to correct location for inference and training
   runBratsPipeline = False
-  output_t1c_brain_file_inter = os.path.join(interimOutputDir, "/brain_T1CE.nii.gz")
+  output_t1c_brain_file_inter = os.path.join(interimOutputDir, "brain_T1CE.nii.gz")
   output_t1c_brain_file_final = os.path.join(finalSubjectOutputDir, subjectID + "_brain_t1ce.nii.gz")
   if os.path.exists(output_t1c_brain_file_inter):
     shutil.copyfile(output_t1c_brain_file_inter, output_t1c_brain_file_final)
   else:      
-    output_t1c_brain_file_inter = os.path.join(interimOutputDir, "/brain_T1GD.nii.gz")
+    output_t1c_brain_file_inter = os.path.join(interimOutputDir, "brain_T1GD.nii.gz")
     if os.path.exists(output_t1c_brain_file_inter):
       shutil.copyfile(output_t1c_brain_file_inter, output_t1c_brain_file_final)
     else:
       runBratsPipeline = True
 
     
-  output_t1_brain_file_inter = os.path.join(interimOutputDir, "/brain_T1.nii.gz")
+  output_t1_brain_file_inter = os.path.join(interimOutputDir, "brain_T1.nii.gz")
   output_t1_brain_file_final = os.path.join(finalSubjectOutputDir, subjectID + "_brain_t1.nii.gz")
   if os.path.exists(output_t1_brain_file_inter):
     shutil.copyfile(output_t1_brain_file_inter, output_t1_brain_file_final)
   else:
     runBratsPipeline = True
     
-  output_t2_brain_file_inter = os.path.join(interimOutputDir, "/brain_T2.nii.gz")
+  output_t2_brain_file_inter = os.path.join(interimOutputDir, "brain_T2.nii.gz")
   output_t2_brain_file_final = os.path.join(finalSubjectOutputDir, subjectID + "_brain_t2.nii.gz")
   if os.path.exists(output_t2_brain_file_inter):
     shutil.copyfile(output_t2_brain_file_inter, output_t2_brain_file_final)
   else:
     runBratsPipeline = True
     
-  output_fl_brain_file_inter = os.path.join(interimOutputDir, "/brain_FL.nii.gz")
+  output_fl_brain_file_inter = os.path.join(interimOutputDir, "brain_FL.nii.gz")
   output_fl_brain_file_final = os.path.join(finalSubjectOutputDir, subjectID + "_brain_flair.nii.gz")
   if os.path.exists(output_fl_brain_file_inter):
     shutil.copyfile(output_fl_brain_file_inter, output_fl_brain_file_final)
@@ -111,9 +111,9 @@ def main():
   csvContents = GetCSVContents(args.inputCSV)
 
   for row in csvContents:
-    interimOutputDir = os.path.join(outputDir_qc, row['ID'])
-    finalSubjectOutputDir = os.path.join(outputDir_final, row['ID'])
-    runBratsPipeline = copyFilesToCorrectLocation(interimOutputDir, finalSubjectOutputDir, row['ID'])
+    interimOutputDir_actual = os.path.join(outputDir_qc, row['ID'])
+    finalSubjectOutputDir_actual = os.path.join(outputDir_final, row['ID'])
+    runBratsPipeline = copyFilesToCorrectLocation(interimOutputDir_actual, finalSubjectOutputDir_actual, row['ID'])
 
     if runBratsPipeline:
       command = bratsPipeline_exe + ' -t1 ' + row['T1'] + ' -t1c ' + row['T1GD'] + ' -t2 ' + row['T2'] + ' -fl ' + row['FLAIR'] + ' -o ' + interimOutputDir + ' -s 1'
