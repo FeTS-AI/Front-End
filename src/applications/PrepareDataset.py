@@ -113,14 +113,16 @@ def main():
   for row in csvContents:
     interimOutputDir_actual = os.path.join(outputDir_qc, row['ID'])
     finalSubjectOutputDir_actual = os.path.join(outputDir_final, row['ID'])
+    Path(interimOutputDir_actual).mkdir(parents=True, exist_ok=True)
+    Path(finalSubjectOutputDir_actual).mkdir(parents=True, exist_ok=True)
     runBratsPipeline = copyFilesToCorrectLocation(interimOutputDir_actual, finalSubjectOutputDir_actual, row['ID'])
 
     if runBratsPipeline:
-      command = bratsPipeline_exe + ' -t1 ' + row['T1'] + ' -t1c ' + row['T1GD'] + ' -t2 ' + row['T2'] + ' -fl ' + row['FLAIR'] + ' -o ' + interimOutputDir + ' -s 1'
+      command = bratsPipeline_exe + ' -t1 ' + row['T1'] + ' -t1c ' + row['T1GD'] + ' -t2 ' + row['T2'] + ' -fl ' + row['FLAIR'] + ' -o ' + interimOutputDir_actual + ' -s 1'
       print('Command: ', command)
       subprocess.Popen(command, shell=True).wait()
     
-    if copyFilesToCorrectLocation(interimOutputDir, finalSubjectOutputDir, row['ID']):
+    if copyFilesToCorrectLocation(interimOutputDir_actual, finalSubjectOutputDir_actual, row['ID']):
       print('BraTSPipeline failed for subject \'', row['ID'], file = sys.stderr)
 
 if __name__ == '__main__':
