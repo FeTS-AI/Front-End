@@ -102,6 +102,12 @@ ${fets_root_dir}/bin/PrepareDataset -i /path/to/raw_data.csv -o /path/to/output
   │   │   │   │ ...
   ```
 
+**NOTE**: For some CentOS variants, we have seen `PrepareDataset` executable to cause issues, for which we have an alternative with `${fets_root_dir}/bin/PrepareDataset.py`, which has the exact same API and can be invoked in the following way:
+```bash
+${fets_root_dir}/OpenFederatedLearning/venv/bin/python \ # virtual environment that was set up in previous section
+  ${fets_root_dir}/bin/PrepareDataset.py -i /path/to/raw_data.csv -o /path/to/output
+```
+
 [Back To ToC](#table-of-contents)
 
 ---
