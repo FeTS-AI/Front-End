@@ -48,6 +48,48 @@ def GetCSVContents(filename):
   
   return csvContents
 
+def copyFilesToCorrectLocation(interimOutputDir, finalSubjectOutputDir, subjectID):
+  '''
+  This function copies the intermediate files and final outputs to correct location and if these are absent, returns a bool flag stating that brats pipeline needs to run again
+  '''
+
+  # copy files to correct location for inference and training
+  runBratsPipeline = False
+  output_t1c_brain_file_inter = os.path.join(interimOutputDir, "/brain_T1CE.nii.gz")
+  output_t1c_brain_file_final = os.path.join(finalSubjectOutputDir, subjectID + "_brain_t1ce.nii.gz")
+  if os.path.exists(output_t1c_brain_file_inter):
+    shutil.copyfile(output_t1c_brain_file_inter, output_t1c_brain_file_final)
+  else:      
+    output_t1c_brain_file_inter = os.path.join(interimOutputDir, "/brain_T1GD.nii.gz")
+    if os.path.exists(output_t1c_brain_file_inter):
+      shutil.copyfile(output_t1c_brain_file_inter, output_t1c_brain_file_final)
+    else:
+      runBratsPipeline = True
+
+    
+  output_t1_brain_file_inter = os.path.join(interimOutputDir, "/brain_T1.nii.gz")
+  output_t1_brain_file_final = os.path.join(finalSubjectOutputDir, subjectID + "_brain_t1.nii.gz")
+  if os.path.exists(output_t1_brain_file_inter):
+    shutil.copyfile(output_t1_brain_file_inter, output_t1_brain_file_final)
+  else:
+    runBratsPipeline = True
+    
+  output_t2_brain_file_inter = os.path.join(interimOutputDir, "/brain_T2.nii.gz")
+  output_t2_brain_file_final = os.path.join(finalSubjectOutputDir, subjectID + "_brain_t2.nii.gz")
+  if os.path.exists(output_t2_brain_file_inter):
+    shutil.copyfile(output_t2_brain_file_inter, output_t2_brain_file_final)
+  else:
+    runBratsPipeline = True
+    
+  output_fl_brain_file_inter = os.path.join(interimOutputDir, "/brain_FL.nii.gz")
+  output_fl_brain_file_final = os.path.join(finalSubjectOutputDir, subjectID + "_brain_flair.nii.gz")
+  if os.path.exists(output_fl_brain_file_inter):
+    shutil.copyfile(output_fl_brain_file_inter, output_fl_brain_file_final)
+  else:
+    runBratsPipeline = True
+
+  return runBratsPipeline
+
 def main():
   copyrightMessage = 'Contact: software@cbica.upenn.edu/n/n' + 'This program is NOT FDA/CE approved and NOT intended for clinical use./nCopyright (c) ' + str(date.today().year) + ' University of Pennsylvania. All rights reserved.' 
   parser = argparse.ArgumentParser(prog='PrepareDataset', formatter_class=argparse.RawTextHelpFormatter, description = 'This application calls the BraTSPipeline for all input images and stores the final and intermediate files separately./n/n' + copyrightMessage)
@@ -71,36 +113,15 @@ def main():
   for row in csvContents:
     interimOutputDir = os.path.join(outputDir_qc, row['ID'])
     finalSubjectOutputDir = os.path.join(outputDir_final, row['ID'])
+    runBratsPipeline = copyFilesToCorrectLocation(interimOutputDir, finalSubjectOutputDir, row['ID'])
 
-    command = bratsPipeline_exe + ' -t1 ' + row['T1'] + ' -t1c ' + row['T1GD'] + ' -t2 ' + row['T2'] + ' -fl ' + row['FLAIR'] + ' -o ' + interimOutputDir + ' -s 1'
-
-    print('Command: ', command)
-    subprocess.Popen(command, shell=True).wait()
-
-    # copy files to correct location for inference and training
-    output_t1c_brain_file_inter = os.path.join(interimOutputDir, "/brain_T1CE.nii.gz")
-    output_t1c_brain_file_final = os.path.join(finalSubjectOutputDir, row['ID'] + "_brain_t1ce.nii.gz")
-    if os.path.exists(output_t1c_brain_file_inter):
-      shutil.copyfile(output_t1c_brain_file_inter, output_t1c_brain_file_final)
-    else:      
-      output_t1c_brain_file_inter = os.path.join(interimOutputDir, "/brain_T1GD.nii.gz")
-      if os.path.exists(output_t1c_brain_file_inter):
-        shutil.copyfile(output_t1c_brain_file_inter, output_t1c_brain_file_final)
-      
-    output_t1_brain_file_inter = os.path.join(interimOutputDir, "/brain_T1.nii.gz")
-    output_t1_brain_file_final = os.path.join(finalSubjectOutputDir, row['ID'] + "_brain_t1.nii.gz")
-    if os.path.exists(output_t1_brain_file_inter):
-      shutil.copyfile(output_t1_brain_file_inter, output_t1_brain_file_final)
-      
-    output_t2_brain_file_inter = os.path.join(interimOutputDir, "/brain_T2.nii.gz")
-    output_t2_brain_file_final = os.path.join(finalSubjectOutputDir, row['ID'] + "_brain_t2.nii.gz")
-    if os.path.exists(output_t2_brain_file_inter):
-      shutil.copyfile(output_t2_brain_file_inter, output_t2_brain_file_final)
-      
-    output_fl_brain_file_inter = os.path.join(interimOutputDir, "/brain_FL.nii.gz")
-    output_fl_brain_file_final = os.path.join(finalSubjectOutputDir, row['ID'] + "_brain_flair.nii.gz")
-    if os.path.exists(output_fl_brain_file_inter):
-      shutil.copyfile(output_fl_brain_file_inter, output_fl_brain_file_final)
+    if runBratsPipeline:
+      command = bratsPipeline_exe + ' -t1 ' + row['T1'] + ' -t1c ' + row['T1GD'] + ' -t2 ' + row['T2'] + ' -fl ' + row['FLAIR'] + ' -o ' + interimOutputDir + ' -s 1'
+      print('Command: ', command)
+      subprocess.Popen(command, shell=True).wait()
+    
+    if copyFilesToCorrectLocation(interimOutputDir, finalSubjectOutputDir, row['ID']):
+      print('BraTSPipeline failed for subject \'', row['ID'], file = sys.stderr)
 
 if __name__ == '__main__':
   if platform.system() == 'Darwin':
