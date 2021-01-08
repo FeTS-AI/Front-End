@@ -57,36 +57,40 @@ def copyFilesToCorrectLocation(interimOutputDir, finalSubjectOutputDir, subjectI
   runBratsPipeline = False
   output_t1c_brain_file_inter = os.path.join(interimOutputDir, "brain_T1CE.nii.gz")
   output_t1c_brain_file_final = os.path.join(finalSubjectOutputDir, subjectID + "_brain_t1ce.nii.gz")
-  if os.path.exists(output_t1c_brain_file_inter):
-    shutil.copyfile(output_t1c_brain_file_inter, output_t1c_brain_file_final)
-  else:      
-    output_t1c_brain_file_inter = os.path.join(interimOutputDir, "brain_T1GD.nii.gz")
+  if not os.path.exists(output_t1c_brain_file_final):
     if os.path.exists(output_t1c_brain_file_inter):
       shutil.copyfile(output_t1c_brain_file_inter, output_t1c_brain_file_final)
-    else:
-      runBratsPipeline = True
+    else:      
+      output_t1c_brain_file_inter = os.path.join(interimOutputDir, "brain_T1GD.nii.gz")
+      if os.path.exists(output_t1c_brain_file_inter):
+        shutil.copyfile(output_t1c_brain_file_inter, output_t1c_brain_file_final)
+      else:
+        runBratsPipeline = True
 
     
   output_t1_brain_file_inter = os.path.join(interimOutputDir, "brain_T1.nii.gz")
   output_t1_brain_file_final = os.path.join(finalSubjectOutputDir, subjectID + "_brain_t1.nii.gz")
-  if os.path.exists(output_t1_brain_file_inter):
-    shutil.copyfile(output_t1_brain_file_inter, output_t1_brain_file_final)
-  else:
-    runBratsPipeline = True
+  if not os.path.exists(output_t1_brain_file_final):
+    if os.path.exists(output_t1_brain_file_inter):
+      shutil.copyfile(output_t1_brain_file_inter, output_t1_brain_file_final)
+    else:
+      runBratsPipeline = True
     
   output_t2_brain_file_inter = os.path.join(interimOutputDir, "brain_T2.nii.gz")
   output_t2_brain_file_final = os.path.join(finalSubjectOutputDir, subjectID + "_brain_t2.nii.gz")
-  if os.path.exists(output_t2_brain_file_inter):
-    shutil.copyfile(output_t2_brain_file_inter, output_t2_brain_file_final)
-  else:
-    runBratsPipeline = True
+  if not os.path.exists(output_t2_brain_file_final):
+    if os.path.exists(output_t2_brain_file_inter):
+      shutil.copyfile(output_t2_brain_file_inter, output_t2_brain_file_final)
+    else:
+      runBratsPipeline = True
     
   output_fl_brain_file_inter = os.path.join(interimOutputDir, "brain_FL.nii.gz")
   output_fl_brain_file_final = os.path.join(finalSubjectOutputDir, subjectID + "_brain_flair.nii.gz")
-  if os.path.exists(output_fl_brain_file_inter):
-    shutil.copyfile(output_fl_brain_file_inter, output_fl_brain_file_final)
-  else:
-    runBratsPipeline = True
+  if not os.path.exists(output_fl_brain_file_final):
+    if os.path.exists(output_fl_brain_file_inter):
+      shutil.copyfile(output_fl_brain_file_inter, output_fl_brain_file_final)
+    else:
+      runBratsPipeline = True
 
   return runBratsPipeline
 
