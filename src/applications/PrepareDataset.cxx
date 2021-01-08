@@ -575,7 +575,7 @@ int main(int argc, char** argv)
     cbica::createDir(interimOutputDir);
     cbica::createDir(finalSubjectOutputDir);
 
-    auto runBratsPipeline = copyFilesToCorrectLocation(interimOutputDir, finalSubjectOutputDir, csvContents[i]["ID"])
+    auto runBratsPipeline = copyFilesToCorrectLocation(interimOutputDir, finalSubjectOutputDir, csvContents[i]["ID"]);
 
     if (runBratsPipeline)
     {
