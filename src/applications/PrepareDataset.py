@@ -1,4 +1,4 @@
-import os, argparse, sys, csv, platform, subprocess
+import os, argparse, sys, csv, platform, subprocess, shutil
 from pathlib import Path
 from datetime import date
 
@@ -76,6 +76,30 @@ def main():
 
     print('Command: ', command)
     subprocess.Popen(command, shell=True).wait()
+
+    output_t1c_brain_file_inter = os.path.join(interimOutputDir, "/brain_T1CE.nii.gz")
+    output_t1c_brain_file_final = os.path.join(finalSubjectOutputDir, row['ID'] + "_brain_t1ce.nii.gz")
+    if os.path.exists(output_t1c_brain_file_inter):
+      shutil.copyfile(output_t1c_brain_file_inter, output_t1c_brain_file_final)
+    else:      
+      output_t1c_brain_file_inter = os.path.join(interimOutputDir, "/brain_T1GD.nii.gz")
+      if os.path.exists(output_t1c_brain_file_inter):
+        shutil.copyfile(output_t1c_brain_file_inter, output_t1c_brain_file_final)
+      
+    output_t1_brain_file_inter = os.path.join(interimOutputDir, "/brain_T1.nii.gz")
+    output_t1_brain_file_final = os.path.join(finalSubjectOutputDir, row['ID'] + "_brain_t1.nii.gz")
+    if os.path.exists(output_t1_brain_file_inter):
+      shutil.copyfile(output_t1_brain_file_inter, output_t1_brain_file_final)
+      
+    output_t2_brain_file_inter = os.path.join(interimOutputDir, "/brain_T2.nii.gz")
+    output_t2_brain_file_final = os.path.join(finalSubjectOutputDir, row['ID'] + "_brain_t2.nii.gz")
+    if os.path.exists(output_t2_brain_file_inter):
+      shutil.copyfile(output_t2_brain_file_inter, output_t2_brain_file_final)
+      
+    output_fl_brain_file_inter = os.path.join(interimOutputDir, "/brain_FL.nii.gz")
+    output_fl_brain_file_final = os.path.join(finalSubjectOutputDir, row['ID'] + "_brain_flair.nii.gz")
+    if os.path.exists(output_fl_brain_file_inter):
+      shutil.copyfile(output_fl_brain_file_inter, output_fl_brain_file_final)
 
 if __name__ == '__main__':
   if platform.system() == 'Darwin':
