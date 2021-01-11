@@ -1,5 +1,7 @@
 # Processing the Data for FeTS
 
+**Note** the `${fets_root_dir}` from [Setup](./setup.md#set-up-the-environment).
+
 ## Table of Contents
 - [Application Path](#application-path)
 - [Data Arrangement](#data-arrangement)
