@@ -319,6 +319,12 @@ int main(int argc, char** argv)
               auto labelFusion_command = hardcodedPythonPath + " " + hardcodedLabelFusionPath + " ";
               std::string filesForFusion, dataForSegmentation = dataDir + "/" + subjectDirs[s] + "/SegmentationsForQC/";
               cbica::createDir(dataForSegmentation);
+              auto dm_folder = dataDir + "/" + subjectDirs[s] + "/dmOut";
+              if (cbica::isDir(dm_folder))
+              {
+                cbica::copyDir(dm_folder, dataForSegmentation);
+                cbica::removeDirectoryRecursively(dm_folder, true);
+              }
 
               for (size_t f = 0; f < filesInSubjectDir.size(); f++)
               {
