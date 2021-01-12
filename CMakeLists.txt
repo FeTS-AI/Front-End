@@ -562,8 +562,12 @@ IF( NOT BUILD_DOCUMENTATION_ONLY )
   
   # copy plans from algorithms 
   IF( EXISTS "${PROJECT_SOURCE_DIR}/OpenFederatedLearning/submodules/fets_ai/Algorithms/fets/bin/federations/plans/pt_3dresunet_brainmagebrats.yaml" )
-    CONFIGURE_FILE("${PROJECT_SOURCE_DIR}/OpenFederatedLearning/submodules/fets_ai/Algorithms/fets/bin/federations/plans/pt_3dresunet_brainmagebrats.yaml" "${PROJECT_SOURCE_DIR}/OpenFederatedLearning/bin/federations/plans/pt_3dresunet_brainmagebrats.yaml" COPYONLY)   
-    CONFIGURE_FILE("${PROJECT_SOURCE_DIR}/OpenFederatedLearning/submodules/fets_ai/Algorithms/fets/bin/federations/plans/pt_3dresunet_ss_brainmagebrats.yaml" "${PROJECT_SOURCE_DIR}/OpenFederatedLearning/bin/federations/plans/pt_3dresunet_ss_brainmagebrats.yaml" COPYONLY) 
+    FILE( GLOB FETS_AI_PLANS
+      "${PROJECT_SOURCE_DIR}/OpenFederatedLearning/submodules/fets_ai/Algorithms/fets/bin/federations/plans/*.yaml"
+    )
+    FOREACH(fetsai_plan ${FETS_AI_PLANS})
+      CONFIGURE_FILE("${fetsai_plan}" "${PROJECT_SOURCE_DIR}/OpenFederatedLearning/bin/federations/plans/" COPYONLY) 
+    ENDFOREACH()
   ENDIF()
   
   # copy weights from models
