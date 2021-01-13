@@ -25,13 +25,13 @@ sudo apt install python3.6 python3.6-venv python3.6-dev
 - Data requirements for Phase-1 Validation: 
   - Glioblastoma (GBM) patients
   - 4 structural modalities - T1 pre and post contrast, T2 and T2-Flair
+  - No instrumentation, pre-resection
   - Scanned along axial axis
   - At least 90 cases
   - Tumor regions (as defined in BraTS challenge):
     -	Edematous/Invaded tissue + Non-Enhancing-Tumor - ED
     - Enhancing - ET
     - Necrotic tumor core - NET
-  - No instrumentation, pre-resection
 
 [Back To ToC](#table-of-contents)
 
