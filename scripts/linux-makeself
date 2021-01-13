@@ -122,9 +122,22 @@ install_captk () {
   echo "Extracting binaries..."
   cd ${target_dir}
   ./FeTS/${ver}/fets --appimage-extract
+  cd ${target_dir}/squashfs-root/usr/bin/OpenFederatedLearning
+  do make install_openfl 
+  if [ $? -eq 0 ]; then
+    ./venv/bin/pip install opencv-python==4.2.0.34
+    make install_fets
+    ./venv/bin/pip install ./submodules/fets_ai/Algorithms/GANDLF
+    ./venv/bin/pip install ../LabelFusion
+  else
+      echo notify user FAIL
+      return -1
+  fi
   rm -rf ./FeTS
   rm -rf linux-makeself
-  echo "To run FeTS, please run \"${target_dir}/squashfs-root/usr/bin/FeTS\" on your console."
+  echo "fets_root_dir:: \"${target_dir}/squashfs-root/usr\""
+  echo "Please finish the setup by installing PyTorch by following the documentation in https://fets-ai.github.io/Front-End/setup"
+  echo "[OPTIONAL] Run the graphical front-end using the command \"${target_dir}/squashfs-root/usr/bin/FeTS\" on your console."
 }
 
 # Print license with a reader
