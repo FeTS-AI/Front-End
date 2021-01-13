@@ -122,6 +122,7 @@ install_captk () {
   echo "Extracting binaries..."
   cd ${target_dir}
   ./FeTS/${ver}/fets --appimage-extract
+  ## openfl installation
   cd ${target_dir}/squashfs-root/usr/bin/OpenFederatedLearning
   doc_setup=https://fets-ai.github.io/Front-End/setup
   do make install_openfl 
@@ -136,6 +137,7 @@ install_captk () {
   else
       echo "OpenFederatedLearning installation failed. Please try manually by following the documentation in ${doc_setup}"
   fi
+  ## openfl installation
   rm -rf ./FeTS
   rm -rf linux-makeself
 }
