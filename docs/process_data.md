@@ -20,7 +20,7 @@ Please add the following path to your `LD_LIBRARY_PATH` when using FeTS: `${fets
 export LD_LIBRARY_PATH=${fets_root_dir}/lib:$LD_LIBRARY_PATH
 ```
 
-[Back To ToC](#table-of-contents)
+[Back To Top &uarr;](#table-of-contents)
 
 ## Data Arrangement
 **Note** the `${fets_root_dir}` from [Setup](./setup.md#set-up-the-environment).
@@ -110,7 +110,7 @@ ${fets_root_dir}/OpenFederatedLearning/venv/bin/python \ # virtual environment t
   ${fets_root_dir}/bin/PrepareDataset.py -i /path/to/raw_data.csv -o /path/to/output
 ```
 
-[Back To ToC](#table-of-contents)
+[Back To Top &uarr;](#table-of-contents)
 
 ---
 [Next: Run Application](./runningApplication.md)

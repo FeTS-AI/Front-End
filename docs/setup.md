@@ -33,7 +33,7 @@ sudo apt install python3.6 python3.6-venv python3.6-dev
     - Enhancing - ET
     - Necrotic tumor core - NET
 
-[Back To ToC](#table-of-contents)
+[Back To Top &uarr;](#table-of-contents)
 
 ## Set up the Environment
 
@@ -57,7 +57,7 @@ make install_fets
 ./venv/bin/pip install ../LabelFusion # label fusion
 ```
 
-[Back To ToC](#table-of-contents)
+[Back To Top &uarr;](#table-of-contents)
 
 ## Set up the Collaborator
 
@@ -81,7 +81,7 @@ bash create-collaborator.sh ${collaborator_common_name} # keep a note of the ${c
     - `${collaborator_common_name}.csr`
     - `${collaborator_common_name}.key`
 
-[Back To ToC](#table-of-contents)
+[Back To Top &uarr;](#table-of-contents)
 
 ---
 [Next: Process Data](./process_data.md)
