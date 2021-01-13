@@ -20,7 +20,7 @@ Please add the following path to your `LD_LIBRARY_PATH` when using FeTS: `${fets
 export LD_LIBRARY_PATH=${fets_root_dir}/lib:$LD_LIBRARY_PATH
 ```
 
-[Back To ToC](#table-of-contents)
+[Back To Top &uarr;](#table-of-contents)
 
 ## Inference
 
@@ -83,7 +83,7 @@ The aforementioned command will perform the following steps:
   │   │ ...
   ```
 
-[Back To ToC](#table-of-contents)
+[Back To Top &uarr;](#table-of-contents)
 
 ## Manual Corrections
 - Use the FeTS graphical interface (or your preferred GUI annotation tool such as [ITK-SNAP](http://www.itksnap.org/pmwiki/pmwiki.php) or [3D-Slicer](https://www.slicer.org/)) to load each subject's images:
@@ -119,7 +119,7 @@ The aforementioned command will perform the following steps:
   ```
   - **NOTE**: this file is is used during training and the subject will be skipped if this is absent
 
-[Back To ToC](#table-of-contents)
+[Back To Top &uarr;](#table-of-contents)
 
 ## Training
 
@@ -130,7 +130,7 @@ The aforementioned command will perform the following steps:
 - Train a model with a 3DResUNet architecture (more architectures will be made available in future releases) for all the *complete* subjects (i.e., with `${SubjectID}_final_seg.nii.gz` and all 4 structural modalities present) in a collaborative manner
 - Leverage the GPU
 
-[Back To ToC](#table-of-contents)
+[Back To Top &uarr;](#table-of-contents)
 
 ---
 <a href="mailto:admin@fets.ai">Next: Contact FeTS Admin</a>
