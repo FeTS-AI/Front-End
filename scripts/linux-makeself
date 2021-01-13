@@ -129,15 +129,14 @@ install_captk () {
     make install_fets
     ./venv/bin/pip install ./submodules/fets_ai/Algorithms/GANDLF
     ./venv/bin/pip install ../LabelFusion
+    echo "fets_root_dir:: \"${target_dir}/squashfs-root/usr\""
+    echo "Please finish the setup by installing PyTorch by following the documentation in https://fets-ai.github.io/Front-End/setup"
+    echo "[OPTIONAL] Run the graphical front-end using the command \"${target_dir}/squashfs-root/usr/bin/FeTS\" on your console."
   else
-      echo notify user FAIL
-      return -1
+      echo "OpenFederatedLearning installation failed. Please try manually by following the documentation in https://fets-ai.github.io/Front-End/setup"
   fi
   rm -rf ./FeTS
   rm -rf linux-makeself
-  echo "fets_root_dir:: \"${target_dir}/squashfs-root/usr\""
-  echo "Please finish the setup by installing PyTorch by following the documentation in https://fets-ai.github.io/Front-End/setup"
-  echo "[OPTIONAL] Run the graphical front-end using the command \"${target_dir}/squashfs-root/usr/bin/FeTS\" on your console."
 }
 
 # Print license with a reader
