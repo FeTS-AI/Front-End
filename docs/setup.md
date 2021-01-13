@@ -19,7 +19,7 @@ sudo apt install python3.6 python3.6-venv python3.6-dev
   - [CUDA 9.2+](https://developer.nvidia.com/cuda-toolkit)
   - [Compatible cuDNN](https://developer.nvidia.com/cudnn)
   - 11GB dedicated VRAM
-  - 40GB RAM
+  - 40GB RAM (**Note**: 120G if you want to run [DeepScan](https://doi.org/10.1007/978-3-030-11726-9_40) inference)
 - 80GB RAM for CPU-only tasks
 - Read/write access to the data for processing
 - Data requirements: 
