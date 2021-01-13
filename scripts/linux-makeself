@@ -124,7 +124,7 @@ install_captk () {
   ./FeTS/${ver}/fets --appimage-extract
   ## openfl installation
   cd ${target_dir}/squashfs-root/usr/bin/OpenFederatedLearning
-  doc_setup=https://fets-ai.github.io/Front-End/setup
+  doc_setup=https://fets-ai.github.io/Front-End/setup#set-up-the-environment
   do make install_openfl 
   if [ $? -eq 0 ]; then
     ./venv/bin/pip install opencv-python==4.2.0.34
