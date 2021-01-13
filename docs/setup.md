@@ -22,7 +22,7 @@ sudo apt install python3.6 python3.6-venv python3.6-dev
   - 40GB RAM
 - 80GB RAM for CPU-only tasks
 - Read/write access to the data for processing
-- Data requirements for Phase-1 Validation: 
+- Data requirements: 
   - Glioblastoma (GBM) patients
   - 4 structural modalities - T1 pre and post contrast, T2 and T2-Flair
   - No instrumentation, pre-resection
