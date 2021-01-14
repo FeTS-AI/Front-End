@@ -18,7 +18,6 @@ sudo apt install python3.6 python3.6-venv python3.6-dev
 - (OPTIONAL) GPU: for faster training and inference
   - [CUDA 9.2 - 10.2](https://developer.nvidia.com/cuda-toolkit)
     - **Note**: CUDA 11 is currently _not_ supported
-  - [Compatible cuDNN](https://developer.nvidia.com/cudnn)
   - 11GB dedicated VRAM
   - 40GB RAM (**Note**: 120G if you want to run [DeepScan](https://doi.org/10.1007/978-3-030-11726-9_40) inference)
 - 80GB RAM for CPU-only tasks
@@ -46,6 +45,10 @@ chmod +x ./FeTS_${version}.bin # optional addition of execution permission
 ./FeTS_${version}.bin --target ${install_path} # change ${install_path} to appropriate location
 # accept license
 cd ${install_path}/squashfs-root/usr/ # this is the ${fets_root_dir}
+cd bin/OpenFederatedLearning
+./venv/bin/pip install torch torchvision # installs latest stable pytorch (we have tested with 1.7.1 with cuda-10.2), change to appropriate cuda version; see https://pytorch.org/get-started/locally/
+# for cuda 9.2, this would be './venv/bin/pip install torch==1.7.1+cu92 torchvision==0.8.2+cu92 torchaudio==0.7.2 -f https://download.pytorch.org/whl/torch_stable.html'
+# for cuda 10.1, this would be './venv/bin/pip install torch==1.7.1+cu101 torchvision==0.8.2+cu101 torchaudio==0.7.2 -f https://download.pytorch.org/whl/torch_stable.html'
 ```
 
 ### Optional instructions for Federation backend
@@ -56,9 +59,6 @@ cd bin/OpenFederatedLearning
 make install_openfl 
 ./venv/bin/pip install opencv-python==4.2.0.34 # https://stackoverflow.com/a/63669919/1228757
 make install_fets
-./venv/bin/pip install torch torchvision # installs latest stable pytorch (we have tested with 1.7.1 with cuda-10.2), change to appropriate cuda version; see https://pytorch.org/get-started/locally/
-# for cuda 9.2, this would be './venv/bin/pip install torch==1.7.1+cu92 torchvision==0.8.2+cu92 torchaudio==0.7.2 -f https://download.pytorch.org/whl/torch_stable.html'
-# for cuda 10.1, this would be './venv/bin/pip install torch==1.7.1+cu101 torchvision==0.8.2+cu101 torchaudio==0.7.2 -f https://download.pytorch.org/whl/torch_stable.html'
 # after this, the federated backend is ready
 ./venv/bin/pip install ./submodules/fets_ai/Algorithms/GANDLF . # gandlf
 ./venv/bin/pip install ../LabelFusion # label fusion
