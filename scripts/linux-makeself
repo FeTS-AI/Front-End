@@ -125,8 +125,8 @@ install_captk () {
   ## openfl installation
   cd ${target_dir}/squashfs-root/usr/bin/OpenFederatedLearning
   doc_setup=https://fets-ai.github.io/Front-End/setup#set-up-the-environment
-  do make install_openfl 
-  if [ $? -eq 0 ]; then
+  echo "Setting up the Python environment for OpenFederatedLearning..."
+  if make install_openfl ; then
     ./venv/bin/pip install opencv-python==4.2.0.34
     make install_fets
     ./venv/bin/pip install ./submodules/fets_ai/Algorithms/GANDLF
