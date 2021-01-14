@@ -55,6 +55,7 @@ cd bin/OpenFederatedLearning
 
 These commands are run along with the installer, but in case you receive an error during the python environment setup, please follow these instructions:
 ```bash
+cd ${fets_root_dir}
 cd bin/OpenFederatedLearning
 make install_openfl 
 ./venv/bin/pip install opencv-python==4.2.0.34 # https://stackoverflow.com/a/63669919/1228757
