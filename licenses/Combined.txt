@@ -35,3 +35,8 @@ By installing the Federated Tumor Segmentation (FeTS) platform, the user agrees 
 9. Eigen License
    License type: MPL2
    Link: https://www.mozilla.org/en-US/MPL/2.0/
+
+10. PyTorch License
+   License type: BSD
+   Link: https://github.com/pytorch/pytorch/blob/master/LICENSE
+
