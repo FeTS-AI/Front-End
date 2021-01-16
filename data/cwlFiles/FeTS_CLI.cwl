@@ -70,4 +70,4 @@ hints:
     packages:
       FeTS_CLI:
         version:
-          - 0.0.2-dev
+          - 0.0.2
