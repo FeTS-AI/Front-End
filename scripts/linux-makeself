@@ -128,9 +128,9 @@ install_captk () {
   echo "Setting up the Python environment for OpenFederatedLearning..."
   if make install_openfl ; then
     ./venv/bin/pip install opencv-python==4.2.0.34
+    ./venv/bin/pip install -e ./submodules/fets_ai/Algorithms/GANDLF
+    ./venv/bin/pip install -e ../LabelFusion
     make install_fets
-    ./venv/bin/pip install ./submodules/fets_ai/Algorithms/GANDLF
-    ./venv/bin/pip install ../LabelFusion
     echo "Please finish the setup by installing PyTorch by following the documentation in ${doc_setup}"
   else
       echo "OpenFederatedLearning installation failed. Please try manually by following the documentation in ${doc_setup}"
