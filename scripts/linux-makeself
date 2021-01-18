@@ -131,18 +131,11 @@ install_captk () {
     ./venv/bin/pip install opencv-python==4.2.0.34
     ./venv/bin/pip install -e ./submodules/fets_ai/Algorithms/GANDLF
     ./venv/bin/pip install -e ../LabelFusion
-    if make install_fets ; then
-      echo "Downloading weights for nnUNet..."
-      cd ${target_dir}/squashfs-root/usr/data/fets
-      wget ${nnunet_link} -O nnunet.zip
-      if unzip nnunet.zip ; then
-        echo "Please finish the setup by installing PyTorch by following the documentation in ${doc_setup}"
-      else
-        echo "nnUNet weights could not be extracted correctly, please download from ${nnunet_link} and extract to \"${target_dir}/squashfs-root/usr/data/fets\""
-    else
-      echo "There was an issue with setting up the virtual environment, please follow instructions in documentation: ${doc_setup}"
-  else
-      echo "OpenFederatedLearning installation failed. Please try manually by following the documentation in ${doc_setup}"
+    make install_fets
+    echo "Downloading weights for nnUNet..."
+    cd ${target_dir}/squashfs-root/usr/data/fets
+    wget ${nnunet_link} -O nnunet.zip
+    unzip nnunet.zip
   fi
   ## openfl installation
   echo "fets_root_dir :: \"${target_dir}/squashfs-root/usr\""
