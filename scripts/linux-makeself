@@ -133,7 +133,7 @@ install_captk () {
     ./venv/bin/pip install -e ../LabelFusion
     if make install_fets ; then
       echo "Downloading weights for nnUNet..."
-      cd ../../data/fets
+      cd ${target_dir}/squashfs-root/usr/data/fets
       wget ${nnunet_link} -O nnunet.zip
       if unzip nnunet.zip ; then
         echo "Please finish the setup by installing PyTorch by following the documentation in ${doc_setup}"
