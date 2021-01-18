@@ -40,6 +40,7 @@ sudo apt install python3.6 python3.6-venv python3.6-dev
 - Download the pre-built binaries from [this link](https://www.nitrc.org/frs/downloadlink.php/11892)
 - Run the following commands:
 ```bash
+sudo apt-get install wget zip unzip # required to download and unzip model weights
 cd ${download_location}
 chmod +x ./FeTS_${version}.bin # optional addition of execution permission
 ./FeTS_${version}_Installer.bin --target ${install_path} # change ${install_path} to appropriate location
