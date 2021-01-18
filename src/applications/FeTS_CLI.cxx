@@ -241,33 +241,34 @@ int main(int argc, char** argv)
                 }
                 else if (archs_split[a] == "3dresunet")
                 {
-                  auto fileNameToCheck = subjectDirs[s] + "_resunet_seg.nii.gz";
-                  auto fileToCheck_1 = dataDir + "/" + subjectDirs[s] + "/" + fileNameToCheck;
-                  auto fileToCheck_2 = dataDir + "/" + subjectDirs[s] + "/SegmentationsForQC/" + fileNameToCheck;
-                  if (!(cbica::isFile(fileToCheck_1) || cbica::isFile(fileToCheck_2))) // don't run if file is present
-                  {
-                    std::cout << "== Starting inference using 3DResUNet...\n";
-                    hardcodedPlanName = "pt_3dresunet_brainmagebrats";
-                    auto hardcodedModelName = hardcodedPlanName + "_best.pbuf";
-                    if (!cbica::isFile((hardcodedModelWeightPath + "/" + hardcodedModelName))) // in case the "best" model is not present, use the "init" model that is distributed with FeTS installation
-                    {
-                      hardcodedModelName = hardcodedPlanName + "_init.pbuf";
-                      if (!cbica::isFile((hardcodedModelWeightPath + "/" + hardcodedModelName)))
-                      {
-                        std::cerr << "=== A compatible model weight file for the architecture '" << archs_split[a] << "' was not found. Please contact admin@fets.ai for help.\n";
-                      }
-                    }
+                  std::cout << "3DResUNet inference is disabled for this release.\n";
+                  //auto fileNameToCheck = subjectDirs[s] + "_resunet_seg.nii.gz";
+                  //auto fileToCheck_1 = dataDir + "/" + subjectDirs[s] + "/" + fileNameToCheck;
+                  //auto fileToCheck_2 = dataDir + "/" + subjectDirs[s] + "/SegmentationsForQC/" + fileNameToCheck;
+                  //if (!(cbica::isFile(fileToCheck_1) || cbica::isFile(fileToCheck_2))) // don't run if file is present
+                  //{
+                  //  std::cout << "== Starting inference using 3DResUNet...\n";
+                  //  hardcodedPlanName = "pt_3dresunet_brainmagebrats";
+                  //  auto hardcodedModelName = hardcodedPlanName + "_best.pbuf";
+                  //  if (!cbica::isFile((hardcodedModelWeightPath + "/" + hardcodedModelName))) // in case the "best" model is not present, use the "init" model that is distributed with FeTS installation
+                  //  {
+                  //    hardcodedModelName = hardcodedPlanName + "_init.pbuf";
+                  //    if (!cbica::isFile((hardcodedModelWeightPath + "/" + hardcodedModelName)))
+                  //    {
+                  //      std::cerr << "=== A compatible model weight file for the architecture '" << archs_split[a] << "' was not found. Please contact admin@fets.ai for help.\n";
+                  //    }
+                  //  }
 
-                    auto args_to_run = args + " -mwf " + hardcodedModelName
-                      + " -p " + hardcodedPlanName + ".yaml";
-                    //<< "-mwf" << hardcodedModelWeightPath // todo: doing customized solution above - change after model weights are using full paths for all
+                  //  auto args_to_run = args + " -mwf " + hardcodedModelName
+                  //    + " -p " + hardcodedPlanName + ".yaml";
+                  //  //<< "-mwf" << hardcodedModelWeightPath // todo: doing customized solution above - change after model weights are using full paths for all
 
-                    if (std::system((fullCommandToRun + " " + args_to_run).c_str()) != 0)
-                    {
-                      std::cerr << "=== Couldn't complete the inference for 3dresunet for subject " << subjectDirs[s] << ".\n";
-                      subjectsWithErrors += subjectDirs[s] + ",inference,3dresunet\n";
-                    }
-                  } // end of previous run file check
+                  //  if (std::system((fullCommandToRun + " " + args_to_run).c_str()) != 0)
+                  //  {
+                  //    std::cerr << "=== Couldn't complete the inference for 3dresunet for subject " << subjectDirs[s] << ".\n";
+                  //    subjectsWithErrors += subjectDirs[s] + ",inference,3dresunet\n";
+                  //  }
+                  //} // end of previous run file check
                 } // end of 3dresunet check
                 else
                 {
