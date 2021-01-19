@@ -2739,21 +2739,21 @@ void fMainWindow::SetActiveLandmarksType(int type, int row, int col)
 }
 void fMainWindow::panelChanged(int current)
 {
-  if (drawingPanel) //Reset shape mode on every panle switch
+  if (drawingPanel) //Reset shape mode on every panel switch
   {
     m_drawShapeMode = SHAPE_MODE_NONE;
     drawingPanel->shapesNoneButtonFunctionality();
   }
 
-  if (current == TAB_IMAGES)
+  else
   {
     SetActiveLandmarksType(LANDMARK_TYPE::NONE, 0, 0);
   }
-  else if (current == TAB_TUMOR)
-  {
-    SetActiveLandmarksType(LANDMARK_TYPE::NONE, 0, 0);
-    //tumorPanel->SetCurrentSelectedTissueType();
-  }
+  //else if (current == TAB_TUMOR)
+  //{
+  //  SetActiveLandmarksType(LANDMARK_TYPE::NONE, 0, 0);
+  //  //tumorPanel->SetCurrentSelectedTissueType();
+  //}
 }
 
 void fMainWindow::MoveSlicerCursor(double x, double y, double z, int mode)
