@@ -420,7 +420,7 @@ void SlicerManagerCommand::Execute(vtkObject *caller, unsigned long event, void 
       }
       if (event == vtkCommand::PickEvent || event == vtkCommand::StartPickEvent)
       {
-        if (mw->m_drawShapeMode == SHAPE_MODE_NONE || mw->getActiveTabId() != TAB_DRAW) 
+        if ((mw->m_drawShapeMode == SHAPE_MODE_NONE) || (mw->getActiveTabId() != TAB_DRAW))
         {
           moveCursor(VisibleInWindow, x, y);
         }

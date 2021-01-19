@@ -41,14 +41,13 @@ ibsi_phantom
 /src/applications/FeatureExtraction/runner.ps1
 
 mac-pkg.sh
-deepmedic
 itksnap
 libra
 confetti
 dcm2nii
 theia
 .DS_Store
-testing
+
 /binaries/.DS_Store
 /binaries/MCR
 /cmake_modules/.DS_Store
@@ -58,3 +57,4 @@ testing
 vsts*
 superbuild
 build
+debug.log

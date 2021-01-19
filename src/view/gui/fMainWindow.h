@@ -61,7 +61,7 @@ class PreferencesDialog;
 
 enum TAB_TYPE
 {
-  TAB_IMAGES, TAB_TUMOR, TAB_DRAW, TAB_FEWATURE
+  TAB_IMAGES, TAB_DRAW, TAB_INF, TAB_TRAIN
 };
 
 typedef itk::Image< short, 3 > GenericImage;

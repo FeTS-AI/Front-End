@@ -51,27 +51,34 @@ inputs:
       position: 1
       prefix: -r
     doc: "Resize an image based on the resizing factor given.Example: -r 150 resizes inputImage by 150%.Defaults to 100, i.e., no resizing.Resampling can be done on image with 100."
-  resizeResolution:
+  resampleResolution:
     type: string?
     label: 0-10
     inputBinding:
       position: 1
       prefix: -rr
-    doc: "[Resample] Resolution of the voxels/pixels to change to.Resize value needs to be 100.Defaults to 1.0,1.0,1.0.Use '-rf' for a reference file."
-  resizeReference:
+    doc: "[Resample] Resolution of the voxels/pixels to change to.Defaults to 1.0,1.0,1.0.Use '-rf' for a reference file."
+  resampleReference:
     type: File?
     label: NIfTI image
     inputBinding:
       position: 1
       prefix: -rf
     doc: "[Resample] Reference image on which resampling is to be done.Resize value needs to be 100.Use '-ri' for resize resolution."
-  resizeInterp:
+  resampleInterp:
     type: string?
-    label: NEAREST:LINEAR:BSPLINE:BICUBIC
+    label: NEAREST:NEARESTLABEL:LINEAR:BSPLINE:BICUBIC
     inputBinding:
       position: 1
       prefix: -ri
-    doc: "[Resample] The interpolation type to use for resampling or resizing.Defaults to LINEAR."
+    doc: "[Resample] The interpolation type to use for resampling or resizing.Defaults to LINEAR.Use NEARESTLABEL for multi-label masks."
+  resampleMask:
+    type: boolean?
+    label: 0 or 1
+    inputBinding:
+      position: 1
+      prefix: -rm
+    doc: "[Resample] Rounds the output of the resample, useful for resampling masks.Defaults to '0'."
   sanityCheck:
     type: File?
     label: NIfTI Reference
@@ -155,7 +162,7 @@ inputs:
     inputBinding:
       position: 1
       prefix: -d2n
-    doc: If path to reference is present, then image comparison is done.Use '-i' to pass input DICOM image.Use '-o' to pass output image file.
+    doc: If path to reference is present, then image comparison is done.Use '-i' to pass input DICOM image.Use '-o' to pass output image file.Pass a directory to '-o' if you want the JSON information.
   nifi2dicom:
     type: Directory?
     label: DICOM Reference
@@ -175,8 +182,8 @@ inputs:
     label: 0-100
     inputBinding:
       position: 1
-      prefix: -ndO
-    doc: "The origin tolerance for DICOM writing.Because NIfTI images have issues converting directions,.Ref: https://github.com/InsightSoftwareConsortium/ITK/issues/1042.this parameter can be used to override checks.Defaults to '0.000000'."
+      prefix: -ndS
+    doc: "The spacing tolerance for DICOM writing.Because NIfTI images have issues converting spacings,.Ref: https://github.com/InsightSoftwareConsortium/ITK/issues/1042.this parameter can be used to override checks.Defaults to '0.000000'."
   dcmSeg:
     type: Directory?
     label: DICOM Reference
@@ -232,7 +239,7 @@ inputs:
     inputBinding:
       position: 1
       prefix: -thO
-    doc: Whether to do Otsu threshold.Generates a binary image which has been thresholded using Otsu.Use '-tOI' to set Outside and Inside Values.Optional mask to localize Otsu search area.
+    doc: Whether to do Otsu threshold.Generates a binary image which has been thresholded using Otsu.Optional mask to localize Otsu search area.
   thrshBinary:
     type: string?
     label: Lower_Threshold,Upper_Threshold
@@ -329,4 +336,4 @@ hints:
     packages:
       Utilities:
         version:
-          - 0.0.1.nonRelease
+          - 0.0.2

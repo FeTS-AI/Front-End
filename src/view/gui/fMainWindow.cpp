@@ -2739,21 +2739,21 @@ void fMainWindow::SetActiveLandmarksType(int type, int row, int col)
 }
 void fMainWindow::panelChanged(int current)
 {
-  if (drawingPanel) //Reset shape mode on every panle switch
+  if (drawingPanel) //Reset shape mode on every panel switch
   {
     m_drawShapeMode = SHAPE_MODE_NONE;
     drawingPanel->shapesNoneButtonFunctionality();
   }
 
-  if (current == TAB_IMAGES)
+  else
   {
     SetActiveLandmarksType(LANDMARK_TYPE::NONE, 0, 0);
   }
-  else if (current == TAB_TUMOR)
-  {
-    SetActiveLandmarksType(LANDMARK_TYPE::NONE, 0, 0);
-    //tumorPanel->SetCurrentSelectedTissueType();
-  }
+  //else if (current == TAB_TUMOR)
+  //{
+  //  SetActiveLandmarksType(LANDMARK_TYPE::NONE, 0, 0);
+  //  //tumorPanel->SetCurrentSelectedTissueType();
+  //}
 }
 
 void fMainWindow::MoveSlicerCursor(double x, double y, double z, int mode)
@@ -3456,7 +3456,31 @@ void fMainWindow::dropEvent(QDropEvent *event)
   {
     vectorOfFiles.push_back(urls[i].toLocalFile());
   }
-  openImages(vectorOfFiles);
+  // if more than 1 files are dropped, assume they are images
+  if ((vectorOfFiles.size() > 1) || mSlicerManagers.empty())
+  {
+    openImages(vectorOfFiles);
+  }
+  else
+  {
+    // ask if it is an image or roi
+    QMessageBox *box = new QMessageBox(QMessageBox::Question, 
+      "Image Type", 
+      "Please select the type of image being loaded", QMessageBox::Ok | QMessageBox::Cancel);
+    box->button(QMessageBox::Ok)->setText("Image");
+    box->button(QMessageBox::Cancel)->setText("ROI");
+    box->setAttribute(Qt::WA_DeleteOnClose); //makes sure the msgbox is deleted automatically when closed
+    box->setWindowModality(Qt::NonModal);
+    QCoreApplication::processEvents();
+    if (box->exec() == QMessageBox::Ok)
+    {
+      openImages(vectorOfFiles);
+    }
+    else
+    {
+      readMaskFile(vectorOfFiles[0].toStdString());
+    }
+  }
 }
 
 
@@ -5955,6 +5979,9 @@ void fMainWindow::OnPreferencesMenuClicked()
 
 void fMainWindow::OnSegmentationClicked()
 {
+  ShowMessage("Inference through the graphical interface is disabled for this release, please try from the command line.");
+  return;
+
   auto outputDir = segmentationPanel->getOutputPath();
   auto inputDir = segmentationPanel->getInputDirectoryPath();
   auto allSegmentationsOptions = segmentationPanel->getSelectedSegmentationAlgorithms();
@@ -5967,21 +5994,103 @@ void fMainWindow::OnSegmentationClicked()
     return;
   }
 
-  // todo: uncomment this when more algorithms are integrated
-  //if (allSegmentationsOptions.empty())
-  //{
-  //  ShowErrorMessage("No models have been selected for inference. Please select at least 1 and re-try.");
-  //  return;
-  //}
+  if (allSegmentationsOptions.empty())
+  {
+    ShowErrorMessage("No models have been selected for inference. Please select at least 1 and re-try.");
+    return;
+  }
 
-  //if (allSegmentationsOptions.size() > 1)
-  //{
-  //  if (allFusionOptions.empty())
-  //  {
-  //    ShowErrorMessage("No fusion methods have been selected. If there are more than 1 models selected for inference, at least 1 fusion method is needed.");
-  //    return;
-  //  }
-  //}
+  if (allSegmentationsOptions.size() > 1)
+  {
+    if (allFusionOptions.empty())
+    {
+      ShowErrorMessage("No fusion methods have been selected. If there are more than 1 models selected for inference, at least 1 fusion method is needed.");
+      return;
+    }
+  }
+
+  for (size_t i = 0; i < allSegmentationsOptions.size(); i++)
+  {
+    if (allSegmentationsOptions[i] == "DeepMedic")
+    {
+      auto deepMedicExe = getApplicationPath("DeepMedic");
+
+      auto subDirs = cbica::subdirectoriesInDirectory(inputDir);
+
+      std::string subjectsWithMissingModalities, subjectsWithErrors;
+
+      for (size_t s = 0; s < subDirs.size(); s++)
+      {
+        std::string file_t1gd, file_t1, file_t2, file_flair;
+        auto fileToCheck = inputDir + "/" + subDirs[s] + "/brain_t1gd.nii.gz";
+        if (cbica::fileExists(fileToCheck))
+        {
+          file_t1gd = fileToCheck;
+        }
+        else
+        {
+          subjectsWithMissingModalities += subDirs[s];
+        }
+
+        fileToCheck = inputDir + "/" + subDirs[s] + "/brain_t1.nii.gz";
+        if (cbica::fileExists(fileToCheck))
+        {
+          file_t1 = fileToCheck;
+        }
+        else
+        {
+          subjectsWithMissingModalities += subDirs[s];
+        }
+        fileToCheck = inputDir + "/" + subDirs[s] + "/brain_t2.nii.gz";
+        if (cbica::fileExists(fileToCheck))
+        {
+          file_t2 = fileToCheck;
+        }
+        else
+        {
+          subjectsWithMissingModalities += subDirs[s];
+        }
+        fileToCheck = inputDir + "/" + subDirs[s] + "/brain_flair.nii.gz";
+        if (cbica::fileExists(fileToCheck))
+        {
+          file_flair = fileToCheck;
+        }
+        else
+        {
+          subjectsWithMissingModalities += subDirs[s] + ",";
+        }
+
+        if (subjectsWithMissingModalities.empty())
+        {
+          auto brainMaskFile = inputDir + "/" + subDirs[s] + "/deepmedic_seg.nii.gz";
+
+          auto fullCommand = deepMedicExe + " -md " + getCaPTkDataDir() + "/fets/deepMedic/saved_models/brainTumorSegmentation/ " +
+          "-i " + file_t1 + "," +
+          file_t1gd + "," +
+          file_t2 + "," +
+          file_flair + " -o " +
+          brainMaskFile;
+          
+          if (std::system(fullCommand.c_str()) != 0)
+          {
+            subjectsWithErrors += subDirs[s] + ",";
+          }
+        }
+      }
+
+      if (!subjectsWithMissingModalities.empty())
+      {
+        subjectsWithMissingModalities.pop_back();
+        ShowErrorMessage("The following subjects had at least one missing modality: \n" + subjectsWithMissingModalities);
+      }
+      if (!subjectsWithErrors.empty())
+      {
+        subjectsWithErrors.pop_back();
+        ShowErrorMessage("DeepMedic couldn't run the following subjects: \n" + subjectsWithErrors);
+      }
+
+    }
+  }
   
   QString hardcodedPlanName,
     hardcodedModelWeightPath = (captk_currentApplicationPath + "/OpenFederatedLearning/bin/federations/weights/").c_str(), // start with the common location
@@ -6060,6 +6169,9 @@ void fMainWindow::OnSegmentationClicked()
 
 void fMainWindow::OnTrainingClicked()
 {
+  ShowMessage("Training is disabled for this release.");
+  return;
+
   auto outputDir = trainingPanel->getOutputPath();
   auto inputDir = trainingPanel->getInputDirectoryPath();
   auto allSegmentationsOptions = trainingPanel->getSelectedSegmentationAlgorithms();

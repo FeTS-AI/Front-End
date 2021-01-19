@@ -10,3 +10,6 @@
 [submodule "Models_Pretrained"]
 	path = Models_Pretrained
 	url = https://github.com/FETS-AI/Models.git
+[submodule "LabelFusion"]
+	path = LabelFusion
+	url = https://github.com/FETS-AI/LabelFusion.git

@@ -13,7 +13,7 @@ SET( ${PROJECT_NAME}_Variant "Full" ) # the particular variant of CaPTk (Full/Ne
 
 SET( PROJECT_VERSION_MAJOR 0 )
 SET( PROJECT_VERSION_MINOR 0 )
-SET( PROJECT_VERSION_PATCH 1 )
+SET( PROJECT_VERSION_PATCH 2 )
 SET( PROJECT_VERSION_TWEAK )
 
 # check for the string "nonRelease" in the PROJECT_VERSION_PATCH variable
@@ -562,8 +562,12 @@ IF( NOT BUILD_DOCUMENTATION_ONLY )
   
   # copy plans from algorithms 
   IF( EXISTS "${PROJECT_SOURCE_DIR}/OpenFederatedLearning/submodules/fets_ai/Algorithms/fets/bin/federations/plans/pt_3dresunet_brainmagebrats.yaml" )
-    CONFIGURE_FILE("${PROJECT_SOURCE_DIR}/OpenFederatedLearning/submodules/fets_ai/Algorithms/fets/bin/federations/plans/pt_3dresunet_brainmagebrats.yaml" "${PROJECT_SOURCE_DIR}/OpenFederatedLearning/bin/federations/plans/pt_3dresunet_brainmagebrats.yaml" COPYONLY)   
-    CONFIGURE_FILE("${PROJECT_SOURCE_DIR}/OpenFederatedLearning/submodules/fets_ai/Algorithms/fets/bin/federations/plans/pt_3dresunet_ss_brainmagebrats.yaml" "${PROJECT_SOURCE_DIR}/OpenFederatedLearning/bin/federations/plans/pt_3dresunet_ss_brainmagebrats.yaml" COPYONLY) 
+    FILE( GLOB FETS_AI_PLANS
+      "${PROJECT_SOURCE_DIR}/OpenFederatedLearning/submodules/fets_ai/Algorithms/fets/bin/federations/plans/*.yaml"
+    )
+    FOREACH(fetsai_plan ${FETS_AI_PLANS})
+      CONFIGURE_FILE("${fetsai_plan}" "${PROJECT_SOURCE_DIR}/OpenFederatedLearning/bin/federations/plans/" COPYONLY) 
+    ENDFOREACH()
   ENDIF()
   
   # copy weights from models
@@ -598,12 +602,37 @@ IF( NOT BUILD_DOCUMENTATION_ONLY )
   CONFIGURE_FILE("${PROJECT_SOURCE_DIR}/data/fets/network.yaml" "${PROJECT_SOURCE_DIR}/OpenFederatedLearning/bin/federations/plans/defaults/network.yaml")
   CONFIGURE_FILE("${PROJECT_SOURCE_DIR}/data/fets/cert_chain.crt" "${PROJECT_SOURCE_DIR}/OpenFederatedLearning/bin/federations/pki/cert_chain.crt")
   CONFIGURE_FILE("${PROJECT_SOURCE_DIR}/data/fets/pt_3dresunet_brainmagebrats.yaml" "${PROJECT_SOURCE_DIR}/OpenFederatedLearning/bin/federations/plans/pt_3dresunet_brainmagebrats.yaml" COPYONLY) 
+  CONFIGURE_FILE("${PROJECT_SOURCE_DIR}/data/fets/deepscan_inference.yaml" "${PROJECT_SOURCE_DIR}/OpenFederatedLearning/bin/federations/plans/deepscan_inference.yaml" COPYONLY) 
+  CONFIGURE_FILE("${PROJECT_SOURCE_DIR}/data/fets/nnunet_inference.yaml" "${PROJECT_SOURCE_DIR}/OpenFederatedLearning/bin/federations/plans/nnunet_inference.yaml" COPYONLY) 
   
+  # find stand-alone CMD applications
+  FILE( GLOB DeepScan_Weights
+    "${PROJECT_SOURCE_DIR}/data/fets/*.tar"
+  )
+  file(MAKE_DIRECTORY "${PROJECT_SOURCE_DIR}/OpenFederatedLearning/bin/federations/weights/deepscan/")
+  FOREACH(deepScan_weight ${DeepScan_Weights})
+    CONFIGURE_FILE("${deepScan_weight}" "${PROJECT_SOURCE_DIR}/OpenFederatedLearning/bin/federations/weights/deepscan/" COPYONLY) 
+  ENDFOREACH()
+
   INSTALL(
     DIRECTORY "${PROJECT_SOURCE_DIR}/OpenFederatedLearning" 
     DESTINATION bin
     PATTERN ".git" EXCLUDE
+    PATTERN "venv" EXCLUDE
   )
+
+  INSTALL(
+    DIRECTORY "${PROJECT_SOURCE_DIR}/LabelFusion" 
+    DESTINATION bin
+    PATTERN ".git" EXCLUDE
+    PATTERN "venv" EXCLUDE
+  )
+
+
+  FILE( GLOB_RECURSE ALL_PY_FILES "${PROJECT_SOURCE_DIR}/src/applications/*.py" )
+  FOREACH( pyFile ${ALL_PY_FILES} )
+    INSTALL( FILES "${pyFile}" DESTINATION bin )
+  ENDFOREACH()
 
   # find stand-alone CMD applications
   FILE( GLOB STANDALONE_APPS
@@ -759,8 +788,8 @@ IF( NOT BUILD_DOCUMENTATION_ONLY )
     SET(META_FILES_TO_INCLUDE ${META_FILES_TO_INCLUDE} ${DEEPMEDIC_SAVEDMODELS_SKULL})
     
   ELSE()
-    #INSTALL(DIRECTORY "${DATA_DIR}/deepMedic/configFiles" DESTINATION data/deepMedic)
-    #INSTALL(DIRECTORY "${DATA_DIR}/deepMedic/saved_models" DESTINATION data/deepMedic)
+    INSTALL(DIRECTORY "${DATA_DIR}/deepMedic/configFiles" DESTINATION data/deepMedic)
+    INSTALL(DIRECTORY "${DATA_DIR}/deepMedic/saved_models" DESTINATION data/deepMedic)
   ENDIF()
   
   # install FeTS files
@@ -771,8 +800,14 @@ IF( NOT BUILD_DOCUMENTATION_ONLY )
     FILE(GLOB_RECURSE FETSFILES_3DUNet "${DATA_DIR}/fets/3DUNet/*")
     SET_SOURCE_FILES_PROPERTIES( ${FETSFILES_3DUNet} PROPERTIES MACOSX_PACKAGE_LOCATION Resources/data/fets/3DUNet )
     
-    FILE(GLOB_RECURSE FETSFILES_DeepMedic "${DATA_DIR}/fets/DeepMedic/*")
-    SET_SOURCE_FILES_PROPERTIES( ${FETSFILES_DeepMedic} PROPERTIES MACOSX_PACKAGE_LOCATION Resources/data/fets/DeepMedic )
+    FILE(GLOB_RECURSE FETSFILES_DeepMedic "${DATA_DIR}/fets/deepMedic/*")
+    SET_SOURCE_FILES_PROPERTIES( ${FETSFILES_DeepMedic} PROPERTIES MACOSX_PACKAGE_LOCATION Resources/data/fets/deepMedic )
+    
+    FILE(GLOB_RECURSE FETSFILES_DeepMedic "${DATA_DIR}/fets/deepscan/*")
+    SET_SOURCE_FILES_PROPERTIES( ${FETSFILES_DeepMedic} PROPERTIES MACOSX_PACKAGE_LOCATION Resources/data/fets/deepscan )
+    
+    FILE(GLOB_RECURSE FETSFILES_DeepMedic "${DATA_DIR}/fets/*")
+    SET_SOURCE_FILES_PROPERTIES( ${FETSFILES_DeepMedic} PROPERTIES MACOSX_PACKAGE_LOCATION Resources/data/fets )
     
   ELSE()
     INSTALL(DIRECTORY "${DATA_DIR}/fets" DESTINATION data)
