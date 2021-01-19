@@ -5979,6 +5979,9 @@ void fMainWindow::OnPreferencesMenuClicked()
 
 void fMainWindow::OnSegmentationClicked()
 {
+  ShowMessage("Inference through the graphical interface is disabled for this release, please try from the command line.");
+  return;
+
   auto outputDir = segmentationPanel->getOutputPath();
   auto inputDir = segmentationPanel->getInputDirectoryPath();
   auto allSegmentationsOptions = segmentationPanel->getSelectedSegmentationAlgorithms();
@@ -6166,6 +6169,9 @@ void fMainWindow::OnSegmentationClicked()
 
 void fMainWindow::OnTrainingClicked()
 {
+  ShowMessage("Training is disabled for this release.");
+  return;
+
   auto outputDir = trainingPanel->getOutputPath();
   auto inputDir = trainingPanel->getInputDirectoryPath();
   auto allSegmentationsOptions = trainingPanel->getSelectedSegmentationAlgorithms();
