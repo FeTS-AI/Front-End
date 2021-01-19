@@ -122,9 +122,26 @@ install_captk () {
   echo "Extracting binaries..."
   cd ${target_dir}
   ./FeTS/${ver}/fets --appimage-extract
+  ## openfl installation
+  cd ${target_dir}/squashfs-root/usr/bin/OpenFederatedLearning
+  doc_setup=https://fets-ai.github.io/Front-End/setup#set-up-the-environment
+  nnunet_link=https://upenn.box.com/shared/static/f7zt19d08c545qt3tcaeg7b37z6qafum.zip
+  echo "Setting up the Python environment for OpenFederatedLearning..."
+  if make install_openfl ; then
+    ./venv/bin/pip install opencv-python==4.2.0.34
+    ./venv/bin/pip install -e ./submodules/fets_ai/Algorithms/GANDLF
+    ./venv/bin/pip install -e ../LabelFusion
+    make install_fets
+    echo "Downloading weights for nnUNet..."
+    cd ${target_dir}/squashfs-root/usr/data/fets
+    wget ${nnunet_link} -O nnunet.zip
+    unzip nnunet.zip
+  fi
+  ## openfl installation
+  echo "fets_root_dir :: \"${target_dir}/squashfs-root/usr\""
+  echo "[OPTIONAL] Run the graphical front-end using the command \"${target_dir}/squashfs-root/usr/bin/FeTS\" on your console."
   rm -rf ./FeTS
   rm -rf linux-makeself
-  echo "To run FeTS, please run \"${target_dir}/squashfs-root/usr/bin/FeTS\" on your console."
 }
 
 # Print license with a reader

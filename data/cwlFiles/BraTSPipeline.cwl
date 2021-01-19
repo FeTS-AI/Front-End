@@ -57,7 +57,7 @@ inputs:
     inputBinding:
       position: 1
       prefix: -s
-    doc: "Flag whether to skull strip or not.Defaults to 0.This uses DeepMedic: https://cbica.github.io/CaPTk/seg_DL.html."
+    doc: "Flag whether to skull strip or not.Defaults to 1.This uses DeepMedic: https://cbica.github.io/CaPTk/seg_DL.html."
   brainTumor:
     type: boolean?
     label: 0 or 1
@@ -84,4 +84,4 @@ hints:
     packages:
       BraTSPipeline:
         version:
-          - 0.0.1.nonRelease
+          - 0.0.2

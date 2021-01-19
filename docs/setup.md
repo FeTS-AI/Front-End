@@ -1,5 +1,10 @@
 # Application Setup
 
+## Table of Contents
+- [Requirements](#requirements)
+- [Set up the Environment](#set-up-the-environment)
+- [Set up the Collaborator](#set-up-the-collaborator)
+
 ## Requirements
 
 - OS: Linux (Ubuntu 18.04) [note that Ubuntu 20.04 does **not** work, and we will support Windows for Phase-2]
@@ -11,41 +16,59 @@ sudo apt update
 sudo apt install python3.6 python3.6-venv python3.6-dev
 ```
 - (OPTIONAL) GPU: for faster training and inference
-  - [CUDA 9.2+](https://developer.nvidia.com/cuda-toolkit)
-  - [Compatible cuDNN](https://developer.nvidia.com/cudnn)
+  - [CUDA 9.2 - 10.2](https://developer.nvidia.com/cuda-toolkit)
+    - **Note**: CUDA 11 is currently _not_ supported
   - 11GB dedicated VRAM
-  - 40GB RAM
+  - 40GB RAM (**Note**: 120G if you want to run [DeepScan](https://doi.org/10.1007/978-3-030-11726-9_40) inference)
 - 80GB RAM for CPU-only tasks
 - Read/write access to the data for processing
-- Data requirements for Phase-1 Validation: 
+- Data requirements: 
   - Glioblastoma (GBM) patients
   - 4 structural modalities - T1 pre and post contrast, T2 and T2-Flair
+  - No instrumentation, pre-resection
   - Scanned along axial axis
   - At least 90 cases
   - Tumor regions (as defined in BraTS challenge):
     -	Edematous/Invaded tissue + Non-Enhancing-Tumor - ED
     - Enhancing - ET
     - Necrotic tumor core - NET
-  - No instrumentation, pre-resection
+
+[Back To Top &uarr;](#table-of-contents)
 
 ## Set up the Environment
 
 - Download the pre-built binaries from [this link](https://www.nitrc.org/frs/downloadlink.php/11892)
 - Run the following commands:
 ```bash
+sudo apt-get install wget zip unzip # required to download and unzip model weights
 cd ${download_location}
 chmod +x ./FeTS_${version}.bin # optional addition of execution permission
-./FeTS_${version}.bin --target ${install_path} # change ${install_path} to appropriate location
+./FeTS_${version}_Installer.bin --target ${install_path} # change ${install_path} to appropriate location
 # accept license
 cd ${install_path}/squashfs-root/usr/ # this is the ${fets_root_dir}
 cd bin/OpenFederatedLearning
-make install_openfl 
-make install_fets
-./venv/bin/pip install torch torchvision # installs latest stable pytorch (we have tested with 1.6.0 with cuda-10.2), change to appropriate cuda version; see https://pytorch.org/get-started/locally/
-# for cuda 9.2, this would be './venv/bin/pip install torch==1.6.0+cu92 torchvision==0.7.0+cu92 -f https://download.pytorch.org/whl/torch_stable.html'
-# for cuda 10.1, this would be './venv/bin/pip install torch==1.6.0+cu101 torchvision==0.7.0+cu101 -f https://download.pytorch.org/whl/torch_stable.html'
-# after this, the federated backend is ready
+nvidia-smi # note the ${cuda_version}
+# install pytorch using appropriate ${cuda_version}; see https://pytorch.org/get-started/locally/
+./venv/bin/pip install torch torchvision # installs latest stable pytorch using CUDA 10.2 (we have tested with 1.7.1 with cuda-10.2)
+# for cuda 9.2, this would be './venv/bin/pip install torch==1.7.1+cu92 torchvision==0.8.2+cu92 torchaudio==0.7.2 -f https://download.pytorch.org/whl/torch_stable.html'
+# for cuda 10.1, this would be './venv/bin/pip install torch==1.7.1+cu101 torchvision==0.8.2+cu101 torchaudio==0.7.2 -f https://download.pytorch.org/whl/torch_stable.html'
 ```
+
+### Optional instructions for Federation backend
+
+These commands are run along with the installer, but in case you receive an error during the python environment setup, please follow these instructions:
+```bash
+cd ${fets_root_dir}
+cd bin/OpenFederatedLearning
+make install_openfl 
+./venv/bin/pip install opencv-python==4.2.0.34 # https://stackoverflow.com/a/63669919/1228757
+make install_fets
+# after this, the federated backend is ready
+./venv/bin/pip install ./submodules/fets_ai/Algorithms/GANDLF . # gandlf
+./venv/bin/pip install ../LabelFusion # label fusion
+```
+
+[Back To Top &uarr;](#table-of-contents)
 
 ## Set up the Collaborator
 
@@ -59,12 +82,19 @@ bash create-collaborator.sh ${collaborator_common_name} # keep a note of the ${c
 ## a string of alpha-numeric numbers for hash verification 
 ```
 
-- Send the CSR file (`${fets_root_dir}/bin/OpenFederatedLearning/bin/federations/pki/client/${collaborator_common_name}.csr`), and **not the verificiation hash**, to your UPenn point-of-contact, Sarthak Pati
-- Set up a call/meeting with Sarthak and provide the verification hash to him.
+- Send the CSR file (`${fets_root_dir}/bin/OpenFederatedLearning/bin/federations/pki/client/${collaborator_common_name}.csr`), and **not the verificiation hash**, to your UPenn point-of-contact (*FeTS_Admin*)
+- Set up a call/meeting with FeTS_Admin and provide the verification hash.
   - *On Aggregator*: `bash sign-csr.sh ${collaborator_common_name}.csr ${hashVerification}`
-  - Sarthak will send the following file back: `${collaborator_common_name}.crt`
+  - FeTS_Admin will send the following file back: `${collaborator_common_name}.crt`
   - Copy this file to the following location: `${fets_root_dir}/bin/OpenFederatedLearning/bin/federations/pki/client/`
   - (**Verification**) This location should contain the following files:
     - `${collaborator_common_name}.crt`
     - `${collaborator_common_name}.csr`
     - `${collaborator_common_name}.key`
+
+[Back To Top &uarr;](#table-of-contents)
+
+---
+[Next: Process Data](./process_data.md)
+
+---
