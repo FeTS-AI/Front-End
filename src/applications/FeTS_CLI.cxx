@@ -381,6 +381,9 @@ int main(int argc, char** argv)
   } // end of trainingRequested check
   else // for training
   {
+    std::cout << "Training is disabled for this release.\n";
+    return EXIT_SUCCESS;
+
     std::string specialArgs, args, hardcodedModelName;
     if (trainingRequested)
     {
