@@ -15,12 +15,11 @@ sudo add-apt-repository ppa:deadsnakes/ppa
 sudo apt update
 sudo apt install python3.6 python3.6-venv python3.6-dev
 ```
-- (OPTIONAL) GPU: for faster training and inference
+- GPU: for faster training and inference
   - [CUDA 9.2 - 10.2](https://developer.nvidia.com/cuda-toolkit)
     - **Note**: CUDA 11 is currently _not_ supported
   - 11GB dedicated VRAM
   - 40GB RAM (**Note**: 120G if you want to run [DeepScan](https://doi.org/10.1007/978-3-030-11726-9_40) inference)
-- 80GB RAM for CPU-only tasks
 - Read/write access to the data for processing
 - Data requirements: 
   - Glioblastoma (GBM) patients
