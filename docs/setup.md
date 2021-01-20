@@ -84,12 +84,12 @@ bash create-collaborator.sh ${collaborator_common_name} # keep a note of the ${c
 - Send the CSR file (`${fets_root_dir}/bin/OpenFederatedLearning/bin/federations/pki/client/${collaborator_common_name}.csr`), and **not the verificiation hash**, to **admin@fets.ai**.
 - The FeTS Team will reach back to set up a call, and you will need to provide the verification hash.
   - *For FeTS Team ONLY*: `bash sign-csr.sh ${collaborator_common_name}.csr ${hashVerification}`
-  - FeTS Team will send the following file back: `${collaborator_common_name}.crt`
-  - Copy this file to the following location: `${fets_root_dir}/bin/OpenFederatedLearning/bin/federations/pki/client/`
-  - (**Verification**) This location should contain the following files:
-    - `${collaborator_common_name}.crt`
-    - `${collaborator_common_name}.csr`
-    - `${collaborator_common_name}.key`
+- FeTS Team will send the following file back: `${collaborator_common_name}.crt`
+- Copy this file to the following location: `${fets_root_dir}/bin/OpenFederatedLearning/bin/federations/pki/client/`
+- (**Verification**) This location should contain the following files:
+  - `${collaborator_common_name}.crt`
+  - `${collaborator_common_name}.csr`
+  - `${collaborator_common_name}.key`
 
 [Back To Top &uarr;](#table-of-contents)
 
