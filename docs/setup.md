@@ -78,7 +78,7 @@ cd bin/OpenFederatedLearning/bin/federations/pki
 bash create-collaborator.sh ${collaborator_common_name} # keep a note of the ${collaborator_common_name}, as it will be used for authentication and to send/receive jobs to/from the aggregator at UPenn
 # this command will generate the following items, which needs to be saved for collaborator verification:
 ## a CSR file at `./client/${collaborator_common_name}.csr``
-## a string of alpha-numeric numbers for hash verification - save this!
+## a string of alpha-numeric numbers for hash verification - SAVE THIS FOR VERIFICATION!!
 ```
 
 - Send the CSR file (`${fets_root_dir}/bin/OpenFederatedLearning/bin/federations/pki/client/${collaborator_common_name}.csr`), and **not the verificiation hash**, to **admin@fets.ai**.
