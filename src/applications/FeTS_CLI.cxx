@@ -344,7 +344,10 @@ int main(int argc, char** argv)
               for (size_t f = 0; f < filesInSubjectDir.size(); f++)
               {
                 auto fileToCopy = dataForSegmentation + cbica::getFilenameBase(filesInSubjectDir[f]) + ".nii.gz";
-                filesForFusion += fileToCopy + ",";
+                if (filesInSubjectDir[f].find("fused") == std::string::npos) // only consider those files for fusion that are arch outputs
+                {
+                  filesForFusion += fileToCopy + ",";
+                }
               } // files loop in subject directory
 
               if (!filesForFusion.empty())
