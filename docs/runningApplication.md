@@ -35,7 +35,7 @@ ${fets_root_dir}/bin/FeTS_CLI -d /path/to/output/DataForFeTS \ # data directory 
 The aforementioned command will perform the following steps:
 - Perform inference on the prepared dataset based on selected architectures and label fusion strategies
   - **NOTES**: 
-    - [nnUNet](https://github.com/MIC-DKFZ/nnunet) should have been downloaded during the installation process. In case there was a failure, follow these steps:
+    - [nnUNet](https://doi.org/10.1038/s41592-020-01008-z) should have been downloaded during the installation process. In case there was a failure, follow these steps:
       - Download weights from [this URL](https://upenn.box.com/v/fets-weights-nnunet) or from the command line:
         ```bash
         cd ${fets_root_dir}/data/fets
