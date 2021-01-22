@@ -59,6 +59,7 @@ The aforementioned command will perform the following steps:
         ```
       - This will now be available as a model for inference using the `FeTS_CLI` application under the `-a` parameter.
     - To run [DeepScan](https://doi.org/10.1007/978-3-030-11726-9_40), at least 120G of RAM is needed. 
+    - [DeepMedic](https://doi.org/10.1016/j.media.2016.10.004) runs as a CPU-only task.
 - Leverage the GPU
 - Place inference results on a per-subject basis for quality-control:
   ```bash
