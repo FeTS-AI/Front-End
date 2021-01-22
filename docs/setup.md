@@ -15,12 +15,11 @@ sudo add-apt-repository ppa:deadsnakes/ppa
 sudo apt update
 sudo apt install python3.6 python3.6-venv python3.6-dev
 ```
-- (OPTIONAL) GPU: for faster training and inference
+- GPU: for faster training and inference
   - [CUDA 9.2 - 10.2](https://developer.nvidia.com/cuda-toolkit)
     - **Note**: CUDA 11 is currently _not_ supported
   - 11GB dedicated VRAM
   - 40GB RAM (**Note**: 120G if you want to run [DeepScan](https://doi.org/10.1007/978-3-030-11726-9_40) inference)
-- 80GB RAM for CPU-only tasks
 - Read/write access to the data for processing
 - Data requirements: 
   - Glioblastoma (GBM) patients
@@ -78,19 +77,19 @@ cd ${fets_root_dir} # see previous step for where this would be
 cd bin/OpenFederatedLearning/bin/federations/pki
 bash create-collaborator.sh ${collaborator_common_name} # keep a note of the ${collaborator_common_name}, as it will be used for authentication and to send/receive jobs to/from the aggregator at UPenn
 # this command will generate the following items, which needs to be saved for collaborator verification:
-## a CSR file at `./client/${collaborator_common_name}.csr`
-## a string of alpha-numeric numbers for hash verification 
+## a CSR file at `./client/${collaborator_common_name}.csr``
+## a string of alpha-numeric numbers for hash verification - SAVE THIS FOR VERIFICATION!!
 ```
 
-- Send the CSR file (`${fets_root_dir}/bin/OpenFederatedLearning/bin/federations/pki/client/${collaborator_common_name}.csr`), and **not the verificiation hash**, to your UPenn point-of-contact (*FeTS_Admin*)
-- Set up a call/meeting with FeTS_Admin and provide the verification hash.
-  - *On Aggregator*: `bash sign-csr.sh ${collaborator_common_name}.csr ${hashVerification}`
-  - FeTS_Admin will send the following file back: `${collaborator_common_name}.crt`
-  - Copy this file to the following location: `${fets_root_dir}/bin/OpenFederatedLearning/bin/federations/pki/client/`
-  - (**Verification**) This location should contain the following files:
-    - `${collaborator_common_name}.crt`
-    - `${collaborator_common_name}.csr`
-    - `${collaborator_common_name}.key`
+- Send the CSR file (`${fets_root_dir}/bin/OpenFederatedLearning/bin/federations/pki/client/${collaborator_common_name}.csr`), and **not the verificiation hash**, to **admin@fets.ai**.
+- The FeTS Team will reach back to set up a call, and you will need to provide the verification hash.
+  - *For FeTS Team ONLY*: `bash sign-csr.sh ${collaborator_common_name}.csr ${hashVerification}`
+- FeTS Team will send the following file back: `${collaborator_common_name}.crt`
+- Copy this file to the following location: `${fets_root_dir}/bin/OpenFederatedLearning/bin/federations/pki/client/`
+- (**Verification**) This location should contain the following files:
+  - `${collaborator_common_name}.crt`
+  - `${collaborator_common_name}.csr`
+  - `${collaborator_common_name}.key`
 
 [Back To Top &uarr;](#table-of-contents)
 
