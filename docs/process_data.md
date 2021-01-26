@@ -5,8 +5,6 @@
 ## Table of Contents
 - [Application Path](#application-path)
 - [Data Arrangement](#data-arrangement)
-- [Manual corrections](#manual-corrections)
-- [Training](#training)
 
 ## Application Path
 
