@@ -5,7 +5,7 @@
 ## Table of Contents
 - [Application Path](#application-path)
 - [Data Arrangement](#data-arrangement)
-- [Running Pre-processing](#preprocess)
+- [Running Pre-processing](#pre-processing)
 
 ## Application Path
 
