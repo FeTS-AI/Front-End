@@ -378,7 +378,7 @@ fMainWindow::fMainWindow()
   //std::string miscAppList = " DirectionalityEstimate DiffusionDerivatives PerfusionAlignment PerfusionDerivatives PerfusionPCA TrainingModule";
   std::string miscAppList = "";// " DirectionalityEstimate DiffusionDerivatives TrainingModule";
   std::string segAppList = "";// " itksnap GeodesicSegmentation GeodesicTrainingSegmentation deepmedic_tumor deepmedic_brain";
-  std::string preProcessingAlgos = " DCM2NIfTI BiasCorrect-N3 Denoise-SUSAN GreedyRegistration HistogramMatching ZScoringNormalizer deepmedic_brain BraTSPipeline";
+  std::string preProcessingAlgos = " BiasCorrect-N3 Denoise-SUSAN GreedyRegistration HistogramMatching ZScoringNormalizer deepmedic_brain BraTSPipeline";
   //#ifndef __APPLE__
 //  preProcessingAlgos += " breastNormalize";
 //#endif
@@ -791,11 +791,11 @@ fMainWindow::fMainWindow()
       vectorOfPreprocessingActionsAndNames[i].action->setDisabled(true);
       connect(vectorOfPreprocessingActionsAndNames[i].action, SIGNAL(triggered()), this, SLOT(ImageSkullStripping()));
     }
-    else if (vectorOfPreprocessingActionsAndNames[i].name.find("DCM2NIfTI") != std::string::npos)
-    {
-      vectorOfPreprocessingActionsAndNames[i].action->setText("DICOM to NIfTI");
-      connect(vectorOfPreprocessingActionsAndNames[i].action, SIGNAL(triggered()), this, SLOT(DCM2NIfTIConversion()));
-    }
+    //else if (vectorOfPreprocessingActionsAndNames[i].name.find("DCM2NIfTI") != std::string::npos)
+    //{
+    //  vectorOfPreprocessingActionsAndNames[i].action->setText("DICOM to NIfTI");
+    //  connect(vectorOfPreprocessingActionsAndNames[i].action, SIGNAL(triggered()), this, SLOT(DCM2NIfTIConversion()));
+    //}
     else if (vectorOfPreprocessingActionsAndNames[i].name.find("deepmedic_brain") != std::string::npos)
     {
       vectorOfPreprocessingActionsAndNames[i].action->setText("Skull Stripping (DeepLearning)"); // TBD set at source
