@@ -63,8 +63,8 @@ make install_openfl
 ./venv/bin/pip install opencv-python==4.2.0.34 # https://stackoverflow.com/a/63669919/1228757
 make install_fets
 # after this, the federated backend is ready
-./venv/bin/pip install ./submodules/fets_ai/Algorithms/GANDLF . # gandlf
-./venv/bin/pip install ../LabelFusion # label fusion
+./venv/bin/pip install -e ./submodules/fets_ai/Algorithms/GANDLF . # gandlf
+./venv/bin/pip install -e ../LabelFusion # label fusion
 ```
 
 [Back To Top &uarr;](#table-of-contents)
