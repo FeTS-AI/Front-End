@@ -5,8 +5,7 @@
 ## Table of Contents
 - [Application Path](#application-path)
 - [Data Arrangement](#data-arrangement)
-- [Manual corrections](#manual-corrections)
-- [Training](#training)
+- [Running Pre-processing](#pre-processing)
 
 ## Application Path
 
@@ -70,6 +69,9 @@ Pat_JohnDoe,/path/to/Pat_JohnDoe/T1/image_001.dcm,/path/to/Pat_JohnDoe/T1GD/imag
 ...
 SmithJoe,/path/to/SmithJoe/T1/image_001.dcm,/path/to/SmithJoe/T1GD/image_001.dcm,/path/to/SmithJoe/T2/image_001.dcm,/path/to/SmithJoe/T2FLAIR/image_001.dcm
 ```
+
+## Pre-processing
+
 - Pass **raw_data.csv** as an input, along with an output directory, to the `PrepareDataset` executable (which internally calls the `BraTSPipeline` executable):
 ```bash
 ${fets_root_dir}/bin/PrepareDataset -i /path/to/raw_data.csv -o /path/to/output
