@@ -69,6 +69,11 @@ Pat_JohnDoe,/path/to/Pat_JohnDoe/T1/image_001.dcm,/path/to/Pat_JohnDoe/T1GD/imag
 ...
 SmithJoe,/path/to/SmithJoe/T1/image_001.dcm,/path/to/SmithJoe/T1GD/image_001.dcm,/path/to/SmithJoe/T2/image_001.dcm,/path/to/SmithJoe/T2FLAIR/image_001.dcm
 ```
+  - One way to do this would be via the following command:
+  ```bash
+  echo "PatientID,T1,T1GD,T2,T2FLAIR" > raw_data.csv
+  for d in $Input_data/*; do cdsub=`basename $d`; t1=`ls -1 $d/T1/* | head -n1`; tlce=`ls -1 $d/T1GD/* | head -n1`; t2=`ls -1 $d/T2/* | head -n1`; flair=`ls -1 $d/T2FLAIR/* | head -n1`; echo $sub,$t1,$tlce,$t2,$flair; done >> raw_data.csv
+  ```
 
 ## Pre-processing
 
