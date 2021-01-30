@@ -52,6 +52,19 @@ nvidia-smi # note the ${cuda_version}
 # for cuda 9.2, this would be './venv/bin/pip install torch==1.7.1+cu92 torchvision==0.8.2+cu92 torchaudio==0.7.2 -f https://download.pytorch.org/whl/torch_stable.html'
 # for cuda 10.1, this would be './venv/bin/pip install torch==1.7.1+cu101 torchvision==0.8.2+cu101 torchaudio==0.7.2 -f https://download.pytorch.org/whl/torch_stable.html'
 ```
+### Note for Ubuntu 20.04 users
+
+We have **not** tested with Ubuntu 20.04 and there might be unforseen stability issues with dependencies. That being said, if there is no other way around it, there are some pointers that can be followed to get FeTS up and running on this platform:
+
+```bash
+echo "deb http://archive.ubuntu.com/ubuntu xenial main" | sudo tee /etc/apt/sources.list.d/xenial.list
+sudo apt-get update
+sudo update-alternatives --remove-all gcc
+sudo update-alternatives --remove-all g++
+sudo apt-get install gcc-5 g++-5
+sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-5 10
+sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-5 10
+```
 
 ### Optional instructions for Federation backend
 
