@@ -36,7 +36,7 @@ sudo apt install python3.6 python3.6-venv python3.6-dev
 
 ## Set up the Environment
 
-- Download the pre-built binaries from [this link](https://www.nitrc.org/frs/downloadlink.php/11892)
+- Download the pre-built binaries from [this link](https://github.com/FETS-AI/Front-End/releases/tag/0.0.2)
 - Run the following commands:
 ```bash
 sudo apt-get install wget zip unzip # required to download and unzip model weights
