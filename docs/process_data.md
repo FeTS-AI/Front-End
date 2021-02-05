@@ -69,6 +69,14 @@ Pat_JohnDoe,/path/to/Pat_JohnDoe/T1/image_001.dcm,/path/to/Pat_JohnDoe/T1GD/imag
 ...
 SmithJoe,/path/to/SmithJoe/T1/image_001.dcm,/path/to/SmithJoe/T1GD/image_001.dcm,/path/to/SmithJoe/T2/image_001.dcm,/path/to/SmithJoe/T2FLAIR/image_001.dcm
 ```
+  - One way to do this would be via the following command:
+  ```bash
+  echo "PatientID,T1,T1GD,T2,T2FLAIR" > raw_data.csv
+  for d in $Input_data/*; do sub=`basename $d`; t1=`ls -1 $d/T1/* | head -n1`; tlce=`ls -1 $d/T1GD/* | head -n1`; t2=`ls -1 $d/T2/* | head -n1`; flair=`ls -1 $d/T2FLAIR/* | head -n1`; echo $sub,$t1,$tlce,$t2,$flair >> raw_data.csv; done
+  ```
+  - Please note that subject IDs should be unique strings:
+    - **Problematic**: "Patient_1", "Patient_2", ..., "Patient_10", ...,"Patient_20", ...,"Patient_100"
+    - **Acceptable**: "Patient_001", "Patient_002", ..., "Patient_010", ..., "Patient_020", ..., "Patient_100", ...
 
 ## Pre-processing
 
