@@ -129,8 +129,8 @@ install_captk () {
   echo "Setting up the Python environment for OpenFederatedLearning..."
   if make install_openfl ; then
     ./venv/bin/pip install opencv-python==4.2.0.34
-    ./venv/bin/pip install -e ./submodules/fets_ai/Algorithms/GANDLF
-    ./venv/bin/pip install -e ../LabelFusion
+    ./venv/bin/pip install ./submodules/fets_ai/Algorithms/GANDLF
+    ./venv/bin/pip install ../LabelFusion
     make install_fets
     echo "Downloading weights for nnUNet..."
     cd ${target_dir}/squashfs-root/usr/data/fets
