@@ -34,13 +34,13 @@ def main():
         filesInDir = os.listdir(currentSubjectDir) # get all files in each directory
         files_for_subject = {}
         for i in range(len(filesInDir)):
-          for modality in files_to_check:
-            if filesInDir[i].endswith(files_to_check[modality]):
+          for modality in files_to_check: # check all modalities
+            if filesInDir[i].endswith(files_to_check[modality]): # if modality detected, populate subject dict
               files_for_subject[modality] = os.path.abspath(os.path.join(currentSubjectDir, filesInDir[i]))
         
-        if len(files_for_subject != 5):
+        if len(files_for_subject != 5): # if all modalities are not present, add exit statement
           numberOfProblematicCases += 1
-          errorMessage += dirs + ',N.A.,N.A.,N.A.\n'
+          errorMessage += dirs + ',Not_all_modalities_present,N.A.,N.A.\n'
         
         if 'MASK' in files_for_subject:
           currentLabelFile = files_for_subject['MASK']
@@ -53,6 +53,9 @@ def main():
             for j in range(0,len(unique)): # iterate over a range to get counts easier
               if not(unique[j] in label_values_expected):
                 errorMessage += dirs + ',' + currentLabelFile + ',' + str(unique[j]) + ',' + str(counts[j]) + ',\n'
+        else:
+          numberOfProblematicCases += 1
+          errorMessage += dirs + ',Label_absent,N.A.,N.A.\n'
 
   if numberOfProblematicCases > 0:
     print('There were problematic cases found in the dataset. Please see the following:')
