@@ -139,9 +139,11 @@ def main():
                 else:
                   if not('staple' in fusionToRecommend): # overwrite the fusion result to recommend if not staple that was fine
                     fusionToRecommend = currentLabelFile 
-
-            if fusionToRecommend:
+            
+            if not fusionToRecommend:
               errorMessage += problematicSegmentationMessage
+            elif not('staple' in fusionToRecommend):
+              fusionToRecommend = 'nnunet_or_deepscan'
 
           else:
             errorMessage += dirs + ',SegmentationsForQC_folder_is_absent,N.A.,N.A.\n'
