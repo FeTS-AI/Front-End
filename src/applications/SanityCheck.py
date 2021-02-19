@@ -125,6 +125,7 @@ def main():
         
         fusionToRecommend = ''
         segmentationsForQCPresent = True
+        problematicSegmentationMessage = ''
         if currentSubjectsLabelIsProblematic or currentSubjectsLabelIsAbsent: # if final_seg is absent or is problematic
           segmentationsFolder = os.path.join(currentSubjectDir, 'SegmentationsForQC')
           if os.path.isdir(segmentationsFolder):
@@ -134,11 +135,13 @@ def main():
                 currentLabelFile = os.path.join(segmentationsFolder, segmentationFiles[i])
                 returnString = checkBraTSLabels(dirs, currentLabelFile)
                 if returnString: # if there is something present in the return string
-                  numberOfProblematicCases += 1
-                  errorMessage += returnString
+                  problematicSegmentationMessage += returnString
                 else:
                   if not('staple' in fusionToRecommend): # overwrite the fusion result to recommend if not staple that was fine
                     fusionToRecommend = currentLabelFile 
+
+            if fusionToRecommend:
+              errorMessage += problematicSegmentationMessage
 
           else:
             errorMessage += dirs + ',SegmentationsForQC_folder_is_absent,N.A.,N.A.\n'
