@@ -10,20 +10,24 @@ def imageSanityCheck(targetImageFile, inputImageFile) -> bool:
   targetImage = sitk.ReadImage(targetImageFile)
   inputImage = sitk.ReadImage(inputImageFile)
 
+  if targetImage.GetDimension() != 3:
+    # print('Dimension for target image is not 3', file = sys.stderr)
+    return False
+
   if targetImage.GetDimension() != inputImage.GetDimension():
-    print('Dimension mismatch for target and input image', file = sys.stderr)
+    # print('Dimension mismatch for target and input image', file = sys.stderr)
     return False
 
   if targetImage.GetSize() != inputImage.GetSize():
-    print('Size mismatch for target and input image', file = sys.stderr)
+    # print('Size mismatch for target and input image', file = sys.stderr)
     return False
     
   if targetImage.GetOrigin() != inputImage.GetOrigin():
-    print('Origin mismatch for target and input image', file = sys.stderr)
+    # print('Origin mismatch for target and input image', file = sys.stderr)
     return False
 
   if targetImage.GetSpacing() != inputImage.GetSpacing():
-    print('Spacing mismatch for target and input image', file = sys.stderr)
+    # print('Spacing mismatch for target and input image', file = sys.stderr)
     return False
 
   return True
