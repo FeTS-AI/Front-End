@@ -15,23 +15,39 @@ def imageSanityCheck(targetImageFile, inputImageFile) -> bool:
     return False
 
   commonMessage = ' mismatch for target image, \'' + targetImageFile + '\' and input image, \'' + inputImageFile + '\''
+  problemsIn = ''
+  returnTrue = True
+
   if targetImage.GetDimension() != inputImage.GetDimension():
-    print('Dimension' + commonMessage, file = sys.stderr)
-    return False
+    problemsIn += 'Dimension'
+    returnTrue = False
 
   if targetImage.GetSize() != inputImage.GetSize():
-    print('Size' + commonMessage, file = sys.stderr)
-    return False
+    if not problemsIn:
+      problemsIn += 'Size'
+    else:
+      problemsIn += ', Size'
+    returnTrue = False
     
   if targetImage.GetOrigin() != inputImage.GetOrigin():
-    print('Origin' + commonMessage, file = sys.stderr)
-    return False
+    if not problemsIn:
+      problemsIn += 'Origin'
+    else:
+      problemsIn += ', Origin'
+    returnTrue = False
 
   if targetImage.GetSpacing() != inputImage.GetSpacing():
-    print('Spacing' + commonMessage, file = sys.stderr)
-    return False
+    if not problemsIn:
+      problemsIn += 'Spacing'
+    else:
+      problemsIn += ', Spacing'
+    returnTrue = False
 
-  return True
+  if returnTrue:
+    return True
+  else:
+    print(problemsIn + commonMessage, file = sys.stderr)
+    return False
 
 def main():
   copyrightMessage = 'Contact: software@cbica.upenn.edu/n/n' + 'This program is NOT FDA/CE approved and NOT intended for clinical use./nCopyright (c) ' + str(date.today().year) + ' University of Pennsylvania. All rights reserved.' 
