@@ -124,6 +124,7 @@ def main():
           currentSubjectsLabelIsAbsent = True
         
         fusionToRecommend = ''
+        segmentationsForQCPresent = True
         if currentSubjectsLabelIsProblematic or currentSubjectsLabelIsAbsent: # if final_seg is absent or is problematic
           segmentationsFolder = os.path.join(currentSubjectDir, 'SegmentationsForQC')
           if os.path.isdir(segmentationsFolder):
@@ -140,11 +141,12 @@ def main():
                     fusionToRecommend = currentLabelFile 
 
           else:
-            errorMessage += dirs + ',SegmentationsForQC_is_absent,N.A.,N.A.\n'
+            errorMessage += dirs + ',SegmentationsForQC_folder_is_absent,N.A.,N.A.\n'
             numberOfProblematicCases += 1
+            segmentationsForQCPresent = False
           # errorMessage += dirs + ',Label_file_absent,N.A.,N.A.\n'
         
-        if currentSubjectsLabelIsAbsent:
+        if currentSubjectsLabelIsAbsent and segmentationsForQCPresent:
           numberOfProblematicCases += 1
           if fusionToRecommend:
             errorMessage += dirs + ',final_seg_absent_and_use_this_fusion:,' + fusionToRecommend + ',N.A.\n'
