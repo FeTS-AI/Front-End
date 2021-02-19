@@ -50,12 +50,14 @@ def imageSanityCheck(targetImageFile, inputImageFile) -> bool:
     return False
 
 def main():
-  copyrightMessage = 'Contact: software@cbica.upenn.edu/n/n' + 'This program is NOT FDA/CE approved and NOT intended for clinical use./nCopyright (c) ' + str(date.today().year) + ' University of Pennsylvania. All rights reserved.' 
-  parser = argparse.ArgumentParser(prog='SanityCheck', formatter_class=argparse.RawTextHelpFormatter, description = 'This application performs rudimentary sanity checks the input data folder for FeTS training./n/n' + copyrightMessage)
-  parser.add_argument('-inputDir', type=str, help = 'The absolute, comma-separated paths of labels that need to be fused', required=True)
+  # copyrightMessage = 'Contact: software@cbica.upenn.edu/n/n' + 'This program is NOT FDA/CE approved and NOT intended for clinical use./nCopyright (c) ' + str(date.today().year) + ' University of Pennsylvania. All rights reserved.' 
+  # parser = argparse.ArgumentParser(prog='SanityCheck', formatter_class=argparse.RawTextHelpFormatter, description = 'This application performs rudimentary sanity checks the input data folder for FeTS training./n/n' + copyrightMessage)
+  # parser.add_argument('-inputDir', type=str, help = 'The absolute, comma-separated paths of labels that need to be fused', required=True)
 
-  args = parser.parse_args()
-  inputDir = args.inputDir
+  # args = parser.parse_args()
+  # inputDir = args.inputDir
+
+  inputDir = "C:/Users/sarth/Downloads/fets_sanity_check"
 
   if not os.path.isdir(inputDir):
     sys.exit('The specified inputDir is not present, please try again')
@@ -98,7 +100,7 @@ def main():
         if 'MASK' in files_for_subject:
           currentLabelFile = files_for_subject['MASK']
           mask_array = sitk.GetArrayFromImage(sitk.ReadImage(currentLabelFile))
-          unique, counts = np.sort(np.unique(mask_array, return_counts=True)) # get unique elements and their counts
+          unique, counts = np.unique(mask_array, return_counts=True) # get unique elements and their counts
           if not(np.array_equal(unique,label_values_expected)): # this is for the case where the label contains numbers other than 0,1,2,4
             numberOfProblematicCases += 1
             for j in range(0,len(unique)): # iterate over a range to get counts easier
