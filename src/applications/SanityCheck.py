@@ -49,6 +49,20 @@ def imageSanityCheck(targetImageFile, inputImageFile) -> bool:
     print(problemsIn + commonMessage, file = sys.stderr)
     return False
 
+def checkBraTSLabels(subject_id, currentLabelFile, label_values_expected = np.array([0,1,2,4])) -> str:
+  '''
+  This function checks for the expected labels and returns a string that will be provided as output for user
+  '''
+  returnString = ''
+  mask_array = sitk.GetArrayFromImage(sitk.ReadImage(currentLabelFile))
+  unique, counts = np.unique(mask_array, return_counts=True) # get unique elements and their counts
+  if not(np.array_equal(unique,label_values_expected)): # this is for the case where the label contains numbers other than 0,1,2,4
+    for j in range(0,len(unique)): # iterate over a range to get counts easier
+      if not(unique[j] in label_values_expected):
+        returnString += subject_id + ',' + currentLabelFile + ',' + str(unique[j]) + ',' + str(counts[j]) + '\n'
+
+  return returnString
+
 def main():
   copyrightMessage = 'Contact: software@cbica.upenn.edu/n/n' + 'This program is NOT FDA/CE approved and NOT intended for clinical use./nCopyright (c) ' + str(date.today().year) + ' University of Pennsylvania. All rights reserved.' 
   parser = argparse.ArgumentParser(prog='SanityCheck', formatter_class=argparse.RawTextHelpFormatter, description = 'This application performs rudimentary sanity checks the input data folder for FeTS training./n/n' + copyrightMessage)
@@ -97,22 +111,20 @@ def main():
             numberOfProblematicCases += 1
             errorMessage += dirs + ',Image_dimension/size/origin/spacing_mismatch_between_' + first[0] + '_and_' + rest[i][0] + ',N.A.,N.A.\n'
         
-        currentSubjectIsProblematic = False
+        currentSubjectsLabelIsProblematic = False # check if current subject's label has issues
         if 'MASK' in files_for_subject:
           currentLabelFile = files_for_subject['MASK']
-          mask_array = sitk.GetArrayFromImage(sitk.ReadImage(currentLabelFile))
-          unique, counts = np.unique(mask_array, return_counts=True) # get unique elements and their counts
-          if not(np.array_equal(unique,label_values_expected)): # this is for the case where the label contains numbers other than 0,1,2,4
+          returnString = checkBraTSLabels(dirs, currentLabelFile)
+          if returnString: # if there is something present in the return string
             numberOfProblematicCases += 1
-            for j in range(0,len(unique)): # iterate over a range to get counts easier
-              if not(unique[j] in label_values_expected):
-                errorMessage += dirs + ',' + currentLabelFile + ',' + str(unique[j]) + ',' + str(counts[j]) + '\n'
-                currentSubjectIsProblematic = True
+            currentSubjectsLabelIsProblematic = True
+            errorMessage += returnString
         else:
-          currentSubjectIsProblematic = True
+          currentSubjectsLabelIsProblematic = True
         
-        if currentSubjectIsProblematic: # if 
+        if currentSubjectsLabelIsProblematic: # if 
           test = 1
+          print('in currentSubjectsLabelIsProblematic loop')
           if os.path.isdir(os.path.join(currentSubjectDir, 'SegmentationsForQC')):
             # for check fused labels
             test = 1
