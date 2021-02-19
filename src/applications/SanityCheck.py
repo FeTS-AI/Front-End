@@ -87,13 +87,13 @@ def main():
         
         if len(files_for_subject) != 5: # if all modalities are not present, add exit statement
           numberOfProblematicCases += 1
-          errorMessage += dirs + ',Not_all_modalities_present,N.A.,N.A.\n'
+          errorMessage += dirs + ',All_required_modalities_are_not_present,N.A.,N.A.\n'
 
         first, *rest = files_for_subject.items() # split the dict
         for i in range(0, len(rest)):
           if not(imageSanityCheck(first[1], rest[i][1])): # image sanity check
             numberOfProblematicCases += 1
-            errorMessage += dirs + ',Image_dimension_mismatch_between_' + first[0] + '_and_' + rest[i][0] + ',N.A.,N.A.\n'
+            errorMessage += dirs + ',Image_dimension/size/origin/spacing_mismatch_between_' + first[0] + '_and_' + rest[i][0] + ',N.A.,N.A.\n'
         
         if 'MASK' in files_for_subject:
           currentLabelFile = files_for_subject['MASK']
@@ -106,7 +106,7 @@ def main():
                 errorMessage += dirs + ',' + currentLabelFile + ',' + str(unique[j]) + ',' + str(counts[j]) + '\n'
         else:
           numberOfProblematicCases += 1
-          errorMessage += dirs + ',Label_absent,N.A.,N.A.\n'
+          errorMessage += dirs + ',Label_file_absent,N.A.,N.A.\n'
 
   if numberOfProblematicCases > 0:
     print('There were problematic cases found in the dataset. Please see the following:')
