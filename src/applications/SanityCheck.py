@@ -143,7 +143,7 @@ def main():
             
             if not fusionToRecommend:
               errorMessage += problematicSegmentationMessage
-            elif not('staple' in fusionToRecommend):
+            if not('staple' in fusionToRecommend): # recommend nnunet or deepscan if not staple
               fusionToRecommend = 'nnunet_or_deepscan'
 
           else:
@@ -155,7 +155,7 @@ def main():
         if currentSubjectsLabelIsAbsent and segmentationsForQCPresent:
           numberOfProblematicCases += 1
           if fusionToRecommend:
-            errorMessage += dirs + ',final_seg_absent_but_use_this_fusion_for_initial_corrections:,' + fusionToRecommend + ',N.A.\n'
+            errorMessage += dirs + ',final_seg_absent_but_use_this_for_initial_corrections:,' + fusionToRecommend + ',N.A.\n'
           else:
             errorMessage += dirs + ',final_seg_absent_and_use_either_nnunet_or_deepscan,N.A.,N.A.\n'
 
