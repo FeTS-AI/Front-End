@@ -100,8 +100,9 @@ def main():
             if filesInDir[i].endswith(files_to_check[modality]): # if modality detected, populate subject dict
               files_for_subject[modality] = os.path.abspath(os.path.join(currentSubjectDir, filesInDir[i]))
         
+        currentSubjectsLabelIsAbsent = False # check if current subject's final_seg is present or not
         if len(files_for_subject) != 5: # if all modalities are not present, add exit statement
-          if not('MASK' in files_for_subject):
+          if (len(files_for_subject) == 4) and ('MASK' in files_for_subject):
             numberOfProblematicCases += 1
             errorMessage += dirs + ',All_required_modalities_are_not_present,N.A.,N.A.\n'
 
@@ -120,23 +121,38 @@ def main():
             currentSubjectsLabelIsProblematic = True
             errorMessage += returnString
         else:
-          currentSubjectsLabelIsProblematic = True
+          currentSubjectsLabelIsAbsent = True
         
-        if currentSubjectsLabelIsProblematic: # if 
-          test = 1
-          print('in currentSubjectsLabelIsProblematic loop')
-          if os.path.isdir(os.path.join(currentSubjectDir, 'SegmentationsForQC')):
-            # for check fused labels
-            test = 1
+        fusionToRecommend = ''
+        if currentSubjectsLabelIsProblematic or currentSubjectsLabelIsAbsent: # if final_seg is absent or is problematic
+          segmentationsFolder = os.path.join(currentSubjectDir, 'SegmentationsForQC')
+          if os.path.isdir(segmentationsFolder):
+            segmentationFiles = os.listdir(segmentationsFolder) # get all files in each directory
+            for i in range(len(segmentationFiles)):
+              if 'fused' in segmentationFiles[i]: # only perform checks for fusion results
+                currentLabelFile = os.path.join(segmentationsFolder, segmentationFiles[i])
+                returnString = checkBraTSLabels(dirs, currentLabelFile)
+                if returnString: # if there is something present in the return string
+                  numberOfProblematicCases += 1
+                  errorMessage += returnString
+                else:
+                  if not('staple' in fusionToRecommend): # overwrite the fusion result to recommend if not staple that was fine
+                    fusionToRecommend = currentLabelFile 
+
           else:
-            # complain that the user is an idiot and deleted the generated segmentations 
-            test = 2
             errorMessage += dirs + ',SegmentationsForQC_is_absent,N.A.,N.A.\n'
-          numberOfProblematicCases += 1
+            numberOfProblematicCases += 1
           # errorMessage += dirs + ',Label_file_absent,N.A.,N.A.\n'
+        
+        if currentSubjectsLabelIsAbsent:
+          numberOfProblematicCases += 1
+          if fusionToRecommend:
+            errorMessage += dirs + ',final_seg_absent_and_use_this_fusion:,' + fusionToRecommend + ',N.A.\n'
+          else:
+            errorMessage += dirs + ',final_seg_absent_and_use_either_nnunet_or_deepscan,N.A.,N.A.\n'
 
   if numberOfProblematicCases > 0:
-    print('There were problematic cases found in the dataset. Please see the following:')
+    print('There were problems found in the dataset. Please see the following:\n')
     sys.exit(errorMessage)
   else:
     print('Congratulations, all subjects are fine and ready to train!')
