@@ -85,7 +85,7 @@ def main():
             if filesInDir[i].endswith(files_to_check[modality]): # if modality detected, populate subject dict
               files_for_subject[modality] = os.path.abspath(os.path.join(currentSubjectDir, filesInDir[i]))
         
-        if len(files_for_subject != 5): # if all modalities are not present, add exit statement
+        if len(files_for_subject) != 5): # if all modalities are not present, add exit statement
           numberOfProblematicCases += 1
           errorMessage += dirs + ',Not_all_modalities_present,N.A.,N.A.\n'
 
