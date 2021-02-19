@@ -14,13 +14,13 @@ def imageSanityCheck(targetImageFile, inputImageFile) -> bool:
     print('Dimension for target image, \'' + targetImageFile + '\' is not 3', file = sys.stderr)
     return False
 
+  if inputImageFile.GetDimension() != 3:
+    print('Dimension for input image, \'' + inputImageFile + '\' is not 3', file = sys.stderr)
+    return False
+
   commonMessage = ' mismatch for target image, \'' + targetImageFile + '\' and input image, \'' + inputImageFile + '\''
   problemsIn = ''
   returnTrue = True
-
-  if targetImage.GetDimension() != inputImage.GetDimension():
-    problemsIn += 'Dimension'
-    returnTrue = False
 
   if targetImage.GetSize() != inputImage.GetSize():
     if not problemsIn:
