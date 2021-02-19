@@ -57,6 +57,8 @@ def main():
   if numberOfProblematicCases > 0:
     print('There were problematic cases found in the dataset. Please see the following:')
     sys.exit(errorMessage)
+  else:
+    print('Congratulations, all subjects are fine and ready to train!')
 
 if __name__ == '__main__':
   if platform.system() == 'Darwin':
