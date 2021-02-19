@@ -59,7 +59,8 @@ def checkBraTSLabels(subject_id, currentLabelFile, label_values_expected = np.ar
   if not(np.array_equal(unique,label_values_expected)): # this is for the case where the label contains numbers other than 0,1,2,4
     for j in range(0,len(unique)): # iterate over a range to get counts easier
       if not(unique[j] in label_values_expected):
-        returnString += subject_id + ',' + currentLabelFile + ',' + str(unique[j]) + ',' + str(counts[j]) + '\n'
+        if counts[j] > 1000: # threshold for mis-labelling, anything less is ignored
+          returnString += subject_id + ',' + currentLabelFile + ',' + str(unique[j]) + ',' + str(counts[j]) + '\n'
 
   return returnString
 
@@ -144,7 +145,13 @@ def main():
             if not fusionToRecommend:
               errorMessage += problematicSegmentationMessage
             if not('staple' in fusionToRecommend): # recommend nnunet or deepscan if not staple
-              fusionToRecommend = 'nnunet_or_deepscan'
+              if not('itkvoting' in fusionToRecommend):
+                if not('majorityvoting' in fusionToRecommend):
+                  fusionToRecommend = 'nnunet_or_deepscan'
+                else:
+                  fusionToRecommend = 'majorityvoting'
+              else:
+                fusionToRecommend = 'itkvoting'
             else:
               fusionToRecommend = 'staple'
 
