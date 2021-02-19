@@ -58,7 +58,8 @@ def main():
   inputDir = args.inputDir
 
   if not os.path.isdir(inputDir):
-    sys.exit('The specified inputDir is not present, please try again')
+    sys.exit(
+      'The specified inputDir is not present, please try again')
 
   errorMessage = 'Subject_ID,Label_File,Label_Value,Number_of_Voxels\n'
   numberOfProblematicCases = 0
@@ -86,8 +87,9 @@ def main():
               files_for_subject[modality] = os.path.abspath(os.path.join(currentSubjectDir, filesInDir[i]))
         
         if len(files_for_subject) != 5: # if all modalities are not present, add exit statement
-          numberOfProblematicCases += 1
-          errorMessage += dirs + ',All_required_modalities_are_not_present,N.A.,N.A.\n'
+          if not('MASK' in files_for_subject):
+            numberOfProblematicCases += 1
+            errorMessage += dirs + ',All_required_modalities_are_not_present,N.A.,N.A.\n'
 
         first, *rest = files_for_subject.items() # split the dict
         for i in range(0, len(rest)):
@@ -95,6 +97,7 @@ def main():
             numberOfProblematicCases += 1
             errorMessage += dirs + ',Image_dimension/size/origin/spacing_mismatch_between_' + first[0] + '_and_' + rest[i][0] + ',N.A.,N.A.\n'
         
+        currentSubjectIsProblematic = False
         if 'MASK' in files_for_subject:
           currentLabelFile = files_for_subject['MASK']
           mask_array = sitk.GetArrayFromImage(sitk.ReadImage(currentLabelFile))
@@ -104,9 +107,21 @@ def main():
             for j in range(0,len(unique)): # iterate over a range to get counts easier
               if not(unique[j] in label_values_expected):
                 errorMessage += dirs + ',' + currentLabelFile + ',' + str(unique[j]) + ',' + str(counts[j]) + '\n'
+                currentSubjectIsProblematic = True
         else:
+          currentSubjectIsProblematic = True
+        
+        if currentSubjectIsProblematic: # if 
+          test = 1
+          if os.path.isdir(os.path.join(currentSubjectDir, 'SegmentationsForQC')):
+            # for check fused labels
+            test = 1
+          else:
+            # complain that the user is an idiot and deleted the generated segmentations 
+            test = 2
+            errorMessage += dirs + ',SegmentationsForQC_is_absent,N.A.,N.A.\n'
           numberOfProblematicCases += 1
-          errorMessage += dirs + ',Label_file_absent,N.A.,N.A.\n'
+          # errorMessage += dirs + ',Label_file_absent,N.A.,N.A.\n'
 
   if numberOfProblematicCases > 0:
     print('There were problematic cases found in the dataset. Please see the following:')
