@@ -99,9 +99,7 @@ def main():
           currentLabelFile = files_for_subject['MASK']
           mask_array = sitk.GetArrayFromImage(sitk.ReadImage(currentLabelFile))
           unique, counts = np.sort(np.unique(mask_array, return_counts=True)) # get unique elements and their counts
-          comparison = unique == label_values_expected # compare against expected labels
-          equal_arrays = comparison.all() 
-          if not(equal_arrays): # this is for the case where the label contains numbers other than 0,1,2,4
+          if not(np.array_equal(unique,label_values_expected)): # this is for the case where the label contains numbers other than 0,1,2,4
             numberOfProblematicCases += 1
             for j in range(0,len(unique)): # iterate over a range to get counts easier
               if not(unique[j] in label_values_expected):
