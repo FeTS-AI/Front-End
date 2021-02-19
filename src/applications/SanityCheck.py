@@ -14,7 +14,7 @@ def imageSanityCheck(targetImageFile, inputImageFile) -> bool:
     print('Dimension for target image, \'' + targetImageFile + '\' is not 3', file = sys.stderr)
     return False
 
-  if inputImageFile.GetDimension() != 3:
+  if inputImage.GetDimension() != 3:
     print('Dimension for input image, \'' + inputImageFile + '\' is not 3', file = sys.stderr)
     return False
 
