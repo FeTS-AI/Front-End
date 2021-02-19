@@ -66,7 +66,8 @@ def checkBraTSLabels(subject_id, currentLabelFile, label_values_expected = np.ar
 def main():
   copyrightMessage = 'Contact: software@cbica.upenn.edu/n/n' + 'This program is NOT FDA/CE approved and NOT intended for clinical use./nCopyright (c) ' + str(date.today().year) + ' University of Pennsylvania. All rights reserved.' 
   parser = argparse.ArgumentParser(prog='SanityCheck', formatter_class=argparse.RawTextHelpFormatter, description = 'This application performs rudimentary sanity checks the input data folder for FeTS training./n/n' + copyrightMessage)
-  parser.add_argument('-inputDir', type=str, help = 'The absolute, comma-separated paths of labels that need to be fused', required=True)
+  parser.add_argument('-inputDir', type=str, help = 'The input directory (DataForFeTS) that needs to be checked', required=True)
+  parser.add_argument('-outputFile', type=str, help = 'The CSV file of outputs, which is only generated if there are problematic cases', required=True)
 
   args = parser.parse_args()
   inputDir = args.inputDir
@@ -159,8 +160,9 @@ def main():
             errorMessage += dirs + ',final_seg_absent_and_use_either_nnunet_or_deepscan,N.A.,N.A.\n'
 
   if numberOfProblematicCases > 0:
-    print('There were problems found in the dataset. Please see the following:\n')
-    sys.exit(errorMessage)
+    with open(args.outputFile, 'a') as the_file:
+      the_file.write(errorMessage)
+    sys.exit('There were problems found in the dataset. Please see the outputFile: \'' + args.outputFile + '\'')
   else:
     print('Congratulations, all subjects are fine and ready to train!')
 
