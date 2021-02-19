@@ -75,7 +75,7 @@ def main():
   label_values_expected = np.array([0,1,2,4]) # initialize label array
   
   for dirs in os.listdir(inputDir):
-    if dir != 'logs': # don't perform sanity check for the 'logs' folder
+    if dirs != 'logs': # don't perform sanity check for the 'logs' folder
       currentSubjectDir = os.path.join(inputDir, dirs)
       if os.path.isdir(currentSubjectDir): # for detected subject dir
         filesInDir = os.listdir(currentSubjectDir) # get all files in each directory
