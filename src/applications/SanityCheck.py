@@ -3,6 +3,31 @@ from datetime import date
 import SimpleITK as sitk
 import numpy as np
 
+def imageSanityCheck(targetImageFile, inputImageFile) -> bool:
+  '''
+  This function does sanity checking of 2 images
+  '''
+  targetImage = sitk.ReadImage(targetImageFile)
+  inputImage = sitk.ReadImage(inputImageFile)
+
+  if targetImage.GetDimension() != inputImage.GetDimension():
+    print('Dimension mismatch for target and input image', file = sys.stderr)
+    return False
+
+  if targetImage.GetSize() != inputImage.GetSize():
+    print('Size mismatch for target and input image', file = sys.stderr)
+    return False
+    
+  if targetImage.GetOrigin() != inputImage.GetOrigin():
+    print('Origin mismatch for target and input image', file = sys.stderr)
+    return False
+
+  if targetImage.GetSpacing() != inputImage.GetSpacing():
+    print('Spacing mismatch for target and input image', file = sys.stderr)
+    return False
+
+  return True
+
 def main():
   copyrightMessage = 'Contact: software@cbica.upenn.edu/n/n' + 'This program is NOT FDA/CE approved and NOT intended for clinical use./nCopyright (c) ' + str(date.today().year) + ' University of Pennsylvania. All rights reserved.' 
   parser = argparse.ArgumentParser(prog='SanityCheck', formatter_class=argparse.RawTextHelpFormatter, description = 'This application performs rudimentary sanity checks the input data folder for FeTS training./n/n' + copyrightMessage)
@@ -42,6 +67,12 @@ def main():
         if len(files_for_subject != 5): # if all modalities are not present, add exit statement
           numberOfProblematicCases += 1
           errorMessage += dirs + ',Not_all_modalities_present,N.A.,N.A.\n'
+
+        first, *rest = files_for_subject.items() # split the dict
+        for i in range(0, len(rest)):
+          if not(imageSanityCheck(first[1], rest[i][1])): # image sanity check
+            numberOfProblematicCases += 1
+            errorMessage += dirs + ',Image_dimension_mismatch_between_' + first[0] + '_and_' + rest[i][0] + ',N.A.,N.A.\n'
         
         if 'MASK' in files_for_subject:
           currentLabelFile = files_for_subject['MASK']
