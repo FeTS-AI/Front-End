@@ -17,6 +17,7 @@ def main():
   errorMessage = 'Subject_ID,Label_File,Label_Value,Number_of_Voxels\n'
   numberOfProblematicCases = 0
 
+  # initialize modality dict
   files_to_check = {
     'T1': '_t1.nii.gz',
     'T1CE': '_t1ce.nii.gz',
@@ -25,7 +26,7 @@ def main():
     'MASK': '_final_seg.nii.gz'
   }
 
-  label_values_expected = np.array([0,1,2,4])
+  label_values_expected = np.array([0,1,2,4]) # initialize label array
   
   for dirs in os.listdir(inputDir):
     if dir != 'logs': # don't perform sanity check for the 'logs' folder
