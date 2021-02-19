@@ -76,7 +76,7 @@ def main():
     sys.exit(
       'The specified inputDir is not present, please try again')
 
-  errorMessage = 'Subject_ID,Label_File,Label_Value,Number_of_Voxels\n'
+  errorMessage = 'Subject_ID,Recommendation_for_initial_annotations\n'
   numberOfProblematicCases = 0
 
   # initialize modality dict
@@ -105,13 +105,13 @@ def main():
         if len(files_for_subject) != 5: # if all modalities are not present, add exit statement
           if (len(files_for_subject) == 4) and ('MASK' in files_for_subject):
             numberOfProblematicCases += 1
-            errorMessage += dirs + ',All_required_modalities_are_not_present,N.A.,N.A.\n'
+            errorMessage += dirs + ',All_required_modalities_are_not_present.\n'
 
         first, *rest = files_for_subject.items() # split the dict
         for i in range(0, len(rest)):
           if not(imageSanityCheck(first[1], rest[i][1])): # image sanity check
             numberOfProblematicCases += 1
-            errorMessage += dirs + ',Image_dimension/size/origin/spacing_mismatch_between_' + first[0] + '_and_' + rest[i][0] + ',N.A.,N.A.\n'
+            errorMessage += dirs + ',Image_dimension/size/origin/spacing_mismatch_between_' + first[0] + '_and_' + rest[i][0] + '\n'
         
         currentSubjectsLabelIsProblematic = False # check if current subject's label has issues
         if 'MASK' in files_for_subject:
@@ -145,9 +145,11 @@ def main():
               errorMessage += problematicSegmentationMessage
             if not('staple' in fusionToRecommend): # recommend nnunet or deepscan if not staple
               fusionToRecommend = 'nnunet_or_deepscan'
+            else:
+              fusionToRecommend = 'staple'
 
           else:
-            errorMessage += dirs + ',SegmentationsForQC_folder_is_absent,N.A.,N.A.\n'
+            errorMessage += dirs + ',SegmentationsForQC_folder_is_absent\n'
             numberOfProblematicCases += 1
             segmentationsForQCPresent = False
           # errorMessage += dirs + ',Label_file_absent,N.A.,N.A.\n'
@@ -155,14 +157,15 @@ def main():
         if currentSubjectsLabelIsAbsent and segmentationsForQCPresent:
           numberOfProblematicCases += 1
           if fusionToRecommend:
-            errorMessage += dirs + ',final_seg_absent_but_use_this_for_initial_corrections:,' + fusionToRecommend + ',N.A.\n'
+            errorMessage += dirs + ',' + fusionToRecommend + '\n'
           else:
             errorMessage += dirs + ',final_seg_absent_and_use_either_nnunet_or_deepscan,N.A.,N.A.\n'
 
   if numberOfProblematicCases > 0:
+    # print(errorMessage)
     with open(args.outputFile, 'a') as the_file:
       the_file.write(errorMessage)
-    sys.exit('There were problems found in the dataset. Please see the outputFile: \'' + args.outputFile + '\'')
+    sys.exit('There were subjects with either missing annotations or where annotations had problematic labels. Please see the recommendation(s) for new initialization in the outputFile: \'' + args.outputFile + '\'')
   else:
     print('Congratulations, all subjects are fine and ready to train!')
 
