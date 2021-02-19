@@ -103,7 +103,7 @@ def main():
             numberOfProblematicCases += 1
             for j in range(0,len(unique)): # iterate over a range to get counts easier
               if not(unique[j] in label_values_expected):
-                errorMessage += dirs + ',' + currentLabelFile + ',' + str(unique[j]) + ',' + str(counts[j]) + ',\n'
+                errorMessage += dirs + ',' + currentLabelFile + ',' + str(unique[j]) + ',' + str(counts[j]) + '\n'
         else:
           numberOfProblematicCases += 1
           errorMessage += dirs + ',Label_absent,N.A.,N.A.\n'
