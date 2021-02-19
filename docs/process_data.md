@@ -94,7 +94,7 @@ ${fets_root_dir}/bin/PrepareDataset -i /path/to/raw_data.csv -o /path/to/output
   │   │   │   │ Patient_001_brain_t1.nii.gz
   │   │   │   │ Patient_001_brain_t1ce.nii.gz
   │   │   │   │ Patient_001_brain_t2.nii.gz
-  │   │   │   │ Patient_001_brain_t2flair.nii.gz
+  │   │   │   │ Patient_001_brain_flair.nii.gz
   │   │   │   
   │   │   └───Pat_JohnDoe # this is constructed from the ${PatientID} header of CSV
   │   │   │   │ ...
@@ -116,8 +116,9 @@ ${fets_root_dir}/bin/PrepareDataset -i /path/to/raw_data.csv -o /path/to/output
 
 **NOTE**: For some CentOS variants, we have seen `PrepareDataset` executable to cause issues, for which we have an alternative with `${fets_root_dir}/bin/PrepareDataset.py`, which has the exact same API and can be invoked in the following way:
 ```bash
-${fets_root_dir}/OpenFederatedLearning/venv/bin/python \ # virtual environment that was set up in previous section
-  ${fets_root_dir}/bin/PrepareDataset.py -i /path/to/raw_data.csv -o /path/to/output
+cd ${fets_root_dir}/bin
+./OpenFederatedLearning/venv/bin/python \ # virtual environment that was set up in previous section
+  ./PrepareDataset.py -i /path/to/raw_data.csv -o /path/to/output
 ```
 
 [Back To Top &uarr;](#table-of-contents)
