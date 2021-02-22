@@ -129,13 +129,16 @@ Before starting final training, please run the following command to ensure the i
 
 ```bash
 cd ${fets_root_dir}/bin
-./OpenFederatedLearning/venv/bin/python ./SanityCheck.py -inputDir /path/to/output/DataForFeTS
+./OpenFederatedLearning/venv/bin/python ./SanityCheck.py \
+  -inputDir /path/to/output/DataForFeTS
 ```
 
 ### Actual Training
 
 ```bash
-${fets_root_dir}/bin/FeTS_CLI -d /path/to/output/DataForFeTS -g 1 -t 1 -c ${collaborator_common_name}
+${fets_root_dir}/bin/FeTS_CLI -d /path/to/output/DataForFeTS \ # input data, ensure "final_seg" is present for each subject
+  -c ${collaborator_common_name} \ # common collaborator name created during setup
+  -g 1 -t 1 # request gpu and enable training mode
 ```
 The aforementioned command will perform the following steps:
 - Train a model with a 3DResUNet architecture (more architectures will be made available in future releases) for all the *complete* subjects (i.e., with `${SubjectID}_final_seg.nii.gz` and all 4 structural modalities present) in a collaborative manner
