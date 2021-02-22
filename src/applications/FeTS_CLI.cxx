@@ -344,7 +344,10 @@ int main(int argc, char** argv)
               for (size_t f = 0; f < filesInSubjectDir.size(); f++)
               {
                 auto fileToCopy = dataForSegmentation + cbica::getFilenameBase(filesInSubjectDir[f]) + ".nii.gz";
-                filesForFusion += fileToCopy + ",";
+                if (filesInSubjectDir[f].find("fused") == std::string::npos) // only consider those files for fusion that are arch outputs
+                {
+                  filesForFusion += fileToCopy + ",";
+                }
               } // files loop in subject directory
 
               if (!filesForFusion.empty())
@@ -431,14 +434,7 @@ int main(int argc, char** argv)
     }
 
     std::string fullCommandToRun = hardcodedPythonPath + " " + fetsApplicationPath;
-    if (trainingRequested)
-    {
-      fullCommandToRun += "/OpenFederatedLearning/bin/run_inference_from_flplan.py";
-    }
-    else
-    {
-      fullCommandToRun += "/OpenFederatedLearning/bin/run_collaborator_from_flplan.py";
-    }
+    fullCommandToRun += "/OpenFederatedLearning/bin/run_collaborator_from_flplan.py";
 
     args += " -p " + hardcodedPlanName + ".yaml"
       //<< "-mwf" << hardcodedModelWeightPath // todo: doing customized solution above - change after model weights are using full paths for all
@@ -449,7 +445,7 @@ int main(int argc, char** argv)
 
     std::cout << "Starting training...\n";
 
-    if (std::system((fullCommandToRun + " " + args + " " + specialArgs).c_str()) != 0)
+    if (std::system((fullCommandToRun + " " + args + " " + specialArgs).c_str()) != 0) // check with Micah about which error codes result in automatic retry
     {
       std::cerr << "Couldn't complete the requested task.\n";
       return EXIT_FAILURE;

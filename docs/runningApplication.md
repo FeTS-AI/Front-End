@@ -123,6 +123,17 @@ The aforementioned command will perform the following steps:
 
 ## Training
 
+### Sanity Check
+
+Before starting final training, please run the following command to ensure the input dataset is as expected:
+
+```bash
+cd ${fets_root_dir}/bin
+./OpenFederatedLearning/venv/bin/python ./SanityCheck.py -inputDir /path/to/output/DataForFeTS
+```
+
+### Actual Training
+
 ```bash
 ${fets_root_dir}/bin/FeTS_CLI -d /path/to/output/DataForFeTS -g 1 -t 1 -c ${collaborator_common_name}
 ```
