@@ -125,6 +125,12 @@ The aforementioned command will perform the following steps:
 
 ### Sanity Check
 
+If you are running FeTS version 0.0.2, please do the following to get the SanityChecker for your installation:
+
+```bash
+cd ${fets_root_dir}/bin
+wget https://raw.githubusercontent.com/FETS-AI/Front-End/master/src/applications/SanityCheck.py
+```
 Before starting final training, please run the following command to ensure the input dataset is as expected:
 
 ```bash
