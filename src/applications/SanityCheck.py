@@ -68,7 +68,6 @@ def fixForLabelThree(currentLabelFile):
   '''
   This function checks for the label '3' and changes it to '4' and save it in the same location
   '''
-  label_values_expected = np.array([0,1,2,4])
   base_image = sitk.ReadImage(currentLabelFile)
   mask_array = sitk.GetArrayFromImage(sitk.ReadImage(currentLabelFile))
   unique = np.sort(np.unique(mask_array))
