@@ -64,6 +64,20 @@ def checkBraTSLabels(subject_id, currentLabelFile, label_values_expected = np.ar
 
   return returnString
 
+def fixForLabelThree(currentLabelFile):
+  '''
+  This function checks for the label '3' and changes it to '4' and save it in the same location
+  '''
+  label_values_expected = np.array([0,1,2,4])
+  base_image = sitk.ReadImage(currentLabelFile)
+  mask_array = sitk.GetArrayFromImage(sitk.ReadImage(currentLabelFile))
+  unique = np.sort(np.unique(mask_array))
+  if unique[-1] == 3:
+    mask_array[mask_array == 3] = 4  
+    image_to_write = sitk.GetImageFromArray(mask_array)
+    image_to_write.CopyInformation(base_image)
+    sitk.WriteImage(image_to_write, currentLabelFile)
+
 def main():
   copyrightMessage = 'Contact: software@cbica.upenn.edu/n/n' + 'This program is NOT FDA/CE approved and NOT intended for clinical use./nCopyright (c) ' + str(date.today().year) + ' University of Pennsylvania. All rights reserved.' 
   parser = argparse.ArgumentParser(prog='SanityCheck', formatter_class=argparse.RawTextHelpFormatter, description = 'This application performs rudimentary sanity checks the input data folder for FeTS training./n/n' + copyrightMessage)
@@ -117,6 +131,7 @@ def main():
         currentSubjectsLabelIsProblematic = False # check if current subject's label has issues
         if 'MASK' in files_for_subject:
           currentLabelFile = files_for_subject['MASK']
+          fixForLabelThree(currentLabelFile)
           returnString = checkBraTSLabels(dirs, currentLabelFile)
           if returnString: # if there is something present in the return string
             numberOfProblematicCases += 1
