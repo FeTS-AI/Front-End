@@ -128,6 +128,7 @@ install_captk () {
   nnunet_link=https://upenn.box.com/shared/static/f7zt19d08c545qt3tcaeg7b37z6qafum.zip
   echo "Setting up the Python environment for OpenFederatedLearning..."
   if make install_openfl ; then
+    ./venv/bin/pip install torch==1.7.1+cu92 torchvision==0.8.2+cu92 torchaudio==0.7.2 -f https://download.pytorch.org/whl/torch_stable.html
     ./venv/bin/pip install ../LabelFusion
     make install_fets
     echo "Downloading weights for nnUNet..."
