@@ -136,7 +136,8 @@ Before starting final training, please run the following command to ensure the i
 ```bash
 cd ${fets_root_dir}/bin
 ./OpenFederatedLearning/venv/bin/python ./SanityCheck.py \
-  -inputDir /path/to/output/DataForFeTS
+  -inputDir /path/to/output/DataForFeTS \
+  -outputFile /path/to/output/sanity_output.csv
 ```
 
 ### Actual Training
