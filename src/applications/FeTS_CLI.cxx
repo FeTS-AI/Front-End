@@ -33,10 +33,11 @@ int main(int argc, char** argv)
   }
   allArchsString.pop_back();
 
-  std::string dataDir, modelName, loggingDir, colName, archs = "3dresunet", fusionMethod = "STAPLE";
+  std::string dataDir, modelName, loggingDir, colName, archs = "3dresunet", fusionMethod = "STAPLE", hardcodedPlanName = "fets_phase1_1";
 
   parser.addRequiredParameter("d", "dataDir", cbica::Parameter::DIRECTORY, "Dir with Read/Write access", "Input data directory");
   parser.addRequiredParameter("t", "training", cbica::Parameter::BOOLEAN, "0 or 1", "Whether performing training or inference", "1==Train and 0==Inference");
+  parser.addRequiredParameter("tp", "trainPlan", cbica::Parameter::BOOLEAN, "YAML file", "Training plan", "Defaults to '" + hardcodedPlanName + "'");
   parser.addOptionalParameter("L", "LoggingDir", cbica::Parameter::DIRECTORY, "Dir with write access", "Location of logging directory");
   parser.addOptionalParameter("a", "archs", cbica::Parameter::STRING, allArchsString, "The architecture(s) to infer/train on", "Only a single architecture is supported for training", "Comma-separated values for multiple options", "Defaults to: " + archs);
   parser.addOptionalParameter("lF", "labelFuse", cbica::Parameter::STRING, "STAPLE,ITKVoting,SIMPLE,MajorityVoting", "The label fusion strategy to follow for multi-arch inference", "Comma-separated values for multiple options", "Defaults to: " + fusionMethod);
@@ -124,7 +125,7 @@ int main(int argc, char** argv)
     return EXIT_FAILURE;
   }
 
-  std::string hardcodedPlanName,
+  std::string 
     hardcodedOpenFLPath = fetsApplicationPath + "/OpenFederatedLearning/",
     hardcodedLabelFusionPath = fetsApplicationPath + "/LabelFusion/fusion_run",
     hardcodedModelWeightPath = hardcodedOpenFLPath + "/bin/federations/weights/", // start with the common location
@@ -402,7 +403,6 @@ int main(int argc, char** argv)
     {
       specialArgs = "-col " + colName;
     }
-    hardcodedPlanName = "pt_3dresunet_brainmagebrats"; // todo: this would need to changed based on the input 
 
     // sanity checks
     //if (!cbica::isFile(hardcodedModelWeightPath.toStdString())) // todo: renable after model weights are using full paths for all
