@@ -12,7 +12,7 @@ int runCollaboratorTraining(const std::string &fullCommandToRunWithArgs)
   auto returnCode = std::system(fullCommandToRunWithArgs.c_str());
   if (returnCode != 0)
   {
-    if (returnCode == 666)
+    if (returnCode == 154)
     {
       std::cout << "Special case, where the collaborator failing is expected, so automatically restarting.\n";
       return runCollaboratorTraining(fullCommandToRunWithArgs);
