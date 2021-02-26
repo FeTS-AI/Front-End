@@ -37,7 +37,7 @@ int main(int argc, char** argv)
 
   parser.addRequiredParameter("d", "dataDir", cbica::Parameter::DIRECTORY, "Dir with Read/Write access", "Input data directory");
   parser.addRequiredParameter("t", "training", cbica::Parameter::BOOLEAN, "0 or 1", "Whether performing training or inference", "1==Train and 0==Inference");
-  parser.addRequiredParameter("tp", "trainPlan", cbica::Parameter::BOOLEAN, "YAML file", "Training plan", "Defaults to '" + hardcodedPlanName + "'");
+  parser.addOptionalParameter("tp", "trainPlan", cbica::Parameter::BOOLEAN, "YAML file", "Training plan", "Defaults to '" + hardcodedPlanName + "'");
   parser.addOptionalParameter("L", "LoggingDir", cbica::Parameter::DIRECTORY, "Dir with write access", "Location of logging directory");
   parser.addOptionalParameter("a", "archs", cbica::Parameter::STRING, allArchsString, "The architecture(s) to infer/train on", "Only a single architecture is supported for training", "Comma-separated values for multiple options", "Defaults to: " + archs);
   parser.addOptionalParameter("lF", "labelFuse", cbica::Parameter::STRING, "STAPLE,ITKVoting,SIMPLE,MajorityVoting", "The label fusion strategy to follow for multi-arch inference", "Comma-separated values for multiple options", "Defaults to: " + fusionMethod);
