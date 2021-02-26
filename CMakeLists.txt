@@ -601,7 +601,7 @@ IF( NOT BUILD_DOCUMENTATION_ONLY )
   ## todo: change to a direct installation so that git doesn't get confused that submodule has changed
   CONFIGURE_FILE("${PROJECT_SOURCE_DIR}/data/fets/network.yaml" "${PROJECT_SOURCE_DIR}/OpenFederatedLearning/bin/federations/plans/defaults/network.yaml")
   CONFIGURE_FILE("${PROJECT_SOURCE_DIR}/data/fets/cert_chain.crt" "${PROJECT_SOURCE_DIR}/OpenFederatedLearning/bin/federations/pki/cert_chain.crt")
-  CONFIGURE_FILE("${PROJECT_SOURCE_DIR}/data/fets/pt_3dresunet_brainmagebrats.yaml" "${PROJECT_SOURCE_DIR}/OpenFederatedLearning/bin/federations/plans/pt_3dresunet_brainmagebrats.yaml" COPYONLY) 
+  #CONFIGURE_FILE("${PROJECT_SOURCE_DIR}/data/fets/pt_3dresunet_brainmagebrats.yaml" "${PROJECT_SOURCE_DIR}/OpenFederatedLearning/bin/federations/plans/pt_3dresunet_brainmagebrats.yaml" COPYONLY) 
   CONFIGURE_FILE("${PROJECT_SOURCE_DIR}/data/fets/deepscan_inference.yaml" "${PROJECT_SOURCE_DIR}/OpenFederatedLearning/bin/federations/plans/deepscan_inference.yaml" COPYONLY) 
   CONFIGURE_FILE("${PROJECT_SOURCE_DIR}/data/fets/nnunet_inference.yaml" "${PROJECT_SOURCE_DIR}/OpenFederatedLearning/bin/federations/plans/nnunet_inference.yaml" COPYONLY) 
   
