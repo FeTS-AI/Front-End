@@ -6,7 +6,7 @@
 - [Application Path](#application-path)
 - [Inference](#inference)
 - [Manual corrections](#manual-corrections)
-- [Sanity check](#sanit-check)
+- [Sanity check](#sanity-check)
 - [Training](#training)
 
 ## Application Path
