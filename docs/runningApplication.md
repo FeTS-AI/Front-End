@@ -6,6 +6,7 @@
 - [Application Path](#application-path)
 - [Inference](#inference)
 - [Manual corrections](#manual-corrections)
+- [Sanity check](#sanit-check)
 - [Training](#training)
 
 ## Application Path
@@ -121,16 +122,8 @@ The aforementioned command will perform the following steps:
 
 [Back To Top &uarr;](#table-of-contents)
 
-## Training
+## Sanity Check
 
-### Sanity Check
-
-If you are running FeTS version 0.0.2, please do the following to get the SanityChecker for your installation:
-
-```bash
-cd ${fets_root_dir}/bin
-wget https://raw.githubusercontent.com/FETS-AI/Front-End/master/src/applications/SanityCheck.py
-```
 Before starting final training, please run the following command to ensure the input dataset is as expected:
 
 ```bash
@@ -140,7 +133,15 @@ cd ${fets_root_dir}/bin
   -outputFile /path/to/output/sanity_output.csv
 ```
 
-### Actual Training
+**Note**: If you are running FeTS version 0.0.2 (you can check version using ```FeTS_CLI --version```), please do the following to get the SanityChecker for your installation:
+
+```bash
+cd ${fets_root_dir}/bin
+wget https://raw.githubusercontent.com/FETS-AI/Front-End/master/src/applications/SanityCheck.py
+```
+[Back To Top &uarr;](#table-of-contents)
+
+## Training
 
 ```bash
 ${fets_root_dir}/bin/FeTS_CLI -d /path/to/output/DataForFeTS \ # input data, ensure "final_seg" is present for each subject

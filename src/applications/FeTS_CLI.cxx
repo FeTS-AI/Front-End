@@ -7,6 +7,19 @@
 #include "cbicaITKUtilities.h"
 #include "CaPTkGUIUtils.h"
 
+int runCollaboratorTraining(const std::string &fullCommandToRunWithArgs)
+{
+  auto returnCode = std::system(fullCommandToRunWithArgs.c_str());
+  if (returnCode != 0)
+  {
+    if (returnCode == 154)
+    {
+      std::cout << "Special case, where the collaborator failing is expected, so automatically restarting.\n";
+      return runCollaboratorTraining(fullCommandToRunWithArgs);
+    }
+  }
+}
+
 int main(int argc, char** argv)
 {
   cbica::CmdParser parser(argc, argv, "FeTS_CLI");
@@ -20,10 +33,11 @@ int main(int argc, char** argv)
   }
   allArchsString.pop_back();
 
-  std::string dataDir, modelName, loggingDir, colName, archs = "3dresunet", fusionMethod = "STAPLE";
+  std::string dataDir, modelName, loggingDir, colName, archs = "3dresunet", fusionMethod = "STAPLE", hardcodedPlanName = "fets_phase1_1";
 
   parser.addRequiredParameter("d", "dataDir", cbica::Parameter::DIRECTORY, "Dir with Read/Write access", "Input data directory");
   parser.addRequiredParameter("t", "training", cbica::Parameter::BOOLEAN, "0 or 1", "Whether performing training or inference", "1==Train and 0==Inference");
+  parser.addOptionalParameter("tp", "trainPlan", cbica::Parameter::BOOLEAN, "YAML file", "Training plan", "Defaults to '" + hardcodedPlanName + "'");
   parser.addOptionalParameter("L", "LoggingDir", cbica::Parameter::DIRECTORY, "Dir with write access", "Location of logging directory");
   parser.addOptionalParameter("a", "archs", cbica::Parameter::STRING, allArchsString, "The architecture(s) to infer/train on", "Only a single architecture is supported for training", "Comma-separated values for multiple options", "Defaults to: " + archs);
   parser.addOptionalParameter("lF", "labelFuse", cbica::Parameter::STRING, "STAPLE,ITKVoting,SIMPLE,MajorityVoting", "The label fusion strategy to follow for multi-arch inference", "Comma-separated values for multiple options", "Defaults to: " + fusionMethod);
@@ -111,7 +125,7 @@ int main(int argc, char** argv)
     return EXIT_FAILURE;
   }
 
-  std::string hardcodedPlanName,
+  std::string 
     hardcodedOpenFLPath = fetsApplicationPath + "/OpenFederatedLearning/",
     hardcodedLabelFusionPath = fetsApplicationPath + "/LabelFusion/fusion_run",
     hardcodedModelWeightPath = hardcodedOpenFLPath + "/bin/federations/weights/", // start with the common location
@@ -384,41 +398,10 @@ int main(int argc, char** argv)
   } // end of trainingRequested check
   else // for training
   {
-    std::cout << "Training is disabled for this release.\n";
-    return EXIT_SUCCESS;
-
     std::string specialArgs, args, hardcodedModelName;
     if (trainingRequested)
     {
       specialArgs = "-col " + colName;
-    }
-    /// no longer checking for skull-stripping model - handled in PrepareDataset
-    //if (modelName.find("_3dresunet_ss") != std::string::npos) // let's not worry about skull-stripping right now
-    //{
-    //  hardcodedPlanName = "pt_3dresunet_ss_brainmagebrats";
-    //  hardcodedModelName = hardcodedModelWeightPath + hardcodedPlanName + "_best.pt"; // taken from https://github.com/FETS-AI/Models/blob/master/skullstripping/3dresunet/pt_3dresunet_ss_brainmagebrats_best.pt
-    //  if (!trainingRequested)
-    //  {
-    //    specialArgs += "-nmwf " + hardcodedModelName;
-    //  }
-    //}
-    //else
-    {
-      hardcodedPlanName = "pt_3dresunet_brainmagebrats"; // todo: this would need to changed based on the input arch in a future release
-      auto hardcodedModelName = hardcodedPlanName + "_best.pbuf";
-      if (!cbica::isFile((hardcodedModelWeightPath + "/" + hardcodedModelName)))
-      {
-        auto hardcodedModelName = hardcodedPlanName + "_init.pbuf";
-        if (!cbica::isFile((hardcodedModelWeightPath + "/" + hardcodedModelName)))
-        {
-          std::cerr << "A compatible model weight file was not found. Please contact admin@fets.ai for help.\n";
-          return EXIT_FAILURE;
-        }
-      }
-      if (!trainingRequested)
-      {
-        specialArgs += "-mwf " + hardcodedModelName;
-      }
     }
 
     // sanity checks
@@ -427,6 +410,7 @@ int main(int argc, char** argv)
     //  ShowErrorMessage("The requested inference model was not found (it needs to be in ${FeTS_installDir}/bin/OpenFederatedLearning/bin/federations/weights/${planName}_best.pbuf");
     //  return;
     //}
+
     if (!cbica::isFile(hardcodedPythonPath))
     {
       std::cerr << "The python virtual environment was not found, please refer to documentation to initialize it.\n";
@@ -437,7 +421,6 @@ int main(int argc, char** argv)
     fullCommandToRun += "/OpenFederatedLearning/bin/run_collaborator_from_flplan.py";
 
     args += " -p " + hardcodedPlanName + ".yaml"
-      //<< "-mwf" << hardcodedModelWeightPath // todo: doing customized solution above - change after model weights are using full paths for all
       + " -d " + dataDir
       + " -ld " + loggingDir;
 
@@ -445,9 +428,9 @@ int main(int argc, char** argv)
 
     std::cout << "Starting training...\n";
 
-    if (std::system((fullCommandToRun + " " + args + " " + specialArgs).c_str()) != 0) // check with Micah about which error codes result in automatic retry
+    if (runCollaboratorTraining(fullCommandToRun + " " + args + " " + specialArgs) != 0)
     {
-      std::cerr << "Couldn't complete the requested task.\n";
+      std::cerr << "Couldn't complete the training task, please email admin@fets.ai\n";
       return EXIT_FAILURE;
     }
 
