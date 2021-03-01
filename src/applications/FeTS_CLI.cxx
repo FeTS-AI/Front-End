@@ -404,13 +404,6 @@ int main(int argc, char** argv)
       specialArgs = "-col " + colName;
     }
 
-    // sanity checks
-    //if (!cbica::isFile(hardcodedModelWeightPath.toStdString())) // todo: renable after model weights are using full paths for all
-    //{
-    //  ShowErrorMessage("The requested inference model was not found (it needs to be in ${FeTS_installDir}/bin/OpenFederatedLearning/bin/federations/weights/${planName}_best.pbuf");
-    //  return;
-    //}
-
     if (!cbica::isFile(hardcodedPythonPath))
     {
       std::cerr << "The python virtual environment was not found, please refer to documentation to initialize it.\n";
