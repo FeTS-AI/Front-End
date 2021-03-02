@@ -143,6 +143,16 @@ wget https://raw.githubusercontent.com/FETS-AI/Front-End/master/src/applications
 
 ## Training
 
+### Transfer certificates
+
+If you have a signed certificate from a previous installation, ensure they are copied before trying to train:
+```bash
+cd ${fets_root_dir}/bin/
+cp -r ${fets_root_dir_old}/bin/OpenFederatedLearning/bin/federations/pki/client ./OpenFederatedLearning/bin/federations/pki
+```
+
+### Start Training
+
 ```bash
 ${fets_root_dir}/bin/FeTS_CLI -d /path/to/output/DataForFeTS \ # input data, ensure "final_seg" is present for each subject
   -c ${collaborator_common_name} \ # common collaborator name created during setup
