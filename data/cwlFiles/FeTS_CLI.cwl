@@ -30,6 +30,13 @@ inputs:
       position: 1
       prefix: -cwl
     doc: Generates a .cwl file for the software.
+  trainPlan:
+    type: boolean?
+    label: YAML file
+    inputBinding:
+      position: 1
+      prefix: -tp
+    doc: Training plan.Defaults to 'fets_phase1_1'.
   LoggingDir:
     type: Directory?
     label: Dir with write access
