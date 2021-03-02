@@ -145,7 +145,7 @@ wget https://raw.githubusercontent.com/FETS-AI/Front-End/master/src/applications
 
 ### Transfer certificates
 
-If you have a signed certificate from a previous installation, ensure they are copied before trying to train:
+If you have a [signed certificate from a previous installation](https://fets-ai.github.io/Front-End/setup#set-up-the-collaborator), ensure they are copied **before** trying to train:
 ```bash
 cd ${fets_root_dir}/bin/
 cp -r ${fets_root_dir_old}/bin/OpenFederatedLearning/bin/federations/pki/client ./OpenFederatedLearning/bin/federations/pki
