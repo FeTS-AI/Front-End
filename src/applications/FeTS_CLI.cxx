@@ -399,11 +399,7 @@ int main(int argc, char** argv)
   } // end of trainingRequested check
   else // for training
   {
-    std::string specialArgs, args, hardcodedModelName;
-    if (trainingRequested)
-    {
-      specialArgs = "-col " + colName;
-    }
+    std::string args, hardcodedModelName;
 
     if (!cbica::isFile(hardcodedPythonPath))
     {
@@ -416,13 +412,14 @@ int main(int argc, char** argv)
 
     args += " -p " + hardcodedPlanName + ".yaml"
       + " -d " + dataDir
-      + " -ld " + loggingDir;
+      + " -ld " + loggingDir
+      + " -col " + colName;
 
     args += device_arg;
 
     std::cout << "Starting training...\n";
 
-    if (runCollaboratorTraining(fullCommandToRun + " " + args + " " + specialArgs) != 0)
+    if (runCollaboratorTraining(fullCommandToRun + " " + args) != 0)
     {
       std::cerr << "Couldn't complete the training task, please email admin@fets.ai\n";
       return EXIT_FAILURE;
