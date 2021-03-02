@@ -60,7 +60,8 @@ int main(int argc, char** argv)
   }
   else
   {
-    loggingDir = dataDir + "/logs";
+    loggingDir = cbica::createTemporaryDirectory() + "/logs";
+    std::cout << "Using the following directory as logging directory: " << loggingDir << "\n";
     cbica::createDir(loggingDir);
   }
 
