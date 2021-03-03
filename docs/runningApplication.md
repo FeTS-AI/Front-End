@@ -143,7 +143,10 @@ wget https://raw.githubusercontent.com/FETS-AI/Front-End/master/src/applications
 
 ## Training
 
-### Transfer certificates
+### Ensure Sanity Checking Is Done
+
+Proceed to training once [sanity check](#sanity-check) is successfully finished.
+### Transfer Certificates
 
 If you have a [signed certificate from a previous installation](https://fets-ai.github.io/Front-End/setup#set-up-the-collaborator), ensure they are copied **before** trying to train:
 ```bash
