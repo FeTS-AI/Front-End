@@ -70,7 +70,7 @@ The aforementioned command will perform the following steps:
   │   │ Patient_001_brain_t1.nii.gz
   │   │ Patient_001_brain_t1ce.nii.gz
   │   │ Patient_001_brain_t2.nii.gz
-  │   │ Patient_001_brain_t2flair.nii.gz
+  │   │ Patient_001_brain_flair.nii.gz
   │   │
   │   └──SegmentationsForQC
   │   │   │ Patient_001_deepmedic_seg.nii.gz # individual architecture results
@@ -112,7 +112,7 @@ The aforementioned command will perform the following steps:
   │   │ Patient_001_brain_t1.nii.gz
   │   │ Patient_001_brain_t1ce.nii.gz
   │   │ Patient_001_brain_t2.nii.gz
-  │   │ Patient_001_brain_t2flair.nii.gz
+  │   │ Patient_001_brain_flair.nii.gz
   │   │ Patient_001_final_seg.nii.gz # NOTE: training will not work if this is absent!!!
   │
   └───Pat_JohnDoe
