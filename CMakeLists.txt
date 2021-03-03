@@ -13,7 +13,7 @@ SET( ${PROJECT_NAME}_Variant "Full" ) # the particular variant of CaPTk (Full/Ne
 
 SET( PROJECT_VERSION_MAJOR 0 )
 SET( PROJECT_VERSION_MINOR 0 )
-SET( PROJECT_VERSION_PATCH 3-dev )
+SET( PROJECT_VERSION_PATCH 3 )
 SET( PROJECT_VERSION_TWEAK )
 
 # check for the string "nonRelease" in the PROJECT_VERSION_PATCH variable
@@ -596,18 +596,18 @@ IF( NOT BUILD_DOCUMENTATION_ONLY )
     ENDIF()
   ENDIF()
 
-  # SET( DOWNLOAD_LINK "ftp://www.nitrc.org/home/groups/captk/downloads/models/torch/pt_3dresunet_fets_phase1_brats20pretrained_init_1.pbuf" )
-  # SET( FILE_TO_EXTRACT "${PROJECT_SOURCE_DIR}/OpenFederatedLearning/bin/federations/weights/pt_3dresunet_fets_phase1_brats20pretrained_init_1.pbuf")
+  SET( DOWNLOAD_LINK "ftp://www.nitrc.org/home/groups/captk/downloads/models/torch/pt_3dresunet_fets_phase1_brats20pretrained_init_1.pbuf" )
+  SET( FILE_TO_EXTRACT "${PROJECT_SOURCE_DIR}/OpenFederatedLearning/bin/federations/weights/pt_3dresunet_fets_phase1_brats20pretrained_init_1.pbuf")
 
-  # IF( NOT EXISTS "${FILE_TO_EXTRACT}" )
+  IF( NOT EXISTS "${FILE_TO_EXTRACT}" )
 
-  #   # download exe from url
-  #   MESSAGE( STATUS "Downloading weights for BraTS evaluation model" )
-  #   FILE(DOWNLOAD "${DOWNLOAD_LINK}" "${FILE_TO_EXTRACT}" TIMEOUT 1000000 STATUS STATUS_CODE SHOW_PROGRESS)
-  #   IF(NOT STATUS_CODE EQUAL 0)
-  #     MESSAGE(FATAL_ERROR "Failed to download BraTS evaluation model weights. Status=${STATUS_CODE}")
-  #   ENDIF()
-  # ENDIF()
+    # download exe from url
+    MESSAGE( STATUS "Downloading weights for BraTS evaluation model" )
+    FILE(DOWNLOAD "${DOWNLOAD_LINK}" "${FILE_TO_EXTRACT}" TIMEOUT 1000000 STATUS STATUS_CODE SHOW_PROGRESS)
+    IF(NOT STATUS_CODE EQUAL 0)
+      MESSAGE(FATAL_ERROR "Failed to download BraTS evaluation model weights. Status=${STATUS_CODE}")
+    ENDIF()
+  ENDIF()
 
   # copy network information
   ## todo: change to a direct installation so that git doesn't get confused that submodule has changed

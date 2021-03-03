@@ -60,7 +60,8 @@ int main(int argc, char** argv)
   }
   else
   {
-    loggingDir = dataDir + "/logs";
+    loggingDir = cbica::createTemporaryDirectory() + "/logs";
+    std::cout << "Using the following directory as logging directory: " << loggingDir << "\n";
     cbica::createDir(loggingDir);
   }
 
@@ -398,30 +399,38 @@ int main(int argc, char** argv)
   } // end of trainingRequested check
   else // for training
   {
-    std::string specialArgs, args, hardcodedModelName;
-    if (trainingRequested)
-    {
-      specialArgs = "-col " + colName;
-    }
-
+    std::string args = " -d " + dataDir + " -ld " + loggingDir + " -col " + colName + device_arg,
+      hardcodedModelName;
+    
     if (!cbica::isFile(hardcodedPythonPath))
     {
       std::cerr << "The python virtual environment was not found, please refer to documentation to initialize it.\n";
       return EXIT_FAILURE;
     }
+    
+    {
+      std::cout << "Starting model validation of 3DResUNet trained on BraTS20 training data...\n";
+
+      // brats20 model validation      
+      std::string fullCommandToRun = hardcodedPythonPath + " " + fetsApplicationPath;
+      fullCommandToRun += "/OpenFederatedLearning/bin/run_fets_validation.py";
+
+      auto temp_args = args + " -p fets_phase1_validate_full_brats_trained_model_1.yaml";
+
+      if (std::system((fullCommandToRun + " " + temp_args).c_str()) != 0)
+      {
+        std::cerr << "Couldn't complete the BraTS20 model validation task, please email admin@fets.ai\n";
+      }
+    }
 
     std::string fullCommandToRun = hardcodedPythonPath + " " + fetsApplicationPath;
     fullCommandToRun += "/OpenFederatedLearning/bin/run_collaborator_from_flplan.py";
 
-    args += " -p " + hardcodedPlanName + ".yaml"
-      + " -d " + dataDir
-      + " -ld " + loggingDir;
-
-    args += device_arg;
+    auto temp_args = args + " -p " + hardcodedPlanName + ".yaml";
 
     std::cout << "Starting training...\n";
 
-    if (runCollaboratorTraining(fullCommandToRun + " " + args + " " + specialArgs) != 0)
+    if (runCollaboratorTraining(fullCommandToRun + " " + temp_args) != 0)
     {
       std::cerr << "Couldn't complete the training task, please email admin@fets.ai\n";
       return EXIT_FAILURE;

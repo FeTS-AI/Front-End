@@ -143,6 +143,19 @@ wget https://raw.githubusercontent.com/FETS-AI/Front-End/master/src/applications
 
 ## Training
 
+### Ensure Sanity Checking Is Done
+
+Proceed to training once [sanity check](#sanity-check) is successfully finished.
+### Transfer Certificates
+
+If you have a [signed certificate from a previous installation](https://fets-ai.github.io/Front-End/setup#set-up-the-collaborator), ensure they are copied **before** trying to train:
+```bash
+cd ${fets_root_dir}/bin/
+cp -r ${fets_root_dir_old}/bin/OpenFederatedLearning/bin/federations/pki/client ./OpenFederatedLearning/bin/federations/pki
+```
+
+### Start Training
+
 ```bash
 ${fets_root_dir}/bin/FeTS_CLI -d /path/to/output/DataForFeTS \ # input data, ensure "final_seg" is present for each subject
   -c ${collaborator_common_name} \ # common collaborator name created during setup
