@@ -10,6 +10,12 @@ def imageSanityCheck(targetImageFile, inputImageFile) -> bool:
   targetImage = sitk.ReadImage(targetImageFile)
   inputImage = sitk.ReadImage(inputImageFile)
 
+  size = targetImage.GetSize()
+  size_expected = np.array([240,240,155])
+  if not(np.array_equal(size, size_expected)):
+    print('Size for target image, \'' + targetImageFile + '\' is not in the BraTS format', size_expected, file = sys.stderr)
+    return False
+
   if targetImage.GetDimension() != 3:
     print('Dimension for target image, \'' + targetImageFile + '\' is not 3', file = sys.stderr)
     return False
@@ -105,7 +111,7 @@ def main():
   label_values_expected = np.array([0,1,2,4]) # initialize label array
   
   for dirs in os.listdir(inputDir):
-    if dirs != 'logs': # don't perform sanity check for the 'logs' folder
+    if (dirs != 'logs') and (dirs != 'split_info'): # don't perform sanity check for the 'logs' folder
       currentSubjectDir = os.path.join(inputDir, dirs)
       if os.path.isdir(currentSubjectDir): # for detected subject dir
         filesInDir = os.listdir(currentSubjectDir) # get all files in each directory
