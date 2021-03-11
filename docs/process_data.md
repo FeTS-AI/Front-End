@@ -133,7 +133,9 @@ If you have processed data from a prior study that you would like to include in 
 ```bash
 ${fets_root_dir}/bin/Preprocessing -i /path/to/patient_X/annotation.nii.gz -rFI ${fets_root_dir}/data/sri24/atlasImage.nii.gz -o /path/to/output/DataForFeTS/patient_X/annotation_final_seg.nii.gz -reg Rigid -rIS 1 -rIA /path/to/output/DataForQC/patient_X/T1CE_to_SRI.mat -rSg 1
 ```
-4. Load the transformed images (`/path/to/output/DataForFeTS/patient_X/brain_*`) and corresponding annotation (`/path/to/output/DataForFeTS/patient_X/annotation_final_seg.nii.gz`) to ensure they are aligned correctly.
+4. Load the transformed images and corresponding annotation to ensure they are aligned correctly:
+  - `/path/to/output/DataForFeTS/patient_X/brain_*`
+  - `/path/to/output/DataForFeTS/patient_X/annotation_final_seg.nii.gz`
 
 [Back To Top &uarr;](#table-of-contents)
 ---
