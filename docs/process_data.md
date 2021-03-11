@@ -5,7 +5,8 @@
 ## Table of Contents
 - [Application Path](#application-path)
 - [Data Arrangement](#data-arrangement)
-- [Running Pre-processing](#pre-processing)
+- [Running Pre-processing](#pre-processing))
+- [Starting from pre-processed data](#starting-from-pre-processed-data)
 
 ## Application Path
 
@@ -134,6 +135,7 @@ ${fets_root_dir}/bin/Preprocessing -i /path/to/patient_X/annotation.nii.gz -rFI 
 ```
 4. Load the transformed images (`/path/to/output/DataForFeTS/patient_X/brain_*`) and corresponding annotation (`/path/to/output/DataForFeTS/patient_X/annotation_final_seg.nii.gz`) to ensure they are aligned correctly.
 
+[Back To Top &uarr;](#table-of-contents)
 ---
 [Next: Run Application](./runningApplication.md)
 
