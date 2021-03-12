@@ -11,14 +11,22 @@
 - Bjoern Menze
 
 ## Contributors (alphabetical order):
-- [Mark Bergman](https://www.med.upenn.edu/sbia/mbergman.html)
-- Megh Bhalerao
-- Brandon Edwards
-- Jason Martin
-- [Sarthak Pati](https://www.med.upenn.edu/sbia/spati.html)
-- Tony G Reina
-- Micah Sheller
-- Siddhesh Thakur
+
+- Bakas, Spyridon (Principal Investigator)
+- Baid, Ujjwal
+- Davatzikos, Christos
+- Kontos, Despina
+- Martin, Jason (Intel Labs)
+- Menze, Bjoern (TUM)
+- Baid, Ujjwal
+- Bergman, Mark
+- Bhalerao, Megh
+- Edwards, Brandon (Intel Labs)
+- Pati, Sarthak (Lead Developer - UPenn)
+- Reina, G Anthony (Intel AI)
+- Sheller, Micah (Lead Developer - Intel Labs)
+- Thakur, Siddhesh P.
+- Xu, Weilin (Intel Labs)
 
 Contact [software [at] cbica.upenn.edu](mailto:software@cbica.upenn.edu) for questions.
 */
