@@ -28,5 +28,5 @@
 - Thakur, Siddhesh P.
 - Xu, Weilin (Intel Labs)
 
-Contact [software [at] cbica.upenn.edu](mailto:software@cbica.upenn.edu) for questions.
+Contact [admin [at] fets.ai](mailto:admin@fets.ai) for questions.
 */
