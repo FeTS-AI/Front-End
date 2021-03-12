@@ -122,71 +122,74 @@ def main():
               files_for_subject[modality] = os.path.abspath(os.path.join(currentSubjectDir, filesInDir[i]))
         
         currentSubjectsLabelIsAbsent = False # check if current subject's final_seg is present or not
+        all_modalities_present = True
         if len(files_for_subject) != 5: # if all modalities are not present, add exit statement
           if (len(files_for_subject) == 4) and ('MASK' in files_for_subject):
             numberOfProblematicCases += 1
             errorMessage += dirs + ',All_required_modalities_are_not_present.\n'
+            all_modalities_present = False
 
-        first, *rest = files_for_subject.items() # split the dict
-        for i in range(0, len(rest)):
-          if not(imageSanityCheck(first[1], rest[i][1])): # image sanity check
-            numberOfProblematicCases += 1
-            errorMessage += dirs + ',Image_dimension/size/origin/spacing_mismatch_between_' + first[0] + '_and_' + rest[i][0] + '\n'
+        if all_modalities_present:
+          first, *rest = files_for_subject.items() # split the dict
+          for i in range(0, len(rest)):
+            if not(imageSanityCheck(first[1], rest[i][1])): # image sanity check
+              numberOfProblematicCases += 1
+              errorMessage += dirs + ',Image_dimension/size/origin/spacing_mismatch_between_' + first[0] + '_and_' + rest[i][0] + '\n'
         
-        currentSubjectsLabelIsProblematic = False # check if current subject's label has issues
-        if 'MASK' in files_for_subject:
-          currentLabelFile = files_for_subject['MASK']
-          fixForLabelThree(currentLabelFile)
-          returnString = checkBraTSLabels(dirs, currentLabelFile)
-          if returnString: # if there is something present in the return string
-            numberOfProblematicCases += 1
-            currentSubjectsLabelIsProblematic = True
-            errorMessage += returnString
-        else:
-          currentSubjectsLabelIsAbsent = True
-        
-        fusionToRecommend = ''
-        segmentationsForQCPresent = True
-        problematicSegmentationMessage = ''
-        if currentSubjectsLabelIsProblematic or currentSubjectsLabelIsAbsent: # if final_seg is absent or is problematic
-          segmentationsFolder = os.path.join(currentSubjectDir, 'SegmentationsForQC')
-          if os.path.isdir(segmentationsFolder):
-            segmentationFiles = os.listdir(segmentationsFolder) # get all files in each directory
-            for i in range(len(segmentationFiles)):
-              if 'fused' in segmentationFiles[i]: # only perform checks for fusion results
-                currentLabelFile = os.path.join(segmentationsFolder, segmentationFiles[i])
-                returnString = checkBraTSLabels(dirs, currentLabelFile)
-                if returnString: # if there is something present in the return string
-                  problematicSegmentationMessage += returnString
+          currentSubjectsLabelIsProblematic = False # check if current subject's label has issues
+          if 'MASK' in files_for_subject:
+            currentLabelFile = files_for_subject['MASK']
+            fixForLabelThree(currentLabelFile)
+            returnString = checkBraTSLabels(dirs, currentLabelFile)
+            if returnString: # if there is something present in the return string
+              numberOfProblematicCases += 1
+              currentSubjectsLabelIsProblematic = True
+              errorMessage += returnString
+          else:
+            currentSubjectsLabelIsAbsent = True
+          
+          fusionToRecommend = ''
+          segmentationsForQCPresent = True
+          problematicSegmentationMessage = ''
+          if currentSubjectsLabelIsProblematic or currentSubjectsLabelIsAbsent: # if final_seg is absent or is problematic
+            segmentationsFolder = os.path.join(currentSubjectDir, 'SegmentationsForQC')
+            if os.path.isdir(segmentationsFolder):
+              segmentationFiles = os.listdir(segmentationsFolder) # get all files in each directory
+              for i in range(len(segmentationFiles)):
+                if 'fused' in segmentationFiles[i]: # only perform checks for fusion results
+                  currentLabelFile = os.path.join(segmentationsFolder, segmentationFiles[i])
+                  returnString = checkBraTSLabels(dirs, currentLabelFile)
+                  if returnString: # if there is something present in the return string
+                    problematicSegmentationMessage += returnString
+                  else:
+                    if not('staple' in fusionToRecommend): # overwrite the fusion result to recommend if not staple that was fine
+                      fusionToRecommend = currentLabelFile 
+              
+              if not fusionToRecommend:
+                errorMessage += problematicSegmentationMessage
+              if not('staple' in fusionToRecommend): # recommend nnunet or deepscan if not staple
+                if not('itkvoting' in fusionToRecommend):
+                  if not('majorityvoting' in fusionToRecommend):
+                    fusionToRecommend = 'nnunet_or_deepscan'
+                  else:
+                    fusionToRecommend = 'majorityvoting'
                 else:
-                  if not('staple' in fusionToRecommend): # overwrite the fusion result to recommend if not staple that was fine
-                    fusionToRecommend = currentLabelFile 
-            
-            if not fusionToRecommend:
-              errorMessage += problematicSegmentationMessage
-            if not('staple' in fusionToRecommend): # recommend nnunet or deepscan if not staple
-              if not('itkvoting' in fusionToRecommend):
-                if not('majorityvoting' in fusionToRecommend):
-                  fusionToRecommend = 'nnunet_or_deepscan'
-                else:
-                  fusionToRecommend = 'majorityvoting'
+                  fusionToRecommend = 'itkvoting'
               else:
-                fusionToRecommend = 'itkvoting'
-            else:
-              fusionToRecommend = 'staple'
+                fusionToRecommend = 'staple'
 
-          else:
-            errorMessage += dirs + ',SegmentationsForQC_folder_is_absent\n'
+            else:
+              errorMessage += dirs + ',SegmentationsForQC_folder_is_absent\n'
+              numberOfProblematicCases += 1
+              segmentationsForQCPresent = False
+            # errorMessage += dirs + ',Label_file_absent,N.A.,N.A.\n'
+          
+          if currentSubjectsLabelIsAbsent and segmentationsForQCPresent:
             numberOfProblematicCases += 1
-            segmentationsForQCPresent = False
-          # errorMessage += dirs + ',Label_file_absent,N.A.,N.A.\n'
-        
-        if currentSubjectsLabelIsAbsent and segmentationsForQCPresent:
-          numberOfProblematicCases += 1
-          if fusionToRecommend:
-            errorMessage += dirs + ',' + fusionToRecommend + '\n'
-          else:
-            errorMessage += dirs + ',final_seg_absent_and_use_either_nnunet_or_deepscan,N.A.,N.A.\n'
+            if fusionToRecommend:
+              errorMessage += dirs + ',' + fusionToRecommend + '\n'
+            else:
+              errorMessage += dirs + ',final_seg_absent_and_use_either_nnunet_or_deepscan,N.A.,N.A.\n'
 
   if numberOfProblematicCases > 0:
     # print(errorMessage)
