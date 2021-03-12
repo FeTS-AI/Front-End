@@ -6,6 +6,7 @@
 - [Application Path](#application-path)
 - [Data Arrangement](#data-arrangement)
 - [Running Pre-processing](#pre-processing)
+- [Starting from pre-processed data](#starting-from-pre-processed-data)
 
 ## Application Path
 
@@ -114,7 +115,7 @@ ${fets_root_dir}/bin/PrepareDataset -i /path/to/raw_data.csv -o /path/to/output
   │   │   │   │ ...
   ```
 
-**NOTE**: For some CentOS variants, we have seen `PrepareDataset` executable to cause issues, for which we have an alternative with `${fets_root_dir}/bin/PrepareDataset.py`, which has the exact same API and can be invoked in the following way:
+**NOTE**: For some OS variants, we have seen `PrepareDataset` executable to cause issues, for which we have an alternative with `${fets_root_dir}/bin/PrepareDataset.py`, which has the exact same API and can be invoked in the following way:
 ```bash
 cd ${fets_root_dir}/bin
 ./OpenFederatedLearning/venv/bin/python \ # virtual environment that was set up in previous section
@@ -123,6 +124,20 @@ cd ${fets_root_dir}/bin
 
 [Back To Top &uarr;](#table-of-contents)
 
+## Starting from Pre-processed data
+
+If you have processed data from a prior study that you would like to include in the FeTS federation, please ensure that all the data is co-registered within each patient and the annotations are in the same space. Once that is assured, follow these steps:
+1. [Arrange your data](#data-arrangement) by using the processed image files in respective columns
+2. Run `PrepareDataset` [as shown above](#pre-processing)
+3. In `DataForQC`, under each patient, the transformation matrices will be generated per modality. Use the **T1CE_to_SRI.mat** file (the assumption here is that the data is co-registered within each patient) to transform the annotation (which is in the patient space) in the following manner:
+```bash
+${fets_root_dir}/bin/Preprocessing -i /path/to/patient_X/annotation.nii.gz -rFI ${fets_root_dir}/data/sri24/atlasImage.nii.gz -o /path/to/output/DataForFeTS/patient_X/annotation_final_seg.nii.gz -reg Rigid -rIS 1 -rIA /path/to/output/DataForQC/patient_X/T1CE_to_SRI.mat -rSg 1
+```
+4. Load the transformed images and corresponding annotation to ensure they are aligned correctly:
+  - `/path/to/output/DataForFeTS/patient_X/brain_*`
+  - `/path/to/output/DataForFeTS/patient_X/annotation_final_seg.nii.gz`
+
+[Back To Top &uarr;](#table-of-contents)
 ---
 [Next: Run Application](./runningApplication.md)
 
