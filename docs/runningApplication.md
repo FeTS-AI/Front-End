@@ -100,9 +100,9 @@ The aforementioned command will perform the following steps:
 
   | Label |  Region  | Acronym |
   |:-----:|:--------:|:-------:|
-  |   1   |    Necrotic + Non-Enhancing-Tumor core   |   NET   |
-  |   2   |   Edema   |    ED   |
-  |   4   | Enhancing |    ET   |
+  |   1   |    Necrotic Core of Tumor   |   NET   |
+  |   2   |   Peritumoral Edematous & Infiltrated Tissue   |    ED   |
+  |   4   | Enhancing/Active part of tumor |    ET   |
   
 - Save the final tumor segmentation as `${SubjectID}_final_seg.nii.gz` under the subject's directory:
   ```bash
