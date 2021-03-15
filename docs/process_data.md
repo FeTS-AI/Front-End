@@ -131,7 +131,12 @@ If you have processed data from a prior study that you would like to include in 
 2. Run `PrepareDataset` [as shown above](#pre-processing)
 3. In `DataForQC`, under each patient, the transformation matrices will be generated per modality. Use the **T1CE_to_SRI.mat** file (the assumption here is that the data is co-registered within each patient) to transform the annotation (which is in the patient space) in the following manner:
 ```bash
-${fets_root_dir}/bin/Preprocessing -i /path/to/patient_X/annotation.nii.gz -rFI ${fets_root_dir}/data/sri24/atlasImage.nii.gz -o /path/to/output/DataForFeTS/patient_X/annotation_final_seg.nii.gz -reg Rigid -rIS 1 -rIA /path/to/output/DataForQC/patient_X/T1CE_to_SRI.mat -rSg 1
+${fets_root_dir}/bin/Preprocessing \
+  -i /path/to/patient_X/annotation.nii.gz \
+  -rFI ${fets_root_dir}/data/sri24/atlasImage.nii.gz \
+  -o /path/to/output/DataForFeTS/patient_X/annotation_final_seg.nii.gz \
+  -rIA /path/to/output/DataForQC/patient_X/T1CE_to_SRI.mat \
+  -reg Rigid -rIS 1 -rSg 1
 ```
 4. Load the transformed images and corresponding annotation to ensure they are aligned correctly:
   - `/path/to/output/DataForFeTS/patient_X/brain_*`
