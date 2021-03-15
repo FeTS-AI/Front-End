@@ -10,6 +10,19 @@ def imageSanityCheck(targetImageFile, inputImageFile) -> bool:
   targetImage = sitk.ReadImage(targetImageFile)
   inputImage = sitk.ReadImage(inputImageFile)
 
+  ## give error if minimum is not zero
+  filter=sitk.MinimumMaximumImageFilter()
+  filter.Execute(targetImage)
+  if filter.GetMinimum() != 0:
+    print('The minimum for target image, \'' + targetImageFile + '\' is not 0', file = sys.stderr)
+    return False
+  
+  filter_2=sitk.MinimumMaximumImageFilter()
+  filter_2.Execute(inputImage)
+  if filter_2.GetMinimum() != 0:
+    print('The minimum for input image, \'' + inputImage + '\' is not 0', file = sys.stderr)
+    return False
+
   size = targetImage.GetSize()
   size_expected = np.array([240,240,155])
   if not(np.array_equal(size, size_expected)):
