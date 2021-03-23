@@ -131,7 +131,8 @@ int main(int argc, char** argv)
     hardcodedLabelFusionPath = fetsApplicationPath + "/LabelFusion/fusion_run",
     hardcodedModelWeightPath = hardcodedOpenFLPath + "/bin/federations/weights/", // start with the common location
     //hardcodedNativeModelWeightPath = hardcodedOpenFLPath + "/bin/federations/weights/native/", // the native weights are going in fets_data_dir/fets
-    hardcodedPythonPath = hardcodedOpenFLPath + "/venv/bin/python"; // this needs to change for Windows (wonder what happens for macOS?)
+    hardcodedPythonPath = hardcodedOpenFLPath + "/venv/bin/python", // this needs to change for Windows (wonder what happens for macOS?)
+    hardcodedPythonPath_fusion = fetsApplicationPath + "/LabelFusion/venv/bin/python"; // this needs to change for Windows (wonder what happens for macOS?)
 #if WIN32
   hardcodedPythonPath = hardcodedOpenFLPath + "/venv/python.exe";
 #endif
@@ -332,7 +333,7 @@ int main(int argc, char** argv)
             {
               std::cout << "== Starting label fusion...\n";
               auto filesInSubjectDir = cbica::filesInDirectory(dataDir + "/" + subjectDirs[s]);
-              auto labelFusion_command = hardcodedPythonPath + " " + hardcodedLabelFusionPath + " ";
+              auto labelFusion_command = hardcodedPythonPath_fusion + " " + hardcodedLabelFusionPath + " ";
               std::string filesForFusion, dataForSegmentation = dataDir + "/" + subjectDirs[s] + "/SegmentationsForQC/";
               cbica::createDir(dataForSegmentation);
               auto dm_folder = dataDir + "/" + subjectDirs[s] + "/dmOut";
