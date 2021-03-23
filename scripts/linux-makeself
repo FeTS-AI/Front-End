@@ -137,7 +137,7 @@ install_captk () {
     venv = venv/bin/$(python_version)
     $(venv):
       $(python_version) -m venv venv
-      venv/bin/pip3 install LabelFusion==1.0.6.dev0
+      venv/bin/pip3 install -e .
 
     echo "Downloading weights for nnUNet..."
     cd ${target_dir}/squashfs-root/usr/data/fets
