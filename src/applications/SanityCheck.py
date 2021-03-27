@@ -1,27 +1,41 @@
 import os, argparse, sys, platform
+from copy import deepcopy
 from datetime import date
 import SimpleITK as sitk
 import numpy as np
+
+def read_image_with_min_fix(filename):
+  '''
+  this function fixes negatives by scaling
+  if min(input) < 0:
+    for all x in image:
+      if x != 0:
+        x -= min
+  '''
+  input_image = sitk.ReadImage(filename)
+  input_image_array = sitk.GetArrayFromImage(input_image)
+  min = np.min(input_image_array)
+
+  # fixme: apply following logic
+  # check for connected components with less than 100 voxels
+  ## if less than the threshold, then apply above logic to the negative voxels
+  ## else, give error to user for manual QC
+  if min < 0:
+    output_array = deepcopy(input_image_array)
+    mask = output_array != 0
+    output_array[mask] = output_array[mask]-min  
+    output_image = sitk.GetImageFromArray(output_array)
+    output_image.CopyInformation(input_image)
+    return output_image
+
+  return input_image
 
 def imageSanityCheck(targetImageFile, inputImageFile) -> bool:
   '''
   This function does sanity checking of 2 images
   '''
-  targetImage = sitk.ReadImage(targetImageFile)
-  inputImage = sitk.ReadImage(inputImageFile)
-
-  ## give error if minimum is not zero
-  filter=sitk.MinimumMaximumImageFilter()
-  filter.Execute(targetImage)
-  if filter.GetMinimum() != 0:
-    print('The minimum for target image, \'' + targetImageFile + '\' is not 0', file = sys.stderr)
-    return False
-  
-  filter_2=sitk.MinimumMaximumImageFilter()
-  filter_2.Execute(inputImage)
-  if filter_2.GetMinimum() != 0:
-    print('The minimum for input image, \'' + inputImage + '\' is not 0', file = sys.stderr)
-    return False
+  targetImage = read_image_with_min_fix(targetImageFile)
+  inputImage = read_image_with_min_fix(inputImageFile)
 
   size = targetImage.GetSize()
   size_expected = np.array([240,240,155])
@@ -137,12 +151,12 @@ def main():
         currentSubjectsLabelIsAbsent = False # check if current subject's final_seg is present or not
         all_modalities_present = True
         if len(files_for_subject) != 5: # if all modalities are not present, add exit statement
-          if (len(files_for_subject) == 4) and ('MASK' in files_for_subject):
+          if ((len(files_for_subject) == 4) and ('MASK' in files_for_subject)) or (len(files_for_subject) < 4):
             numberOfProblematicCases += 1
             errorMessage += dirs + ',All_required_modalities_are_not_present.\n'
             all_modalities_present = False
 
-        if all_modalities_present:
+        if all_modalities_present and len(files_for_subject) > 0:
           first, *rest = files_for_subject.items() # split the dict
           for i in range(0, len(rest)):
             if not(imageSanityCheck(first[1], rest[i][1])): # image sanity check
