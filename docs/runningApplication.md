@@ -118,7 +118,9 @@ The aforementioned command will perform the following steps:
   └───Pat_JohnDoe
   │   │ ...
   ```
-  - **NOTE**: this file is is used during training and the subject will be skipped if this is absent
+  - **NOTES**:
+    - This file is is used during training and the subject will be skipped if this is absent
+    - A video example is here: https://www.dropbox.com/s/6p62ztqf7ckoial/FeTS_refinements_tutorial.mp4?dl=0
 
 [Back To Top &uarr;](#table-of-contents)
 
