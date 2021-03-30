@@ -133,11 +133,8 @@ install_captk () {
     make install_fets
     cd ../LabelFusion
     echo "Setting up the Python environment for LabelFusion (this needs SimpleITK==2.0.2, but GaNDLF needs 1.2.4)..."
-    python_version ?= python3
-    venv = venv/bin/$(python_version)
-    $(venv):
-      $(python_version) -m venv venv
-      venv/bin/pip3 install -e .
+    python3 -m venv venv
+    venv/bin/pip3 install -e .
 
     echo "Downloading weights for nnUNet..."
     cd ${target_dir}/squashfs-root/usr/data/fets
