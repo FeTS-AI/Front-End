@@ -155,6 +155,8 @@ wget https://raw.githubusercontent.com/FETS-AI/Front-End/master/src/applications
   -outputFile /path/to/output/intensity_check.csv
 ```
 
+If `/path/to/output/intensity_check.csv` doesn't get generated, that means the dataset is completely fine, otherwise, please send the file to admin@fets.ai for debugging.  
+
 [Back To Top &uarr;](#table-of-contents)
 
 ## Training
