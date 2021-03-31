@@ -141,6 +141,20 @@ cd ${fets_root_dir}/bin
 cd ${fets_root_dir}/bin
 wget https://raw.githubusercontent.com/FETS-AI/Front-End/master/src/applications/SanityCheck.py
 ```
+
+### Phase-2 Intensity Check
+
+During discussions with some collaborators, we observed negative values coming in in the pre-processed images. To identify these cases, we have put together an additional script that checks for the negative values in all images and provide relevant statistics. This can be run in the following manner:
+
+```bash
+
+cd ${fets_root_dir}/bin
+wget https://raw.githubusercontent.com/FETS-AI/Front-End/master/src/applications/Phase2_IntensityCheck.py
+./OpenFederatedLearning/venv/bin/python ./SanityCheck.py \
+  -inputDir /path/to/output/DataForFeTS \
+  -outputFile /path/to/output/intensity_check.csv
+```
+
 [Back To Top &uarr;](#table-of-contents)
 
 ## Training
