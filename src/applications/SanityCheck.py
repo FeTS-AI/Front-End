@@ -4,7 +4,7 @@ from datetime import date
 import SimpleITK as sitk
 import numpy as np
 
-def read_image_with_min_fix(filename):
+def read_image_with_min_check(filename):
   '''
   this function fixes negatives by scaling
   if min(input) < 0:
@@ -21,12 +21,7 @@ def read_image_with_min_fix(filename):
   ## if less than the threshold, then apply above logic to the negative voxels
   ## else, give error to user for manual QC
   if min < 0:
-    output_array = deepcopy(input_image_array)
-    mask = output_array != 0
-    output_array[mask] = output_array[mask]-min  
-    output_image = sitk.GetImageFromArray(output_array)
-    output_image.CopyInformation(input_image)
-    return output_image
+    print('Negative values in', filename)
 
   return input_image
 
@@ -34,8 +29,8 @@ def imageSanityCheck(targetImageFile, inputImageFile) -> bool:
   '''
   This function does sanity checking of 2 images
   '''
-  targetImage = read_image_with_min_fix(targetImageFile)
-  inputImage = read_image_with_min_fix(inputImageFile)
+  targetImage = read_image_with_min_check(targetImageFile)
+  inputImage = read_image_with_min_check(inputImageFile)
 
   size = targetImage.GetSize()
   size_expected = np.array([240,240,155])
