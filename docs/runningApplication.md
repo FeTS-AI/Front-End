@@ -144,7 +144,7 @@ wget https://raw.githubusercontent.com/FETS-AI/Front-End/master/src/applications
 
 ### Phase-2 Intensity Check
 
-During discussions with some collaborators, we observed negative values coming in in the pre-processed images. To identify these cases, we have put together an additional script that checks for the negative values in all images and provide relevant statistics. This can be run in the following manner:
+During discussions with some of the collaborating sites, we note negative values randomly coming up in the pre-processed scans. To identify these cases, we have now put together an additional script to assess all pre-processed images for the negative values and provide relevant statistics. This can be run in the following manner:
 
 ```bash
 
