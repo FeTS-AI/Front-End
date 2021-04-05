@@ -172,7 +172,7 @@ def main():
           for mod in files_for_subject:
             _, count = read_image_with_min_check(files_for_subject[mod])
             if count is not None:
-                errorMessage += dirs + ',Negatives_in_' + mod + '_' + count
+                errorMessage += dirs + ',Negatives_in_' + mod + '_Count=' + count
 
           if all_modalities_present and len(files_for_subject) > 0:
             first, *rest = files_for_subject.items() # split the dict

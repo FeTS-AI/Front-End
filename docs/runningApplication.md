@@ -118,7 +118,9 @@ The aforementioned command will perform the following steps:
   └───Pat_JohnDoe
   │   │ ...
   ```
-  - **NOTE**: this file is is used during training and the subject will be skipped if this is absent
+  - **NOTES**:
+    - This file is is used during training and the subject will be skipped if this is absent
+    - A video example is here: https://www.dropbox.com/s/6p62ztqf7ckoial/FeTS_refinements_tutorial.mp4?dl=0
 
 [Back To Top &uarr;](#table-of-contents)
 
@@ -139,6 +141,22 @@ cd ${fets_root_dir}/bin
 cd ${fets_root_dir}/bin
 wget https://raw.githubusercontent.com/FETS-AI/Front-End/master/src/applications/SanityCheck.py
 ```
+
+### Phase-2 Intensity Check
+
+During discussions with some of the collaborating sites, we note negative values randomly coming up in the pre-processed scans. To identify these cases, we have now put together an additional script to assess all pre-processed images for the negative values and provide relevant statistics. This can be run in the following manner:
+
+```bash
+
+cd ${fets_root_dir}/bin
+wget https://raw.githubusercontent.com/FETS-AI/Front-End/master/src/applications/Phase2_IntensityCheck.py
+./OpenFederatedLearning/venv/bin/python ./SanityCheck.py \
+  -inputDir /path/to/output/DataForFeTS \
+  -outputFile /path/to/output/intensity_check.csv
+```
+
+If `/path/to/output/intensity_check.csv` doesn't get generated, that means the dataset is completely fine, otherwise, please send the file to admin@fets.ai for debugging.  
+
 [Back To Top &uarr;](#table-of-contents)
 
 ## Training
