@@ -422,7 +422,11 @@ int main(int argc, char** argv)
     */
     /// start validation
 
-    auto split_info_val = dataDir + "/split_info/fets_phase1_split_1/val.csv";
+    auto split_info_val = dataDir + "/split_info/fets_phase1_split_1/val.csv",
+      validation_to_send = dataDir + "/validation.yaml",
+      validation_internal = dataDir + "/validation_internal.yaml";
+
+    auto num_rows = cbica::numberOfRowsInFile(split_info_val);
 
     std::ifstream file(split_info_val.c_str());
     bool firstRow = true;
@@ -430,7 +434,13 @@ int main(int argc, char** argv)
     auto regions_of_interest = { "WT", "TC", "ET" },
       measures_of_interest = { "Dice", "Hausdorff95" };
     
-    auto yaml_config = YAML::Node();
+    auto yaml_config_to_send = YAML::Node();
+    auto yaml_config_internal = YAML::Node();
+
+    if (cbica::isFile(validation_internal)) // load previous internal validation file
+    {
+      yaml_config_internal = YAML::LoadFile(validation_internal);
+    }
 
     while (file)
     {
@@ -468,29 +478,38 @@ int main(int argc, char** argv)
               {
                 auto image_to_check = cbica::ReadImage< DefaultImageType >(current_arch.second);
 
-
-                auto stats = cbica::GetBraTSLabelStatistics< DefaultImageType >(final_seg_image, image_to_check);
-
-                for (auto& region : regions_of_interest)
+                if (yaml_config_internal[subject_id]) // check if subject is present in internal validation file
                 {
-                  for (auto& measure : measures_of_interest)
-                  {
-                    yaml_config[subject_index_str][current_arch.first][region][measure] = stats[region][measure];
-                  }
+                  yaml_config_to_send[subject_index_str] = yaml_config_internal[subject_id]; // if present, take all stats from there
                 }
-                std::ofstream fout(dataDir + "/validation.yaml");
-                fout << yaml_config; // dump it back into the file
-                fout.close();
+                else // otherwise, run the stats calculation
+                {
+                  auto stats = cbica::GetBraTSLabelStatistics< DefaultImageType >(final_seg_image, image_to_check);
 
-                auto test = 1;
-
-              }
-            }
-          }
-        }
+                  for (auto& region : regions_of_interest)
+                  {
+                    for (auto& measure : measures_of_interest)
+                    {
+                      yaml_config_to_send[subject_index_str][current_arch.first][region][measure] = stats[region][measure];
+                      yaml_config_internal[subject_id][current_arch.first][region][measure] = stats[region][measure];
+                    }
+                  }
+                } // end internal validation check loop
+              } // end file-check loop
+            } // end arch-loop
+          } // end final_seg check 
+        } // end header check if-loop
         row_index++;
-      }
+      } // end csv-read while loop
     }
+    std::ofstream fout(validation_internal);
+    fout << yaml_config_internal; // dump it back into the file
+    fout.close();
+
+    std::ofstream fout(validation_to_send);
+    fout << yaml_config_to_send; // dump it back into the file
+    fout.close();
+
 
     std::string args = " -d " + dataDir + " -ld " + loggingDir + " -col " + colName + device_arg,
       hardcodedModelName;
