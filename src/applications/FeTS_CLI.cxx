@@ -442,7 +442,7 @@ int main(int argc, char** argv)
           {
             yaml_config_to_send[subject_index_str] = yaml_config_internal[subject_id]; // if present, take all stats from there
           }
-          else // otherwise, run the stats calculatio
+          else // otherwise, run the stats calculation
           {
             auto current_subject_folder = dataDir + "/" + subject_id;
             auto final_seg = current_subject_folder + "/" + subject_id + "_final_seg.nii.gz";
@@ -479,7 +479,7 @@ int main(int argc, char** argv)
             } // end final_seg check 
           } // end internal validation check loop
         } // end header check if-loop
-        row_index++;
+        row_index++; // increment subject id counter
       } // end csv-read while loop
     }
     std::ofstream fout_int(validation_internal);
