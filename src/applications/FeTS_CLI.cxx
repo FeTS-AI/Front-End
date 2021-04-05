@@ -400,26 +400,6 @@ int main(int argc, char** argv)
   } // end of trainingRequested check
   else // for training
   {
-    /* from micah for validating nnunet/deepscan
-    sort(validation_subject)
-    For each model to score:
-      Get paths for validation data (from split_info/val.csv; headers are data_uid)
-      Determine which are missing seg files
-      Generate missing seg files
-      Create score for validation data from seg/ground-truth
-      Log score to special yaml file as:
-      <subject_id>: # store this as an index and not a specific subject_id
-        <model>:
-          <wt>:
-            - dice
-            - hausdorff95
-          <tc>:
-            - dice
-            - hausdorff95
-          <et>:
-            - dice
-            - hausdorff95  
-    */
     /// start validation
 
     auto split_info_val = dataDir + "/split_info/fets_phase1_split_1/val.csv",
