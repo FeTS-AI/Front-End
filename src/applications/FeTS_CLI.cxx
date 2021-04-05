@@ -400,8 +400,7 @@ int main(int argc, char** argv)
   } // end of trainingRequested check
   else // for training
   {
-    /// start validation
-
+    /// start validation of nnunet/deepscan/deepmedic on all validation cases
     auto split_info_val = dataDir + "/split_info/fets_phase1_split_1/val.csv",
       validation_to_send = dataDir + "/validation.yaml",
       validation_internal = dataDir + "/validation_internal.yaml";
@@ -491,7 +490,7 @@ int main(int argc, char** argv)
     fout.close();
 
 
-    std::string args = " -d " + dataDir + " -ld " + loggingDir + " -col " + colName + device_arg,
+    std::string args = " -d " + dataDir + " -ld " + loggingDir + " -col " + colName + device_arg + "-bsuf " + validation_to_send,
       hardcodedModelName;
     
     if (!cbica::isFile(hardcodedPythonPath))
