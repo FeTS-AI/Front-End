@@ -426,6 +426,12 @@ int main(int argc, char** argv)
 
     std::ifstream file(split_info_val.c_str());
     bool firstRow = true;
+    int row_index = -1;
+    auto regions_of_interest = { "WT", "TC", "ET" },
+      measures_of_interest = { "Dice", "Hausdorff95" };
+    
+    auto yaml_config = YAML::Node();
+
     while (file)
     {
       std::string line;
@@ -437,15 +443,52 @@ int main(int argc, char** argv)
       std::string cell;
       while (getline(lineStream, cell, ','))
       {
-        if (!firstRow)
+        if (row_index > -1)
         {
           auto subject_id = cell;
-          auto test = 1;
+          auto subject_index_str = std::to_string(row_index);
+          
+          auto current_subject_folder = dataDir + "/" + subject_id;
+          auto final_seg = current_subject_folder + "/" + subject_id + "_final_seg.nii.gz";
+          std::map< std::string, std::string > archs_to_check;
+          archs_to_check["deepmedic"] = current_subject_folder + "/SegmentationsForQC/" + subject_id + "_deepmedic_seg.nii.gz";
+          archs_to_check["nnunet"] = current_subject_folder + "/SegmentationsForQC/" + subject_id + "_nnunet_seg.nii.gz";
+          archs_to_check["deepscan"] = current_subject_folder + "/SegmentationsForQC/" + subject_id + "_deepscan_seg.nii.gz";
+          if (!cbica::isFile(final_seg))
+          {
+            std::cerr << "The subject '" << subject_id << "' does not have a final_seg file present.\n";
+          }
+          else
+          {
+            using DefaultImageType = itk::Image< unsigned int, 3 >;
+            auto final_seg_image = cbica::ReadImage< DefaultImageType >(final_seg);
+            for (auto& current_arch : archs_to_check)
+            {
+              if (cbica::isFile(current_arch.second))
+              {
+                auto image_to_check = cbica::ReadImage< DefaultImageType >(current_arch.second);
+
+
+                auto stats = cbica::GetBraTSLabelStatistics< DefaultImageType >(final_seg_image, image_to_check);
+
+                for (auto& region : regions_of_interest)
+                {
+                  for (auto& measure : measures_of_interest)
+                  {
+                    yaml_config[subject_index_str][current_arch.first][region][measure] = stats[region][measure];
+                  }
+                }
+                std::ofstream fout(dataDir + "/validation.yaml");
+                fout << yaml_config; // dump it back into the file
+                fout.close();
+
+                auto test = 1;
+
+              }
+            }
+          }
         }
-        else
-        {
-          firstRow = false;
-        }
+        row_index++;
       }
     }
 
