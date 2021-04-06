@@ -401,7 +401,7 @@ int main(int argc, char** argv)
   else // for training
   {
     /// start validation of nnunet/deepscan/deepmedic on all validation cases
-    auto split_info_val = dataDir + "/split_info/fets_phase1_split_1/val.csv",
+    auto split_info_val = dataDir + "/split_info/fets_phase1_split_1/val.csv", // revisit in case we change split in the future
       validation_to_send = dataDir + "/validation.yaml",
       validation_internal = dataDir + "/validation_internal.yaml";
 
