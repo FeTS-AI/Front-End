@@ -150,7 +150,7 @@ During discussions with some of the collaborating sites, we note negative values
 
 cd ${fets_root_dir}/bin
 wget https://raw.githubusercontent.com/FETS-AI/Front-End/master/src/applications/Phase2_IntensityCheck.py
-./OpenFederatedLearning/venv/bin/python ./SanityCheck.py \
+./OpenFederatedLearning/venv/bin/python ./Phase2_IntensityCheck.py \
   -inputDir /path/to/output/DataForFeTS \
   -outputFile /path/to/output/intensity_check.csv
 ```
