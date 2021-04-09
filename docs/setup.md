@@ -52,6 +52,22 @@ nvidia-smi # note the ${cuda_version}
 # for cuda 9.2, this would be './venv/bin/pip install torch==1.7.1+cu92 torchvision==0.8.2+cu92 torchaudio==0.7.2 -f https://download.pytorch.org/whl/torch_stable.html'
 # for cuda 10.1, this would be './venv/bin/pip install torch==1.7.1+cu101 torchvision==0.8.2+cu101 torchaudio==0.7.2 -f https://download.pytorch.org/whl/torch_stable.html'
 ```
+### Troubleshooting
+
+If you run into the following error (or something similiar, related to the cryptography package):
+```bash
+Command "python setup.py egg_info" failed with error code 1 in /tmp/pip-build-m0u0eez3/cryptography/
+```
+Run the following commands for the solution:
+```bash
+cd ${fets_root_dir}/bin/OpenFederatedLearning
+./venv/bin/python3 -m pip install -U pip
+make install_openfl
+make install_fets
+cd ../LabelFusion
+./venv/bin/python3 -m pip install -U pip
+./venv/bin/pip install .
+```
 ### Note for Ubuntu 20.04 users
 
 We have **not** tested with Ubuntu 20.04 and there might be unforseen stability issues with dependencies. That being said, if there is no other way around it, there are some pointers that can be followed to get FeTS up and running on this platform:
