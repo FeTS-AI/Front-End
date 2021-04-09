@@ -13,7 +13,7 @@ Example installation on Ubuntu 18.04:
 ```bash
 sudo add-apt-repository ppa:deadsnakes/ppa
 sudo apt update
-sudo apt install python3.6 python3.6-venv python3.6-dev
+sudo apt install python3.6 python3.6-venv python3.6-dev python3-setuptools
 ```
 - GPU: for faster training and inference
   - [CUDA 9.2 - 10.2](https://developer.nvidia.com/cuda-toolkit)
