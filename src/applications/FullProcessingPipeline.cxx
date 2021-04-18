@@ -77,7 +77,8 @@ int main(int argc, char** argv)
     // in case of failure, try to run the python version
     auto hardcodedPythonPath = cbica::getExecutablePath() + "/OpenFederatedLearning/venv/bin/python"; // this needs to change for Windows (wonder what happens for macOS?)
 
-    preparedataset_path = cbica::stringReplace(preparedataset_path, ".exe", ".py");
+    preparedataset_path = cbica::stringReplace(preparedataset_path, ".exe", "");
+    preparedataset_path += ".py";
     full_command = hardcodedPythonPath + " " + preparedataset_path + " -i " + inputCSV + " -o " + outputDir;
     if (std::system(full_command.c_str()) != 0)
     {
