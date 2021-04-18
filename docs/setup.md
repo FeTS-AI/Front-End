@@ -13,7 +13,7 @@ Example installation on Ubuntu 18.04:
 ```bash
 sudo add-apt-repository ppa:deadsnakes/ppa
 sudo apt update
-sudo apt install python3.6 python3.6-venv python3.6-dev
+sudo apt install python3.6 python3.6-venv python3.6-dev python3-setuptools
 ```
 - GPU: for faster training and inference
   - [CUDA 9.2 - 10.2](https://developer.nvidia.com/cuda-toolkit)
@@ -51,6 +51,22 @@ nvidia-smi # note the ${cuda_version}
 ./venv/bin/pip install torch torchvision # installs latest stable pytorch using CUDA 10.2 (we have tested with 1.7.1 with cuda-10.2)
 # for cuda 9.2, this would be './venv/bin/pip install torch==1.7.1+cu92 torchvision==0.8.2+cu92 torchaudio==0.7.2 -f https://download.pytorch.org/whl/torch_stable.html'
 # for cuda 10.1, this would be './venv/bin/pip install torch==1.7.1+cu101 torchvision==0.8.2+cu101 torchaudio==0.7.2 -f https://download.pytorch.org/whl/torch_stable.html'
+```
+### Troubleshooting
+
+If you run into the following error (or something similiar, related to the cryptography package):
+```bash
+Command "python setup.py egg_info" failed with error code 1 in /tmp/pip-build-m0u0eez3/cryptography/
+```
+Run the following commands for the solution:
+```bash
+cd ${fets_root_dir}/bin/OpenFederatedLearning
+./venv/bin/python3 -m pip install -U pip
+make install_openfl
+make install_fets
+cd ../LabelFusion
+./venv/bin/python3 -m pip install -U pip
+./venv/bin/pip install .
 ```
 ### Note for Ubuntu 20.04 users
 
