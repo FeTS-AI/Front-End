@@ -126,6 +126,8 @@ cd ${fets_root_dir}/bin
 
 ## Starting from Pre-processed data
 
+**NOTE**: Skip this step if you have used ```PrepareDataset``` as described in https://fets-ai.github.io/Front-End/process_data#pre-processing
+
 If you have processed data from a prior study that you would like to include in the FeTS federation, please ensure that all the data is co-registered within each patient and the annotations are in the same space. Once that is assured, follow these steps:
 1. [Arrange your data](#data-arrangement) by using the processed image files in respective columns
 2. Run `PrepareDataset` [as shown above](#pre-processing)
