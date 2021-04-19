@@ -411,15 +411,18 @@ int main(int argc, char** argv)
       return EXIT_FAILURE;
     }
 
-    auto full_plan_path = hardcodedOpenFLPath + hardcodedPlanName;
-    auto command_to_run = hardcodedPythonPath + " " + hardcodedOpenFLPath + "submodules/Algorithms/fets/bin/initialize_split_info.py -pp " + full_plan_path + " -dp " + dataDir;
-    if (std::system(command_to_run.c_str()) != 0)
+    if (!cbica::fileExists(split_info_val))
     {
-      std::cerr << "Initialize split did not work, continuing with validation.\n";
+      auto full_plan_path = hardcodedOpenFLPath + hardcodedPlanName;
+      auto command_to_run = hardcodedPythonPath + " " + hardcodedOpenFLPath + "submodules/Algorithms/fets/bin/initialize_split_info.py -pp " + full_plan_path + " -dp " + dataDir;
+      if (std::system(command_to_run.c_str()) != 0)
+      {
+        std::cerr << "Initialize split did not work, continuing with validation.\n";
+      }
     }
-    else
+    
+    if (cbica::fileExists(split_info_val))
     {
-
       std::ifstream file(split_info_val.c_str());
       bool firstRow = true;
       int row_index = -1;
