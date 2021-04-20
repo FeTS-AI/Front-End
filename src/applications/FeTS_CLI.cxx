@@ -43,13 +43,13 @@ int main(int argc, char** argv)
   parser.addOptionalParameter("lF", "labelFuse", cbica::Parameter::STRING, "STAPLE,ITKVoting,SIMPLE,MajorityVoting", "The label fusion strategy to follow for multi-arch inference", "Comma-separated values for multiple options", "Defaults to: " + fusionMethod);
   parser.addOptionalParameter("g", "gpu", cbica::Parameter::BOOLEAN, "0-1", "Whether to run the process on GPU or not", "Defaults to '0'");
   parser.addOptionalParameter("c", "colName", cbica::Parameter::STRING, "", "Common name of collaborator", "Required for training");
+  parser.addOptionalParameter("vp", "valPatch", cbica::Parameter::BOOLEAN, "0-1", "Whether to perform per-patch validation or not", "Used for training, defaults to '0'");
 
   parser.addApplicationDescription("This is the CLI interface for FeTS");
   parser.addExampleUsage("-d /path/DataForFeTS -a deepMedic,nnUNet -lF STAPLE,ITKVoting,SIMPLE -g 1 -t 0", "This command performs inference using deepMedic,nnUNet using multiple fusion strategies on GPU and saves in data directory");
   parser.addExampleUsage("-d /path/DataForFeTS -t 1 -g 1 -c upenn", "This command starts training performs inference using deepMedic,nnUNet using multiple fusion strategies on GPU and saves in data directory");
   
-  bool gpuRequested = false;
-  bool trainingRequested = false;
+  bool gpuRequested = false, trainingRequested = false, patchValidation = false;
 
   parser.getParameterValue("d", dataDir);
   parser.getParameterValue("t", trainingRequested);
@@ -75,6 +75,10 @@ int main(int argc, char** argv)
     {
       std::cerr << "Collaborator name is required to beging training; please specify this using '-c'.\n";
       return EXIT_FAILURE;
+    }
+    if (parser.isPresent("vp"))
+    {
+      parser.getParameterValue("vp", patchValidation);
     }
   }
   else
@@ -508,6 +512,11 @@ int main(int argc, char** argv)
 
     std::string args = " -d " + dataDir + " -ld " + loggingDir + " -col " + colName + device_arg + "-bsuf " + validation_to_send,
       hardcodedModelName;
+
+    if (!patchValidation)
+    {
+      args += " -vwop";
+    }
     
     {
       std::cout << "Starting model validation of 3DResUNet trained on BraTS20 training data...\n";
