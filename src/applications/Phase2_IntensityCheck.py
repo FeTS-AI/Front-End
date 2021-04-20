@@ -6,6 +6,8 @@ import numpy as np
 
 from skimage.measure import label
 
+max_negative_count_threshold = 5000 # the threshold above which an error is displayed, otherwise, the intensities are scaled
+
 def read_image_with_min_check(filename):
   '''
   this function fixes negatives by scaling
@@ -22,15 +24,20 @@ def read_image_with_min_check(filename):
   # check for connected components with less than 100 voxels
   ## if less than the threshold, then apply above logic to the negative voxels
   ## else, give error to user for manual QC
-  blobs = input_image_array < 0
-  all_labels_nonZero = np.nonzero(label(blobs))
-  _, counts = np.unique(all_labels_nonZero, return_counts=True)
   if min < 0:
     blobs = input_image_array < 0
     all_labels_nonZero = np.nonzero(label(blobs))
     _, counts = np.unique(all_labels_nonZero, return_counts=True)
 
-    return input_image, str(counts)
+    if np.max(counts) < max_negative_count_threshold:
+      output_array = deepcopy(input_image_array)
+      mask = output_array != 0
+      output_array[mask] = output_array[mask]-min  
+      output_image = sitk.GetImageFromArray(output_array)
+      output_image.CopyInformation(input_image)
+      return output_image, None
+    else:
+      return input_image, str(counts)
 
   return input_image, None
 

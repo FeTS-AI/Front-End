@@ -33,7 +33,7 @@ int main(int argc, char** argv)
   }
   allArchsString.pop_back();
 
-  std::string dataDir, modelName, loggingDir, colName, archs = "3dresunet", fusionMethod = "STAPLE", hardcodedPlanName = "fets_phase1_1";
+  std::string dataDir, modelName, loggingDir, colName, archs = "3dresunet", fusionMethod = "STAPLE", hardcodedPlanName = "fets_phase2_2";
 
   parser.addRequiredParameter("d", "dataDir", cbica::Parameter::DIRECTORY, "Dir with Read/Write access", "Input data directory");
   parser.addRequiredParameter("t", "training", cbica::Parameter::BOOLEAN, "0 or 1", "Whether performing training or inference", "1==Train and 0==Inference");
@@ -43,13 +43,13 @@ int main(int argc, char** argv)
   parser.addOptionalParameter("lF", "labelFuse", cbica::Parameter::STRING, "STAPLE,ITKVoting,SIMPLE,MajorityVoting", "The label fusion strategy to follow for multi-arch inference", "Comma-separated values for multiple options", "Defaults to: " + fusionMethod);
   parser.addOptionalParameter("g", "gpu", cbica::Parameter::BOOLEAN, "0-1", "Whether to run the process on GPU or not", "Defaults to '0'");
   parser.addOptionalParameter("c", "colName", cbica::Parameter::STRING, "", "Common name of collaborator", "Required for training");
+  parser.addOptionalParameter("vp", "valPatch", cbica::Parameter::BOOLEAN, "0-1", "Whether to perform per-patch validation or not", "Used for training, defaults to '0'");
 
   parser.addApplicationDescription("This is the CLI interface for FeTS");
   parser.addExampleUsage("-d /path/DataForFeTS -a deepMedic,nnUNet -lF STAPLE,ITKVoting,SIMPLE -g 1 -t 0", "This command performs inference using deepMedic,nnUNet using multiple fusion strategies on GPU and saves in data directory");
   parser.addExampleUsage("-d /path/DataForFeTS -t 1 -g 1 -c upenn", "This command starts training performs inference using deepMedic,nnUNet using multiple fusion strategies on GPU and saves in data directory");
   
-  bool gpuRequested = false;
-  bool trainingRequested = false;
+  bool gpuRequested = false, trainingRequested = false, patchValidation = false;
 
   parser.getParameterValue("d", dataDir);
   parser.getParameterValue("t", trainingRequested);
@@ -75,6 +75,10 @@ int main(int argc, char** argv)
     {
       std::cerr << "Collaborator name is required to beging training; please specify this using '-c'.\n";
       return EXIT_FAILURE;
+    }
+    if (parser.isPresent("vp"))
+    {
+      parser.getParameterValue("vp", patchValidation);
     }
   }
   else
@@ -400,13 +404,118 @@ int main(int argc, char** argv)
   } // end of trainingRequested check
   else // for training
   {
-    std::string args = " -d " + dataDir + " -ld " + loggingDir + " -col " + colName + device_arg,
-      hardcodedModelName;
-    
+    /// start validation of nnunet/deepscan/deepmedic on all validation cases
+    auto split_info_val = dataDir + "/split_info/fets_phase2_split_1/val.csv", // revisit in case we change split in the future
+      validation_to_send = dataDir + "/validation.yaml",
+      validation_internal = dataDir + "/validation_internal.yaml";
+
     if (!cbica::isFile(hardcodedPythonPath))
     {
       std::cerr << "The python virtual environment was not found, please refer to documentation to initialize it.\n";
       return EXIT_FAILURE;
+    }
+
+    if (!cbica::fileExists(split_info_val))
+    {
+      auto full_plan_path = hardcodedOpenFLPath + hardcodedPlanName;
+      auto command_to_run = hardcodedPythonPath + " " + hardcodedOpenFLPath + "submodules/Algorithms/fets/bin/initialize_split_info.py -pp " + full_plan_path + " -dp " + dataDir;
+      if (std::system(command_to_run.c_str()) != 0)
+      {
+        std::cerr << "Initialize split did not work, continuing with validation.\n";
+      }
+    }
+    
+    if (cbica::fileExists(split_info_val))
+    {
+      std::ifstream file(split_info_val.c_str());
+      bool firstRow = true;
+      int row_index = -1;
+      auto regions_of_interest = { "WT", "TC", "ET" },
+        measures_of_interest = { "Dice", "Hausdorff95" };
+
+      auto yaml_config_to_send = YAML::Node();
+      auto yaml_config_internal = YAML::Node();
+
+      if (cbica::isFile(validation_internal)) // load previous internal validation file
+      {
+        yaml_config_internal = YAML::LoadFile(validation_internal);
+      }
+
+      while (file)
+      {
+        std::string line;
+        std::getline(file, line);
+        // fix line ending problems 
+        std::remove_copy(line.begin(), line.end(), line.begin(), '\r');
+        std::stringstream lineStream(line);
+        std::vector<std::string> row;
+        std::string cell;
+        while (getline(lineStream, cell, ','))
+        {
+          if (row_index > -1)
+          {
+            auto subject_id = cell;
+            auto subject_index_str = std::to_string(row_index);
+
+            if (yaml_config_internal[subject_id]) // check if subject is present in internal validation file
+            {
+              yaml_config_to_send[subject_index_str] = yaml_config_internal[subject_id]; // if present, take all stats from there
+            }
+            else // otherwise, run the stats calculation
+            {
+              auto current_subject_folder = dataDir + "/" + subject_id;
+              auto final_seg = current_subject_folder + "/" + subject_id + "_final_seg.nii.gz";
+              std::map< std::string, std::string > archs_to_check;
+              archs_to_check["deepmedic"] = current_subject_folder + "/SegmentationsForQC/" + subject_id + "_deepmedic_seg.nii.gz";
+              archs_to_check["nnunet"] = current_subject_folder + "/SegmentationsForQC/" + subject_id + "_nnunet_seg.nii.gz";
+              archs_to_check["deepscan"] = current_subject_folder + "/SegmentationsForQC/" + subject_id + "_deepscan_seg.nii.gz";
+              if (!cbica::isFile(final_seg))
+              {
+                std::cerr << "The subject '" << subject_id << "' does not have a final_seg file present.\n";
+              }
+              else
+              {
+                using DefaultImageType = itk::Image< unsigned int, 3 >;
+                auto final_seg_image = cbica::ReadImage< DefaultImageType >(final_seg);
+                for (auto& current_arch : archs_to_check)
+                {
+                  if (cbica::isFile(current_arch.second))
+                  {
+                    auto image_to_check = cbica::ReadImage< DefaultImageType >(current_arch.second);
+
+                    auto stats = cbica::GetBraTSLabelStatistics< DefaultImageType >(final_seg_image, image_to_check);
+
+                    for (auto& region : regions_of_interest)
+                    {
+                      for (auto& measure : measures_of_interest)
+                      {
+                        yaml_config_to_send[subject_index_str][current_arch.first][region][measure] = stats[region][measure];
+                        yaml_config_internal[subject_id][current_arch.first][region][measure] = stats[region][measure];
+                      } // end measure loop
+                    } // end region loop
+                  } // end file-check loop
+                } // end arch-loop
+              } // end final_seg check 
+            } // end internal validation check loop
+          } // end header check if-loop
+          row_index++; // increment subject id counter
+        } // end csv-read while loop
+      }
+      std::ofstream fout_int(validation_internal);
+      fout_int << yaml_config_internal; // dump it back into the file
+      fout_int.close();
+
+      std::ofstream fout(validation_to_send);
+      fout << yaml_config_to_send; // dump it back into the file
+      fout.close();
+    }
+
+    std::string args = " -d " + dataDir + " -ld " + loggingDir + " -col " + colName + device_arg + "-bsuf " + validation_to_send,
+      hardcodedModelName;
+
+    if (!patchValidation)
+    {
+      args += " -vwop";
     }
     
     {
