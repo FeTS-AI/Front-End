@@ -510,7 +510,7 @@ int main(int argc, char** argv)
       fout.close();
     }
 
-    std::string args = " -d " + dataDir + " -ld " + loggingDir + " -col " + colName + device_arg + "-bsuf " + validation_to_send,
+    std::string args = " -d " + dataDir + " -ld " + loggingDir + " -col " + colName + device_arg + " -bsuf " + validation_to_send,
       hardcodedModelName;
 
     if (!patchValidation)
