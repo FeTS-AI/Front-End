@@ -510,7 +510,7 @@ int main(int argc, char** argv)
       fout.close();
     }
 
-    std::string args = " -d " + dataDir + " -ld " + loggingDir + " -col " + colName + device_arg + " -bsuf " + validation_to_send,
+    std::string args = " -d " + dataDir + " -ld " + loggingDir + " -col " + colName + device_arg,
       hardcodedModelName;
 
     if (!patchValidation)
@@ -536,7 +536,7 @@ int main(int argc, char** argv)
     std::string fullCommandToRun = hardcodedPythonPath + " " + fetsApplicationPath;
     fullCommandToRun += "/OpenFederatedLearning/bin/run_collaborator_from_flplan.py";
 
-    auto temp_args = args + " -p " + hardcodedPlanName + ".yaml";
+    auto temp_args = args + " -p " + hardcodedPlanName + ".yaml" + " -bsuf " + validation_to_send;
 
     std::cout << "Starting training...\n";
 
