@@ -463,9 +463,8 @@ int main(int argc, char** argv)
             {
               yaml_config_to_send[subject_index_str] = yaml_config_internal[subject_id]; // if present, take all stats from there
               auto to_check = yaml_config_internal[subject_id]["WT"];
-              if (yaml_config_internal[subject_id]["WT"]["Sensitivity"]) // check if sensitivity is present for subject
+              if (!yaml_config_internal[subject_id]["WT"]["Sensitivity"]) // check if sensitivity is present for subject
               {
-                // sensitivity and specificity were not calculated before
                 previous_validation_file_is_okay = false;
               }
             }
