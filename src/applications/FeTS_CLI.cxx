@@ -431,7 +431,7 @@ int main(int argc, char** argv)
       bool firstRow = true;
       int row_index = -1;
       auto regions_of_interest = { "WT", "TC", "ET" },
-        measures_of_interest = { "Dice", "Hausdorff95" };
+        measures_of_interest = { "Dice", "Hausdorff95", "Sensitivity", "Specificity" };
 
       auto yaml_config_to_send = YAML::Node();
       auto yaml_config_internal = YAML::Node();
