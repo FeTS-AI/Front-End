@@ -182,6 +182,16 @@ ${fets_root_dir}/bin/FeTS_CLI -d /path/to/output/DataForFeTS \ # input data, ens
 The aforementioned command will perform the following steps:
 - Train a model with a 3DResUNet architecture (more architectures will be made available in future releases) for all the *complete* subjects (i.e., with `${SubjectID}_final_seg.nii.gz` and all 4 structural modalities present) in a collaborative manner
 - Leverage the GPU
+- Perform full-image validation during training
+
+**NOTE**: If you run into "CUDA out of memory" issues, please run the following command, instead:
+
+```bash
+${fets_root_dir}/bin/FeTS_CLI -d /path/to/output/DataForFeTS \ # input data, ensure "final_seg" is present for each subject
+  -c ${collaborator_common_name} \ # common collaborator name created during setup
+  -g 1 -t 1 # request gpu and enable training mode
+  -vp 1 # performs patch-based validation
+```
 
 [Back To Top &uarr;](#table-of-contents)
 
