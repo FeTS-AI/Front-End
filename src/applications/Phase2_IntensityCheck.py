@@ -140,7 +140,7 @@ def main():
   # initialize modality dict
   files_to_check = {
     'T1': '_t1.nii.gz',
-    'T1CE': '_t1Gd.nii.gz',
+    'T1CE': '_t1ce.nii.gz',
     'T2': '_t2.nii.gz',
     'FL': '_flair.nii.gz',
     'MASK': '_final_seg.nii.gz'

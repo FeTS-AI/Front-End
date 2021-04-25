@@ -93,7 +93,9 @@ make install_openfl
 make install_fets
 # after this, the federated backend is ready
 ./venv/bin/pip install -e ./submodules/fets_ai/Algorithms/GANDLF # gandlf
-./venv/bin/pip install -e ../LabelFusion # label fusion
+cd ../LabelFusion
+python3 -m venv venv
+./venv/bin/pip install -e . # label fusion
 ```
 
 [Back To Top &uarr;](#table-of-contents)
