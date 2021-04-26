@@ -15,6 +15,10 @@ sudo add-apt-repository ppa:deadsnakes/ppa
 sudo apt update
 sudo apt install python3.6 python3.6-venv python3.6-dev python3-setuptools
 ```
+  - When using Anaconda, simply activate an environment with either of the following versions of python **before** starting the installation:
+    - 3.6.5
+    - 3.7
+    - 3.8
   - **NOTE**: Python 3.9 does **not** work with underlying dependencies
 - GPU: for faster training and inference
   - [CUDA 9.2 - 10.2](https://developer.nvidia.com/cuda-toolkit)
