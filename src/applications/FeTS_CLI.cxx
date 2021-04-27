@@ -548,7 +548,7 @@ int main(int argc, char** argv)
     std::string fullCommandToRun = hardcodedPythonPath + " " + fetsApplicationPath;
     fullCommandToRun += "/OpenFederatedLearning/bin/run_collaborator_from_flplan.py";
 
-    auto temp_args = args + " -p " + hardcodedPlanName + ".yaml" + " -bsuf " + validation_to_send;
+    auto temp_args = args + " -p " + hardcodedPlanName + ".yaml" + " -bsuf " + validation_to_send + " -nlo";
 
     std::cout << "Starting training...\n";
 
