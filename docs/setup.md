@@ -8,13 +8,18 @@
 ## Requirements
 
 - OS: Linux (Ubuntu 18.04) [note that Ubuntu 20.04 does **not** work, and we will support Windows for Phase-2]
-- Python 3.6+: we have tested on [Python distributed by Anaconda](https://www.anaconda.com/products/individual) 3.6, 3.7
+- Python 3.6+: we have tested on [Python distributed by Anaconda](https://www.anaconda.com/products/individual) 3.6, 3.7, 3.8
 Example installation on Ubuntu 18.04:
 ```bash
 sudo add-apt-repository ppa:deadsnakes/ppa
 sudo apt update
 sudo apt install python3.6 python3.6-venv python3.6-dev python3-setuptools
 ```
+  - When using Anaconda, simply activate an environment with either of the following versions of python **before** starting the installation:
+    - 3.6.5
+    - 3.7
+    - 3.8
+  - **NOTE**: Python 3.9 does **not** work with underlying dependencies
 - GPU: for faster training and inference
   - [CUDA 9.2 - 10.2](https://developer.nvidia.com/cuda-toolkit)
     - **Note**: CUDA 11 is currently _not_ supported

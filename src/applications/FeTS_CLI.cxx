@@ -43,13 +43,13 @@ int main(int argc, char** argv)
   parser.addOptionalParameter("lF", "labelFuse", cbica::Parameter::STRING, "STAPLE,ITKVoting,SIMPLE,MajorityVoting", "The label fusion strategy to follow for multi-arch inference", "Comma-separated values for multiple options", "Defaults to: " + fusionMethod);
   parser.addOptionalParameter("g", "gpu", cbica::Parameter::BOOLEAN, "0-1", "Whether to run the process on GPU or not", "Defaults to '0'");
   parser.addOptionalParameter("c", "colName", cbica::Parameter::STRING, "", "Common name of collaborator", "Required for training");
-  parser.addOptionalParameter("vp", "valPatch", cbica::Parameter::BOOLEAN, "0-1", "Whether to perform per-patch validation or not", "Used for training, defaults to '0'");
+  // parser.addOptionalParameter("vp", "valPatch", cbica::Parameter::BOOLEAN, "0-1", "Whether to perform per-patch validation or not", "Used for training, defaults to '0'");
 
   parser.addApplicationDescription("This is the CLI interface for FeTS");
   parser.addExampleUsage("-d /path/DataForFeTS -a deepMedic,nnUNet -lF STAPLE,ITKVoting,SIMPLE -g 1 -t 0", "This command performs inference using deepMedic,nnUNet using multiple fusion strategies on GPU and saves in data directory");
   parser.addExampleUsage("-d /path/DataForFeTS -t 1 -g 1 -c upenn", "This command starts training performs inference using deepMedic,nnUNet using multiple fusion strategies on GPU and saves in data directory");
   
-  bool gpuRequested = false, trainingRequested = false, patchValidation = false;
+  bool gpuRequested = false, trainingRequested = false, patchValidation = true;
 
   parser.getParameterValue("d", dataDir);
   parser.getParameterValue("t", trainingRequested);
@@ -60,7 +60,7 @@ int main(int argc, char** argv)
   }
   else
   {
-    loggingDir = cbica::createTemporaryDirectory() + "/logs";
+    loggingDir = dataDir + "/logs";
     std::cout << "Using the following directory as logging directory: " << loggingDir << "\n";
     cbica::createDir(loggingDir);
   }
@@ -76,10 +76,10 @@ int main(int argc, char** argv)
       std::cerr << "Collaborator name is required to beging training; please specify this using '-c'.\n";
       return EXIT_FAILURE;
     }
-    if (parser.isPresent("vp"))
-    {
-      parser.getParameterValue("vp", patchValidation);
-    }
+    // if (parser.isPresent("vp"))
+    // {
+    //   parser.getParameterValue("vp", patchValidation);
+    // }
   }
   else
   {
@@ -418,7 +418,7 @@ int main(int argc, char** argv)
     if (!cbica::fileExists(split_info_val))
     {
       auto full_plan_path = hardcodedOpenFLPath + hardcodedPlanName;
-      auto command_to_run = hardcodedPythonPath + " " + hardcodedOpenFLPath + "submodules/Algorithms/fets/bin/initialize_split_info.py -pp " + full_plan_path + " -dp " + dataDir;
+      auto command_to_run = hardcodedPythonPath + " " + hardcodedOpenFLPath + "submodules/Algorithms/fets_ai/bin/initialize_split_info.py -pp " + full_plan_path + " -dp " + dataDir;
       if (std::system(command_to_run.c_str()) != 0)
       {
         std::cerr << "Initialize split did not work, continuing with validation.\n";
@@ -431,7 +431,7 @@ int main(int argc, char** argv)
       bool firstRow = true;
       int row_index = -1;
       auto regions_of_interest = { "WT", "TC", "ET" },
-        measures_of_interest = { "Dice", "Hausdorff95" };
+        measures_of_interest = { "Dice", "Hausdorff95", "Sensitivity", "Specificity" };
 
       auto yaml_config_to_send = YAML::Node();
       auto yaml_config_internal = YAML::Node();
@@ -457,11 +457,23 @@ int main(int argc, char** argv)
             auto subject_id = cell;
             auto subject_index_str = std::to_string(row_index);
 
+            bool previous_validation_file_is_okay = true;
+
             if (yaml_config_internal[subject_id]) // check if subject is present in internal validation file
             {
               yaml_config_to_send[subject_index_str] = yaml_config_internal[subject_id]; // if present, take all stats from there
+              auto to_check = yaml_config_internal[subject_id]["WT"];
+              if (!yaml_config_internal[subject_id]["WT"]["Sensitivity"]) // check if sensitivity is present for subject
+              {
+                previous_validation_file_is_okay = false;
+              }
             }
-            else // otherwise, run the stats calculation
+            else
+            {
+              previous_validation_file_is_okay = false;
+            }
+
+            if (!previous_validation_file_is_okay)
             {
               auto current_subject_folder = dataDir + "/" + subject_id;
               auto final_seg = current_subject_folder + "/" + subject_id + "_final_seg.nii.gz";
@@ -536,7 +548,7 @@ int main(int argc, char** argv)
     std::string fullCommandToRun = hardcodedPythonPath + " " + fetsApplicationPath;
     fullCommandToRun += "/OpenFederatedLearning/bin/run_collaborator_from_flplan.py";
 
-    auto temp_args = args + " -p " + hardcodedPlanName + ".yaml" + " -bsuf " + validation_to_send;
+    auto temp_args = args + " -p " + hardcodedPlanName + ".yaml" + " -bsuf " + validation_to_send + " -nlo";
 
     std::cout << "Starting training...\n";
 
