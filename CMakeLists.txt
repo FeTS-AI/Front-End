@@ -561,10 +561,12 @@ IF( NOT BUILD_DOCUMENTATION_ONLY )
   ENDIF()
 
   # get lfs to pull
-  EXECUTE_PROCESS(COMMAND git lfs pull BrainMaGe/weights/resunet_ma.pt
-  WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/BrainMaGe
-  RESULT_VARIABLE git_result
-  OUTPUT_VARIABLE git_ver)    
+  IF( EXISTS "${PROJECT_SOURCE_DIR}/BrainMaGe" )
+    EXECUTE_PROCESS(COMMAND git lfs pull BrainMaGe/weights/resunet_ma.pt
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/BrainMaGe
+    RESULT_VARIABLE git_result
+    OUTPUT_VARIABLE git_ver)  
+  ENDIF()  
   
   # copy plans from algorithms 
   IF( EXISTS "${PROJECT_SOURCE_DIR}/OpenFederatedLearning/submodules/fets_ai/Algorithms/fets/bin/federations/plans/pt_3dresunet_brainmagebrats.yaml" )
