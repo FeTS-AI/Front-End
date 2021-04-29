@@ -562,7 +562,7 @@ IF( NOT BUILD_DOCUMENTATION_ONLY )
 
   # get lfs to pull
   IF( EXISTS "${PROJECT_SOURCE_DIR}/BrainMaGe" )
-    EXECUTE_PROCESS(COMMAND git lfs pull BrainMaGe/weights/resunet_ma.pt
+    EXECUTE_PROCESS(COMMAND git lfs pull
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/BrainMaGe
     RESULT_VARIABLE git_result
     OUTPUT_VARIABLE git_ver)  
