@@ -364,7 +364,6 @@ int main(int argc, char** argv)
 
   // variables that are used later on
   auto finalBrainMask = cbica::normalizePath(outputDir + "/brainMask_SRI.nii.gz");
-  auto brainMaskFile = outputDir + "/dmOut_skull/brainMask_SRI.nii.gz";
 
   if (skullStrip)
   {
@@ -372,7 +371,7 @@ int main(int argc, char** argv)
     auto brainmage_runner = captk_currentApplicationPath + "/BrainMaGe/brain_mage_single_run";
     auto deepMedicExe = getApplicationPath("DeepMedic");
     bool runDM = false;
-    if (!cbica::exists(brainMaskFile))
+    if (!cbica::exists(finalBrainMask))
     {
       if (cbica::isFile(brainmage_runner))
       {
@@ -415,7 +414,7 @@ int main(int argc, char** argv)
           outputRegisteredImages["T1CE"] + "," +
           outputRegisteredImages["T2"] + "," +
           outputRegisteredImages["FL"] + " -o " +
-          brainMaskFile;
+          finalBrainMask;
 
         if (debug)
         {
@@ -431,22 +430,11 @@ int main(int argc, char** argv)
     }
     else
     {
-      std::cout << "Found previous brain mask at: " << brainMaskFile << "\n";
-    }
-
-    if (!cbica::exists(brainMaskFile))
-    {
-      std::cerr << "Brain Mask was not written, cannot proceed.\n";
-      return EXIT_FAILURE;
+      std::cout << "Found previous brain mask at: " << finalBrainMask << "\n";
     }
 
     // variables to store outputs in patient space
     std::map< std::string, std::string > outputFiles_withoutOrientationFix, outputFiles_withOrientationFix;
-
-    cbica::WriteImage< TImageType >(
-      cbica::ReadImage< TImageType >(brainMaskFile),
-      finalBrainMask
-      );
 
     // iterate over outputRegisteredMaskedImages
     for (auto it = outputRegisteredMaskedImages.begin(); it != outputRegisteredMaskedImages.end(); it++)
