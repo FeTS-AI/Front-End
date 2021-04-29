@@ -382,7 +382,7 @@ int main(int argc, char** argv)
         std::string hardcodedPythonPath = captk_currentApplicationPath + "/OpenFederatedLearning/venv/bin/python"; // this needs to change for Windows (wonder what happens for macOS?)
         if (cbica::isFile(hardcodedPythonPath)) // try to run from virtual environment, otherwise fall back to deepmedic
         {
-          auto command_for_brainmage = hardcodedPythonPath + " " + brainmage_runner + " -i " + outputRegisteredImages["FL"] + " -o " + brainMaskFile;
+          auto command_for_brainmage = hardcodedPythonPath + " " + brainmage_runner + " -i " + outputRegisteredImages["FL"] + " -o " + finalBrainMask;
           if (debug)
           {
             std::cout << "Command for BrainMaGe: " << command_for_brainmage << "\n";
