@@ -378,15 +378,20 @@ int main(int argc, char** argv)
       {
         if (debug)
         {
-          std::cout << "Starting skull-stripping using BrainMaGe.\n";
+          std::cout << "Trying skull-stripping using BrainMaGe.\n";
         }
         std::string hardcodedPythonPath = captk_currentApplicationPath + "/OpenFederatedLearning/venv/bin/python"; // this needs to change for Windows (wonder what happens for macOS?)
         if (cbica::isFile(hardcodedPythonPath)) // try to run from virtual environment, otherwise fall back to deepmedic
         {
           auto command_for_brainmage = hardcodedPythonPath + " " + brainmage_runner + " -i " + outputRegisteredImages["FL"] + " -o " + brainMaskFile;
+          if (debug)
+          {
+            std::cout << "Command for BrainMaGe: " << command_for_brainmage << "\n";
+          }
           if (std::system(command_for_brainmage.c_str()) != 0)
           {
             runDM = true;
+            std::cerr << "Skull-stripping using BrainMaGe could not finish, falling back to DeepMedic, instead.\n";
           }
         }
         else
