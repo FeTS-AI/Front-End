@@ -364,37 +364,70 @@ int main(int argc, char** argv)
 
   // variables that are used later on
   auto finalBrainMask = cbica::normalizePath(outputDir + "/brainMask_SRI.nii.gz");
-  auto deepMedicExe = getApplicationPath("DeepMedic");
   auto brainMaskFile = outputDir + "/dmOut_skull/brainMask_SRI.nii.gz";
 
   if (skullStrip)
   {
-    /// [5] Skull-stripping using DeepMedic
-    if (debug)
-    {
-      std::cout << "Starting skull-stripping using DeepMedic.\n";
-    }
-
+    /// [5] Skull-stripping
+    auto brainmage_runner = captk_currentApplicationPath + "/BrainMaGe/brain_mage_single_run";
+    auto deepMedicExe = getApplicationPath("DeepMedic");
+    bool runDM = false;
     if (!cbica::exists(brainMaskFile))
     {
-      fullCommand = " -md " + captkDataDir + "/deepMedic/saved_models/skullStripping/ " +
-        "-i " + outputRegisteredImages["T1"] + "," +
-        outputRegisteredImages["T1CE"] + "," +
-        outputRegisteredImages["T2"] + "," +
-        outputRegisteredImages["FL"] + " -o " +
-        brainMaskFile;
-
-      if (debug)
+      if (cbica::isFile(brainmage_runner))
       {
-        std::cout << "Command for DeepMedic: " << deepMedicExe + fullCommand << "\n";
+        if (debug)
+        {
+          std::cout << "Starting skull-stripping using BrainMaGe.\n";
+        }
+        std::string hardcodedPythonPath = captk_currentApplicationPath + "/OpenFederatedLearning/venv/bin/python"; // this needs to change for Windows (wonder what happens for macOS?)
+        if (cbica::isFile(hardcodedPythonPath)) // try to run from virtual environment, otherwise fall back to deepmedic
+        {
+          auto command_for_brainmage = hardcodedPythonPath + " " + brainmage_runner + " -i " + outputRegisteredImages["FL"] + " -o " + brainMaskFile;
+          if (std::system(command_for_brainmage.c_str()) != 0)
+          {
+            runDM = true;
+          }
+        }
+        else
+        {
+          runDM = true;
+        }        
+      } // end brainmage_runner check
+      else
+      {
+        runDM = true;
       }
 
-      if (std::system((deepMedicExe + fullCommand).c_str()) != 0)
+      if (runDM) // fall-back
       {
-        std::cerr << "Something went wrong when performing skull-stripping using DeepMedic, please re-try or contact sofware@cbica.upenn.edu.\n";
-        return EXIT_FAILURE;
+        if (debug)
+        {
+          std::cout << "Starting skull-stripping using DeepMedic.\n";
+        }
+        fullCommand = " -md " + captkDataDir + "/deepMedic/saved_models/skullStripping/ " +
+          "-i " + outputRegisteredImages["T1"] + "," +
+          outputRegisteredImages["T1CE"] + "," +
+          outputRegisteredImages["T2"] + "," +
+          outputRegisteredImages["FL"] + " -o " +
+          brainMaskFile;
+
+        if (debug)
+        {
+          std::cout << "Command for DeepMedic: " << deepMedicExe + fullCommand << "\n";
+        }
+
+        if (std::system((deepMedicExe + fullCommand).c_str()) != 0)
+        {
+          std::cerr << "Something went wrong when performing skull-stripping using DeepMedic, please re-try or contact sofware@cbica.upenn.edu.\n";
+          return EXIT_FAILURE;
+        }
       }
-    } // end brainMask check
+    }
+    else
+    {
+      std::cout << "Found previous brain mask at: " << brainMaskFile << "\n";
+    }
 
     if (!cbica::exists(brainMaskFile))
     {
