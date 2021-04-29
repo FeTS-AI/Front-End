@@ -364,12 +364,12 @@ int main(int argc, char** argv)
 
   // variables that are used later on
   auto finalBrainMask = cbica::normalizePath(outputDir + "/brainMask_SRI.nii.gz");
+  auto deepMedicExe = getApplicationPath("DeepMedic");
 
   if (skullStrip)
   {
     /// [5] Skull-stripping
     auto brainmage_runner = captk_currentApplicationPath + "/BrainMaGe/brain_mage_single_run";
-    auto deepMedicExe = getApplicationPath("DeepMedic");
     bool runDM = false;
     if (!cbica::exists(finalBrainMask))
     {
