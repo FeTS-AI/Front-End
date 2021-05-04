@@ -81,7 +81,14 @@ int main(int argc, char** argv)
       return EXIT_FAILURE;
     }
 
-    auto inputImageInfo = cbica::ImageInfo(it->second);
+    auto fileToRead = it->second;
+    if (cbica::isDir(it->second))
+    {
+      auto filesInDir = cbica::filesInDirectory(it->second);
+      fileToRead = filesInDir[0];
+    }
+
+    auto inputImageInfo = cbica::ImageInfo(fileToRead);
     if (inputImageInfo.GetImageDimensions() != 3)
     {
       std::cerr << "The BraTS pipeline is only valid for 3D images, whereas the image '" 
@@ -110,11 +117,18 @@ int main(int argc, char** argv)
   {
     auto modality = it->first;
     /// [1] read image - DICOM to NIfTI conversion, if applicable
-    inputImages[modality] = cbica::ReadImage< ImageType >(it->second);
-
-    if (inputImages[modality].IsNull() && cbica::IsDicom(it->second))
+    auto fileToRead = it->second;
+    if (cbica::isDir(it->second))
     {
-      auto dicomFolderPath = cbica::getFilenamePath(it->second);
+      auto filesInDir = cbica::filesInDirectory(it->second);
+      fileToRead = filesInDir[0];
+    }
+
+    inputImages[modality] = cbica::ReadImage< ImageType >(fileToRead);
+
+    if (inputImages[modality].IsNull() && cbica::IsDicom(fileToRead))
+    {
+      auto dicomFolderPath = cbica::getFilenamePath(fileToRead);
       // construct path to dcm2niix for debug/release modes and different OS
       std::string m_exe;
 #ifdef CAPTK_PACKAGE_PROJECT
@@ -175,10 +189,10 @@ int main(int argc, char** argv)
     }
     else
     {
-      if (cbica::IsDicom(it->second))
+      if (cbica::IsDicom(fileToRead))
       {
         std::cerr << "Something went wrong with the DICOM to NIfTI conversion for modality '" <<
-          modality << "' with filename '" << it->second << "'"
+          modality << "' with filename '" << fileToRead << "'"
           << ", please use another package to conver to NIfTI and try again.\n";
         return EXIT_FAILURE;
       }
