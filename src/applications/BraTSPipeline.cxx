@@ -81,14 +81,7 @@ int main(int argc, char** argv)
       return EXIT_FAILURE;
     }
 
-    auto fileToRead = it->second;
-    if (cbica::isDir(it->second))
-    {
-      auto filesInDir = cbica::filesInDirectory(it->second);
-      fileToRead = filesInDir[0];
-    }
-
-    auto inputImageInfo = cbica::ImageInfo(fileToRead);
+    auto inputImageInfo = cbica::ImageInfo(it->second);
     if (inputImageInfo.GetImageDimensions() != 3)
     {
       std::cerr << "The BraTS pipeline is only valid for 3D images, whereas the image '" 
@@ -117,19 +110,26 @@ int main(int argc, char** argv)
   {
     auto modality = it->first;
     /// [1] read image - DICOM to NIfTI conversion, if applicable
-    auto fileToRead = it->second;
     if (cbica::isDir(it->second))
     {
+      std::cout << "Passed a directory as DICOM input, will take the first valid DICOM file as input for further processing.\n";
       auto filesInDir = cbica::filesInDirectory(it->second);
-      fileToRead = filesInDir[0];
+      for (size_t i = 0; i < filesInDir.size(); i++)
+      {
+        if (cbica::IsDicom(filesInDir[i]))
+        {
+          inputFiles[it->first] = filesInDir[i];
+          break;
+        }
+      }
     }
 
-    inputImages[modality] = cbica::ReadImage< ImageType >(fileToRead);
+    inputImages[modality] = cbica::ReadImage< ImageType >(it->second);
 
-    if (inputImages[modality].IsNull() && cbica::IsDicom(fileToRead))
+    if (inputImages[modality].IsNull() && cbica::IsDicom(it->second))
     {
       std::cerr << "WARNING: Built-in DICOM engine did not work, trying with dcm2niix, which might result in weird output orientations of converted images.\n";
-      auto dicomFolderPath = cbica::getFilenamePath(fileToRead);
+      auto dicomFolderPath = cbica::getFilenamePath(it->second);
       // construct path to dcm2niix for debug/release modes and different OS
       std::string m_exe;
 #ifdef CAPTK_PACKAGE_PROJECT
@@ -190,10 +190,10 @@ int main(int argc, char** argv)
     }
     else
     {
-      if (cbica::IsDicom(fileToRead))
+      if (cbica::IsDicom(it->second))
       {
         std::cerr << "Something went wrong with the DICOM to NIfTI conversion for modality '" <<
-          modality << "' with filename '" << fileToRead << "'"
+          modality << "' with filename '" << it->second << "'"
           << ", please use another package to conver to NIfTI and try again.\n";
         return EXIT_FAILURE;
       }
