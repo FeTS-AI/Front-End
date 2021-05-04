@@ -128,6 +128,7 @@ int main(int argc, char** argv)
 
     if (inputImages[modality].IsNull() && cbica::IsDicom(fileToRead))
     {
+      std::cerr << "WARNING: Built-in DICOM engine did not work, trying with dcm2niix, which might result in weird output orientations of converted images.\n";
       auto dicomFolderPath = cbica::getFilenamePath(fileToRead);
       // construct path to dcm2niix for debug/release modes and different OS
       std::string m_exe;
