@@ -2,7 +2,7 @@
 
 ## Table of Contents
 - [Requirements](#requirements)
-  - [Windows](##windows)
+  - [Windows](#windows)
 - [Set up the Environment](#set-up-the-environment)
 - [Set up the Collaborator](#set-up-the-collaborator)
 
