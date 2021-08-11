@@ -51,7 +51,7 @@ int main(int argc, char** argv)
     //hardcodedNativeModelWeightPath = hardcodedOpenFLPath + "/bin/federations/weights/native/", // the native weights are going in fets_data_dir/fets
     hardcodedPythonPath = hardcodedOpenFLPath + "/venv/bin/python", // this needs to change for Windows (wonder what happens for macOS?)
     hardcodedPythonPath_fusion = fetsApplicationPath + "/LabelFusion/venv/bin/python", // this needs to change for Windows (wonder what happens for macOS?)
-    full_plan_path = hardcodedOpenFLPath + hardcodedPlanName;
+    fullPlanPath = hardcodedOpenFLPath + "/bin/federations/plans/" + hardcodedPlanName + ".yaml"; // the full path to the plan that we want to use
 
   return EXIT_SUCCESS;
 }
