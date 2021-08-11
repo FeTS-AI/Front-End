@@ -12,7 +12,6 @@ int main(int argc, char** argv)
   cbica::CmdParser parser(argc, argv, "FeTS_CLI");
 
   auto fets_dataDir = getCaPTkDataDir();
-  auto hardcodedNativeModelWeightPath = fets_dataDir + "/fets";
   auto hardcodedFinalModelsWeightsPath = fets_dataDir + "/fets_consensus";
 
   std::string dataDir, outputDir, loggingDir, fusionMethod = "STAPLE", hardcodedPlanName = "fets_phase2_2";
@@ -21,7 +20,7 @@ int main(int argc, char** argv)
   parser.addOptionalParameter("o", "outputDir", cbica::Parameter::DIRECTORY, "Dir with write access", "Location of logging directory");
   parser.addOptionalParameter("g", "gpu", cbica::Parameter::BOOLEAN, "0-1", "Whether to run the process on GPU or not", "Defaults to '0'");
 
-  parser.addApplicationDescription("This is the CLI interface for FeTS");
+  parser.addApplicationDescription("This is the CLI interface for FeTS validation");
   parser.addExampleUsage("-d /path/DataForFeTS -o /path/outputDir -g 1", "This command performs inference using the specific models and generates the output to send");
   
   bool gpuRequested = false;
@@ -53,7 +52,7 @@ int main(int argc, char** argv)
     hardcodedPythonPath = hardcodedOpenFLPath + "/venv/bin/python", // this needs to change for Windows (wonder what happens for macOS?)
     hardcodedPythonPath_fusion = fetsApplicationPath + "/LabelFusion/venv/bin/python", // this needs to change for Windows (wonder what happens for macOS?)
     fullPlanPath = hardcodedOpenFLPath + "/bin/federations/plans/" + hardcodedPlanName + ".yaml", // the full path to the plan that we want to use
-    scriptToCall = hardcodedOpenFLPath + "submodules/fets_ai/Algorithms/fets/bin/brainmage_validation_scores_to_disk.py"; // the script that does the inference and scoring
+    scriptToCall = hardcodedOpenFLPath + "/submodules/fets_ai/Algorithms/fets/bin/brainmage_validation_scores_to_disk.py"; // the script that does the inference and scoring
 
   std::string command_to_run;
   
