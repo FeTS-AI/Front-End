@@ -51,8 +51,22 @@ int main(int argc, char** argv)
     //hardcodedNativeModelWeightPath = hardcodedOpenFLPath + "/bin/federations/weights/native/", // the native weights are going in fets_data_dir/fets
     hardcodedPythonPath = hardcodedOpenFLPath + "/venv/bin/python", // this needs to change for Windows (wonder what happens for macOS?)
     hardcodedPythonPath_fusion = fetsApplicationPath + "/LabelFusion/venv/bin/python", // this needs to change for Windows (wonder what happens for macOS?)
-    fullPlanPath = hardcodedOpenFLPath + "/bin/federations/plans/" + hardcodedPlanName + ".yaml"; // the full path to the plan that we want to use
+    fullPlanPath = hardcodedOpenFLPath + "/bin/federations/plans/" + hardcodedPlanName + ".yaml", // the full path to the plan that we want to use
+    scriptToCall = hardcodedOpenFLPath + "submodules/fets_ai/Algorithms/fets/bin/brainmage_validation_scores_to_disk.py"; // the script that does the inference and scoring
 
+  // call hardcodedOpenFLPath + "submodules/fets_ai/Algorithms/fets/bin/brainmage_validation_scores_to_disk.py"
+  // notes from micah
+  /* auto command_to_run = 
+  hardcodedPythonPath +  scriptToCall \
+  -WT <path_to_model_to_use_for_WT> \
+  -ET <path_to_model_to_use_for_ET> \
+  -TC <path_to_model_to_use_for_TC> \
+  -pp federations/plans/fets_phase2_2.yaml \
+  -op <output_dir> \
+  -dev cuda \
+  -dp <dataset_dir> \
+  -ptd
+  */
   std::cout << "FeTS Validation completed without errors. Please zip the following directory: '" << outputDir << "' and send a cloud storage link to admin@fets.ai.\n\n";
 
   return EXIT_SUCCESS;
