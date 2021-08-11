@@ -43,5 +43,15 @@ int main(int argc, char** argv)
     device_arg += "cpu";
   }
 
+  std::string
+    fetsApplicationPath = cbica::getExecutablePath(),
+    hardcodedOpenFLPath = fetsApplicationPath + "/OpenFederatedLearning/",
+    hardcodedLabelFusionPath = fetsApplicationPath + "/LabelFusion/fusion_run",
+    hardcodedModelWeightPath = hardcodedOpenFLPath + "/bin/federations/weights/", // start with the common location
+    //hardcodedNativeModelWeightPath = hardcodedOpenFLPath + "/bin/federations/weights/native/", // the native weights are going in fets_data_dir/fets
+    hardcodedPythonPath = hardcodedOpenFLPath + "/venv/bin/python", // this needs to change for Windows (wonder what happens for macOS?)
+    hardcodedPythonPath_fusion = fetsApplicationPath + "/LabelFusion/venv/bin/python", // this needs to change for Windows (wonder what happens for macOS?)
+    full_plan_path = hardcodedOpenFLPath + hardcodedPlanName;
+
   return EXIT_SUCCESS;
 }
