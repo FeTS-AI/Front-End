@@ -53,5 +53,7 @@ int main(int argc, char** argv)
     hardcodedPythonPath_fusion = fetsApplicationPath + "/LabelFusion/venv/bin/python", // this needs to change for Windows (wonder what happens for macOS?)
     fullPlanPath = hardcodedOpenFLPath + "/bin/federations/plans/" + hardcodedPlanName + ".yaml"; // the full path to the plan that we want to use
 
+  std::cout << "FeTS Validation completed without errors. Please zip the following directory: '" << outputDir << "' and send a cloud storage link to admin@fets.ai.\n\n";
+
   return EXIT_SUCCESS;
 }
