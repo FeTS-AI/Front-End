@@ -148,7 +148,15 @@ install_captk () {
     echo "Downloading weights for nnUNet..."
     cd ${target_dir}/squashfs-root/usr/data/fets
     wget ${nnunet_link} -O nnunet.zip
-    unzip nnunet.zip
+    if unzip nnunet.zip ; then
+      rm -rf nnunet.zip
+    fi
+
+    cd ..
+    wget https://upenn.box.com/shared/static/nfdxfh58u76tr53ytowlt4qeul5hplmg -O ./fets_consensus.zip
+    if unzip -qq fets_consensus.zip ; then
+      rm -rf fets_consensus.zip
+    fi
   fi
   ## openfl installation
   echo "fets_root_dir :: \"${target_dir}/squashfs-root/usr\""
