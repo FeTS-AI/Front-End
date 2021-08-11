@@ -28,6 +28,7 @@ int main(int argc, char** argv)
 
   parser.getParameterValue("d", dataDir);
   parser.getParameterValue("o", outputDir);
+  cbica::createDir(outputDir);
 
   if (parser.isPresent("g"))
   {
@@ -54,19 +55,33 @@ int main(int argc, char** argv)
     fullPlanPath = hardcodedOpenFLPath + "/bin/federations/plans/" + hardcodedPlanName + ".yaml", // the full path to the plan that we want to use
     scriptToCall = hardcodedOpenFLPath + "submodules/fets_ai/Algorithms/fets/bin/brainmage_validation_scores_to_disk.py"; // the script that does the inference and scoring
 
-  // call hardcodedOpenFLPath + "submodules/fets_ai/Algorithms/fets/bin/brainmage_validation_scores_to_disk.py"
-  // notes from micah
-  /* auto command_to_run = 
-  hardcodedPythonPath +  scriptToCall \
-  -WT <path_to_model_to_use_for_WT> \
-  -ET <path_to_model_to_use_for_ET> \
-  -TC <path_to_model_to_use_for_TC> \
-  -pp federations/plans/fets_phase2_2.yaml \
-  -op <output_dir> \
-  -dev cuda \
-  -dp <dataset_dir> \
-  -ptd
-  */
+  std::string command_to_run;
+  
+  auto outputDir_overall = outputDir + "/overall";
+  cbica::createDir(outputDir_overall);
+  std::cout << "Starting overall model scoring.\n";
+  command_to_run = hardcodedPythonPath + scriptToCall
+    + " -WT " + hardcodedFinalModelsWeightsPath + "/overall -ET " + hardcodedFinalModelsWeightsPath + "/overall -TC " + hardcodedFinalModelsWeightsPath + "/overall "
+    + "-pp federations/plans/fets_phase2_2.yaml -op " + outputDir_overall + device_arg + " -dp " + dataDir + " -ptd";
+
+  if (std::system(command_to_run.c_str()) != 0)
+  {
+    std::cerr << "The overall models did not run, please contact admin@fets.ai.\n\n";
+    return EXIT_FAILURE;
+  }
+
+  auto outputDir_distinct = outputDir + "/distinct";
+  cbica::createDir(outputDir_distinct);
+  std::cout << "Starting distinct model scoring.\n";
+  command_to_run = hardcodedPythonPath + scriptToCall
+    + " -WT " + hardcodedFinalModelsWeightsPath + "/WT -ET " + hardcodedFinalModelsWeightsPath + "/ET -TC " + hardcodedFinalModelsWeightsPath + "/TC "
+    + "-pp federations/plans/fets_phase2_2.yaml -op " + outputDir_overall + device_arg + " -dp " + dataDir + " -ptd";
+  if (std::system(command_to_run.c_str()) == 0)
+  {
+    std::cerr << "The distinct models did not run, please contact admin@fets.ai.\n\n";
+    return EXIT_FAILURE;
+  }
+
   std::cout << "FeTS Validation completed without errors. Please zip the following directory: '" << outputDir << "' and send a cloud storage link to admin@fets.ai.\n\n";
 
   return EXIT_SUCCESS;
