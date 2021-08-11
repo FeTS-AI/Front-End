@@ -29,10 +29,24 @@ int main(int argc, char** argv)
   parser.addApplicationDescription("This is the CLI interface for FeTS");
   parser.addExampleUsage("-d /path/DataForFeTS -o /path/outputDir -g 1", "This command performs inference using the specific models and generates the output to send");
   
-  bool gpuRequested = false, trainingRequested = false, patchValidation = true;
+  bool gpuRequested = false;
 
   parser.getParameterValue("d", dataDir);
   parser.getParameterValue("o", outputDir);
+
+  if (parser.isPresent("g"))
+  {
+    parser.getParameterValue("g", gpuRequested);
+  }
+  std::string device_arg = " -dev ";
+  if (gpuRequested)
+  {
+    device_arg += "cuda";
+  }
+  else
+  {
+    device_arg += "cpu";
+  }
 
   return EXIT_SUCCESS;
 }
