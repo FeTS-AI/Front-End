@@ -11,14 +11,9 @@ int main(int argc, char** argv)
 {
   cbica::CmdParser parser(argc, argv, "FeTS_CLI");
 
-  auto hardcodedNativeModelWeightPath = getCaPTkDataDir() + "/fets";
-  auto allArchs = cbica::subdirectoriesInDirectory(hardcodedNativeModelWeightPath);
-  std::string allArchsString;
-  for (size_t i = 0; i < allArchs.size(); i++)
-  {
-    allArchsString += allArchs[i] + ",";
-  }
-  allArchsString.pop_back();
+  auto fets_dataDir = getCaPTkDataDir();
+  auto hardcodedNativeModelWeightPath = fets_dataDir + "/fets";
+  auto hardcodedFinalModelsWeightsPath = fets_dataDir + "/fets_consensus";
 
   std::string dataDir, outputDir, loggingDir, fusionMethod = "STAPLE", hardcodedPlanName = "fets_phase2_2";
 
