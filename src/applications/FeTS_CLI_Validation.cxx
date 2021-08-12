@@ -81,6 +81,92 @@ int main(int argc, char** argv)
     return EXIT_FAILURE;
   }
 
+  std::cout << "Starting inference for previous BraTS algorithms.\n";
+  auto fetsCLIMainPath = getApplicationPath("FeTS_CLI");
+
+  std::string fetsCLIArgs = " -d " + dataDir + " -t 0 -a deepMedic,nnUNet,DeepScan -g ";
+  if (gpuRequested)
+  {
+    fetsCLIArgs += "1 ";
+  }
+  else
+  {
+    fetsCLIArgs += "0 ";
+  }
+  if (std::system((fetsCLIMainPath + fetsCLIArgs).c_str()) != 0)
+  {
+    std::cerr << "Previous BraTS algorithms did not run, hence validation results won't be generated for them.\n";
+  }
+  else
+  {
+    /// start validation of nnunet/deepscan/deepmedic on all validation cases
+    auto validation_to_send = outputDir + "/validation_prev_brats.yaml",
+      validation_internal = dataDir + "/validation_internal.yaml";
+
+    if (!cbica::isFile(hardcodedPythonPath))
+    {
+      std::cerr << "The python virtual environment was not found, please refer to documentation to initialize it.\n";
+      return EXIT_FAILURE;
+    }
+
+    auto regions_of_interest = { "WT", "TC", "ET" },
+      measures_of_interest = { "Dice", "Hausdorff95", "Sensitivity", "Specificity" };
+
+    auto yaml_config_to_send = YAML::Node();
+    auto yaml_config_internal = YAML::Node();
+
+    auto subjectsForConsideration = cbica::subdirectoriesInDirectory(dataDir);
+    for (size_t i = 0; i < subjectsForConsideration.size(); i++)
+    {
+      auto currentSubjectDir = cbica::normPath(dataDir + "/" + subjectsForConsideration[i]);
+
+      auto subject_id = subjectsForConsideration[i];
+      auto subject_index_str = std::to_string(i);
+
+      auto current_subject_folder = dataDir + "/" + subject_id;
+      auto final_seg = current_subject_folder + "/" + subject_id + "_final_seg.nii.gz";
+      std::map< std::string, std::string > archs_to_check;
+      archs_to_check["deepmedic"] = current_subject_folder + "/SegmentationsForQC/" + subject_id + "_deepmedic_seg.nii.gz";
+      archs_to_check["nnunet"] = current_subject_folder + "/SegmentationsForQC/" + subject_id + "_nnunet_seg.nii.gz";
+      archs_to_check["deepscan"] = current_subject_folder + "/SegmentationsForQC/" + subject_id + "_deepscan_seg.nii.gz";
+      if (!cbica::isFile(final_seg))
+      {
+        std::cerr << "The subject '" << subject_id << "' does not have a final_seg file present.\n";
+      }
+      else
+      {
+        using DefaultImageType = itk::Image< unsigned int, 3 >;
+        auto final_seg_image = cbica::ReadImage< DefaultImageType >(final_seg);
+        for (auto& current_arch : archs_to_check)
+        {
+          if (cbica::isFile(current_arch.second))
+          {
+            auto image_to_check = cbica::ReadImage< DefaultImageType >(current_arch.second);
+
+            auto stats = cbica::GetBraTSLabelStatistics< DefaultImageType >(final_seg_image, image_to_check);
+
+            for (auto& region : regions_of_interest)
+            {
+              for (auto& measure : measures_of_interest)
+              {
+                yaml_config_to_send[subject_index_str][current_arch.first][region][measure] = stats[region][measure];
+                yaml_config_internal[subject_id][current_arch.first][region][measure] = stats[region][measure];
+              } // end measure loop
+            } // end region loop
+          } // end file-check loop
+        } // end arch-loop
+      } // end final_seg check 
+    } // end subject loop
+
+    std::ofstream fout_int(validation_internal);
+    fout_int << yaml_config_internal; // dump it back into the file
+    fout_int.close();
+
+    std::ofstream fout(validation_to_send);
+    fout << yaml_config_to_send; // dump it back into the file
+    fout.close();
+  }
+
   std::cout << "FeTS Validation completed without errors. Please zip the following directory: '" << outputDir << "' and send a cloud storage link to admin@fets.ai.\n\n";
 
   return EXIT_SUCCESS;
