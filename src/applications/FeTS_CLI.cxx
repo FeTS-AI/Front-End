@@ -218,13 +218,15 @@ int main(int argc, char** argv)
         if (!currentSubjectIsProblematic) // proceed only if all modalities for the current subject are present
         {
           std::cout << "= Starting inference for subject: " << subjectDirs[s] << "\n";
+          auto currentSubjectOutputDir = dataDir + "/" + subjectDirs[s] + "/SegmentationsForQC/";
+          cbica::createDir(currentSubjectOutputDir);
           for (size_t a = 0; a < archs_split.size(); a++) // iterate through all requested architectures
           {
             if (archs_split[a] == "deepmedic") // special case 
             {
               std::cout << "== Starting inference using DeepMedic...\n";
               auto brainMaskFile = dataDir + "/" + subjectDirs[s] + "/" + subjectDirs[s] + "_deepmedic_seg.nii.gz";
-              auto fileToCheck_2 = dataDir + "/" + subjectDirs[s] + "/SegmentationsForQC/" + subjectDirs[s] + "_deepmedic_seg.nii.gz";
+              auto fileToCheck_2 = currentSubjectOutputDir + subjectDirs[s] + "_deepmedic_seg.nii.gz";
               if (!(cbica::isFile(brainMaskFile) || cbica::isFile(fileToCheck_2)))
               {
                 auto dm_tempOut = dataDir + "/" + subjectDirs[s] + "/dmOut/mask.nii.gz";
@@ -264,7 +266,7 @@ int main(int argc, char** argv)
                   std::cout << "3DResUNet inference is disabled for this release.\n";
                   //auto fileNameToCheck = subjectDirs[s] + "_resunet_seg.nii.gz";
                   //auto fileToCheck_1 = dataDir + "/" + subjectDirs[s] + "/" + fileNameToCheck;
-                  //auto fileToCheck_2 = dataDir + "/" + subjectDirs[s] + "/SegmentationsForQC/" + fileNameToCheck;
+                  //auto fileToCheck_2 = currentSubjectOutputDir + fileNameToCheck;
                   //if (!(cbica::isFile(fileToCheck_1) || cbica::isFile(fileToCheck_2))) // don't run if file is present
                   //{
                   //  std::cout << "== Starting inference using 3DResUNet...\n";
@@ -307,7 +309,7 @@ int main(int argc, char** argv)
                   {
                     auto fileNameToCheck = subjectDirs[s] + "_" + hardcodedPlanName + "_seg.nii.gz";
                     auto fileToCheck_1 = dataDir + "/" + subjectDirs[s] + "/" + fileNameToCheck;
-                    auto fileToCheck_2 = dataDir + "/" + subjectDirs[s] + "/SegmentationsForQC/" + fileNameToCheck;
+                    auto fileToCheck_2 = currentSubjectOutputDir + fileNameToCheck;
                     if (!(cbica::isFile(fileToCheck_1) || cbica::isFile(fileToCheck_2))) // don't run if file is present
                     {
                       // structure according to what is needed - might need to create a function that can call run_inference_from_flplan for different hardcodedModelName
@@ -338,12 +340,11 @@ int main(int argc, char** argv)
               std::cout << "== Starting label fusion...\n";
               auto filesInSubjectDir = cbica::filesInDirectory(dataDir + "/" + subjectDirs[s]);
               auto labelFusion_command = hardcodedPythonPath_fusion + " " + hardcodedLabelFusionPath + " ";
-              std::string filesForFusion, dataForSegmentation = dataDir + "/" + subjectDirs[s] + "/SegmentationsForQC/";
-              cbica::createDir(dataForSegmentation);
+              std::string filesForFusion;
               auto dm_folder = dataDir + "/" + subjectDirs[s] + "/dmOut";
               if (cbica::isDir(dm_folder))
               {
-                cbica::copyDir(dm_folder, dataForSegmentation);
+                cbica::copyDir(dm_folder, currentSubjectOutputDir);
                 cbica::removeDirectoryRecursively(dm_folder, true);
               }
 
@@ -353,17 +354,17 @@ int main(int argc, char** argv)
                 {
                   if (filesInSubjectDir[f].find("final") == std::string::npos) // only do fusion for the files where "final" is not present
                   {
-                    auto fileToCopy = dataForSegmentation + cbica::getFilenameBase(filesInSubjectDir[f]) + ".nii.gz";
+                    auto fileToCopy = currentSubjectOutputDir + cbica::getFilenameBase(filesInSubjectDir[f]) + ".nii.gz";
                     cbica::copyFile(filesInSubjectDir[f], fileToCopy);
                     filesForFusion += fileToCopy + ",";
                     std::remove(filesInSubjectDir[f].c_str());
                   }
                 }
               } // files loop in subject directory
-              filesInSubjectDir = cbica::filesInDirectory(dataForSegmentation);
+              filesInSubjectDir = cbica::filesInDirectory(currentSubjectOutputDir);
               for (size_t f = 0; f < filesInSubjectDir.size(); f++)
               {
-                auto fileToCopy = dataForSegmentation + cbica::getFilenameBase(filesInSubjectDir[f]) + ".nii.gz";
+                auto fileToCopy = currentSubjectOutputDir + cbica::getFilenameBase(filesInSubjectDir[f]) + ".nii.gz";
                 if (filesInSubjectDir[f].find("fused") == std::string::npos) // only consider those files for fusion that are arch outputs
                 {
                   filesForFusion += fileToCopy + ",";
@@ -377,7 +378,7 @@ int main(int argc, char** argv)
 
               for (size_t f = 0; f < fusion_split.size(); f++)
               {
-                auto final_fused_file = dataForSegmentation + "/" + subjectDirs[s] + "_fused_" + fusion_split[f] + "_seg.nii.gz";
+                auto final_fused_file = currentSubjectOutputDir + "/" + subjectDirs[s] + "_fused_" + fusion_split[f] + "_seg.nii.gz";
                 auto full_fusion_command = labelFusion_command + "-inputs " + filesForFusion + " -classes 0,1,2,4 " // this needs to change after different segmentation algorithms are put in place
                   + " -method " + fusion_split[f] + " -output " + final_fused_file;
                 if (std::system(full_fusion_command.c_str()) != 0)
