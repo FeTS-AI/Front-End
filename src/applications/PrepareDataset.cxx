@@ -588,7 +588,7 @@ int main(int argc, char** argv)
       myfile.close();
     }
 
-    if (copyFilesToCorrectLocation(interimOutputDir, finalSubjectOutputDir, csvContents[i]["ID"]))
+    if (!copyFilesToCorrectLocation(interimOutputDir, finalSubjectOutputDir, csvContents[i]["ID"]))
     {
       std::cerr <<"BraTSPipeline failed for subject '" << csvContents[i]["ID"] << "'\n";
     }
