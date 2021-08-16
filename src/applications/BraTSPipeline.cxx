@@ -8,6 +8,7 @@
 #include "BiasCorrection.hpp"
 
 #include "itkMaskImageFilter.h"
+#include "itkAbsImageFilter.h"
 
 #include <map>
 
@@ -455,8 +456,12 @@ int main(int argc, char** argv)
     for (auto it = outputRegisteredMaskedImages.begin(); it != outputRegisteredMaskedImages.end(); it++)
     {
       auto modality = it->first;
+      // this is to ensure that there are no negative values present in the final output
+      auto absFilter = itk::AbsImageFilter< ImageType, ImageType >::New();
+      absFilter->SetInput(cbica::ReadImage< ImageType >(outputRegisteredImages[modality]));
+      absFilter->Update();
       auto maskFilter = itk::MaskImageFilter< ImageType, ImageType >::New();
-      maskFilter->SetInput(cbica::ReadImage< ImageType >(outputRegisteredImages[modality]));
+      maskFilter->SetInput(absFilter->GetOutput());
       maskFilter->SetMaskImage(cbica::ReadImage< TImageType >(finalBrainMask));
       try
       {
