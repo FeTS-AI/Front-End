@@ -459,7 +459,16 @@ int main(int argc, char** argv)
       // this is to ensure that there are no negative values present in the final output
       auto absFilter = itk::AbsImageFilter< ImageType, ImageType >::New();
       absFilter->SetInput(cbica::ReadImage< ImageType >(outputRegisteredImages[modality]));
-      absFilter->Update();
+      try
+      {
+        absFilter->Update();
+      }
+      catch (const std::exception& e)
+      {
+        std::cerr << "Something went wrong when applying the absolute filter to modality '"
+          << modality << "': " << e.what();
+        return EXIT_FAILURE;
+      }
       auto maskFilter = itk::MaskImageFilter< ImageType, ImageType >::New();
       maskFilter->SetInput(absFilter->GetOutput());
       maskFilter->SetMaskImage(cbica::ReadImage< TImageType >(finalBrainMask));
