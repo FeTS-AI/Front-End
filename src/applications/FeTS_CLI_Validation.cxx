@@ -46,6 +46,7 @@ int main(int argc, char** argv)
   std::string
     fetsApplicationPath = cbica::getExecutablePath(),
     hardcodedOpenFLPath = fetsApplicationPath + "/OpenFederatedLearning/",
+    hardcodedOpenFLPlanPath = hardcodedOpenFLPath + "bin/federations/plans/fets_phase2_2.yaml",
     hardcodedLabelFusionPath = fetsApplicationPath + "/LabelFusion/fusion_run",
     hardcodedModelWeightPath = hardcodedOpenFLPath + "/bin/federations/weights/", // start with the common location
     //hardcodedNativeModelWeightPath = hardcodedOpenFLPath + "/bin/federations/weights/native/", // the native weights are going in fets_data_dir/fets
@@ -61,7 +62,7 @@ int main(int argc, char** argv)
   std::cout << "Starting overall model scoring.\n";
   command_to_run = hardcodedPythonPath + " " + scriptToCall
     + " -WT " + hardcodedFinalModelsWeightsPath + "/overall -ET " + hardcodedFinalModelsWeightsPath + "/overall -TC " + hardcodedFinalModelsWeightsPath + "/overall "
-    + "-pp federations/plans/fets_phase2_2.yaml -op " + outputDir_overall + device_arg + " -dp " + dataDir + " -ptd";
+    + "-pp " + hardcodedOpenFLPlanPath + " -op " + outputDir_overall + device_arg + " -dp " + dataDir + " -ptd";
 
   if (std::system(command_to_run.c_str()) != 0)
   {
