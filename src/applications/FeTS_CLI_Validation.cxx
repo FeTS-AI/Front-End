@@ -59,7 +59,7 @@ int main(int argc, char** argv)
   auto outputDir_overall = outputDir + "/overall";
   cbica::createDir(outputDir_overall);
   std::cout << "Starting overall model scoring.\n";
-  command_to_run = hardcodedPythonPath + scriptToCall
+  command_to_run = hardcodedPythonPath + " " + scriptToCall
     + " -WT " + hardcodedFinalModelsWeightsPath + "/overall -ET " + hardcodedFinalModelsWeightsPath + "/overall -TC " + hardcodedFinalModelsWeightsPath + "/overall "
     + "-pp federations/plans/fets_phase2_2.yaml -op " + outputDir_overall + device_arg + " -dp " + dataDir + " -ptd";
 
@@ -72,7 +72,7 @@ int main(int argc, char** argv)
   auto outputDir_distinct = outputDir + "/distinct";
   cbica::createDir(outputDir_distinct);
   std::cout << "Starting distinct model scoring.\n";
-  command_to_run = hardcodedPythonPath + scriptToCall
+  command_to_run = hardcodedPythonPath + " " + scriptToCall
     + " -WT " + hardcodedFinalModelsWeightsPath + "/WT -ET " + hardcodedFinalModelsWeightsPath + "/ET -TC " + hardcodedFinalModelsWeightsPath + "/TC "
     + "-pp federations/plans/fets_phase2_2.yaml -op " + outputDir_overall + device_arg + " -dp " + dataDir + " -ptd";
   if (std::system(command_to_run.c_str()) == 0)
