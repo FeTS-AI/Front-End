@@ -75,7 +75,7 @@ int main(int argc, char** argv)
   std::cout << "Starting distinct model scoring.\n";
   command_to_run = hardcodedPythonPath + " " + scriptToCall
     + " -WT " + hardcodedFinalModelsWeightsPath + "/WT -ET " + hardcodedFinalModelsWeightsPath + "/ET -TC " + hardcodedFinalModelsWeightsPath + "/TC "
-    + "-pp " + hardcodedOpenFLPlanPath + " -op " + outputDir_overall + device_arg + " -dp " + dataDir + " -ptd";
+    + "-pp " + hardcodedOpenFLPlanPath + " -op " + outputDir_distinct + device_arg + " -dp " + dataDir + " -ptd";
   if (std::system(command_to_run.c_str()) == 0)
   {
     std::cerr << "The distinct models did not run, please contact admin@fets.ai.\n\n";
