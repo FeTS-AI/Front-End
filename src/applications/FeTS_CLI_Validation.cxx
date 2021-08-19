@@ -76,7 +76,7 @@ int main(int argc, char** argv)
   command_to_run = hardcodedPythonPath + " " + scriptToCall
     + " -WT " + hardcodedFinalModelsWeightsPath + "/WT -ET " + hardcodedFinalModelsWeightsPath + "/ET -TC " + hardcodedFinalModelsWeightsPath + "/TC "
     + "-pp " + hardcodedOpenFLPlanPath + " -op " + outputDir_distinct + device_arg + " -dp " + dataDir + " -ptd";
-  if (std::system(command_to_run.c_str()) == 0)
+  if (std::system(command_to_run.c_str()) != 0)
   {
     std::cerr << "The distinct models did not run, please contact admin@fets.ai.\n\n";
     return EXIT_FAILURE;
