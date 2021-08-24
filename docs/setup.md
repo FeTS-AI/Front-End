@@ -22,7 +22,7 @@ sudo apt install python3.6 python3.6-venv python3.6-dev python3-setuptools
   - **NOTE**: Python 3.9 does **not** work with underlying dependencies
 - GPU: for faster training and inference
   - [CUDA 9.2 - 10.2](https://developer.nvidia.com/cuda-toolkit)
-    - **Note**: CUDA 11 is currently _not_ supported
+    - **Note**: [NVIDIA Ampere cards](https://www.nvidia.com/en-us/data-center/ampere-architecture/) (including all 30X consumer series cards) require [PyTorch 1.9+](https://pytorch.org/get-started/locally/) installed with CUDA 11.
   - 11GB dedicated VRAM
   - 40GB RAM (**Note**: 120G if you want to run [DeepScan](https://doi.org/10.1007/978-3-030-11726-9_40) inference)
 - Read/write access to the data for processing
