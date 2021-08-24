@@ -10,7 +10,7 @@ Successful completion of this project will lead to an easy-to-use potentially-tr
 FeTS is developed and maintained by the [Center for Biomedical Image Computing and Analytics (CBICA)](https://www.cbica.upenn.edu/) at the University of Pennsylvania, in collaboration with [Intel Labs](https://www.intel.com/content/www/us/en/research/overview.html), [Intel AI](https://www.intel.com/ai), and [Intel Internet of Things Group](https://www.intel.com/iot
 ).
 
-For more details, please visit us at https://www.fets.ai/
+For more details, please visit us at [www.fets.ai](https://www.fets.ai/).
 
 ## Table of Contents
 - [Application Setup](./setup.md)
