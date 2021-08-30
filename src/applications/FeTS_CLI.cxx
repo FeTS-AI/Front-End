@@ -418,7 +418,7 @@ int main(int argc, char** argv)
 
     if (!cbica::fileExists(split_info_val))
     {
-      auto full_plan_path = hardcodedOpenFLPath + hardcodedPlanName;
+      auto full_plan_path = hardcodedOpenFLPath + "/bin/federations/plans/" + hardcodedPlanName + ".yaml";
       auto command_to_run = hardcodedPythonPath + " " + hardcodedOpenFLPath + "submodules/fets_ai/Algorithms/fets/bin/initialize_split_info.py -pp " + full_plan_path + " -dp " + dataDir;
       if (std::system(command_to_run.c_str()) != 0)
       {
