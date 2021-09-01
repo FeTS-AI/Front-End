@@ -153,9 +153,13 @@ install_captk () {
     fi
 
     cd ..
-    wget https://upenn.box.com/shared/static/nfdxfh58u76tr53ytowlt4qeul5hplmg -O ./fets_consensus.zip
-    if unzip -qq fets_consensus.zip ; then
-      rm -rf fets_consensus.zip
+    # wget https://upenn.box.com/shared/static/nfdxfh58u76tr53ytowlt4qeul5hplmg -O ./fets_consensus.zip
+    # if unzip -qq fets_consensus.zip ; then
+    #   rm -rf fets_consensus.zip
+    # fi
+    wget https://upenn.box.com/shared/static/y68l9dd7bsb5w6zjts65f4o5a5u93rvb -O ./fets_consensus_models.zip
+    if unzip -qq fets_consensus_models.zip ; then
+      rm -rf fets_consensus_models.zip
     fi
   fi
   ## openfl installation
