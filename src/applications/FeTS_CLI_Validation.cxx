@@ -7,48 +7,37 @@
 #include "cbicaITKUtilities.h"
 #include "CaPTkGUIUtils.h"
 
-/*
-[1] Triplet models: (top 20)
-triplet  mean_dice_score
-0   (69.0, 72.0, 52.0)         0.832442
-3   (69.0, 65.0, 52.0)         0.832363
-6   (69.0, 52.0, 52.0)         0.832076
-1   (69.0, 72.0, 48.0)         0.831901
-2   (69.0, 72.0, 21.0)         0.831826
-4   (69.0, 65.0, 48.0)         0.831821
-5   (69.0, 65.0, 21.0)         0.831747
-9   (72.0, 72.0, 52.0)         0.831707
-12  (72.0, 65.0, 52.0)         0.831628
-7   (69.0, 52.0, 48.0)         0.831534
-8   (69.0, 52.0, 21.0)         0.831460
-15  (72.0, 52.0, 52.0)         0.831341
-18  (67.0, 72.0, 52.0)         0.831281
-21  (67.0, 65.0, 52.0)         0.831202
-10  (72.0, 72.0, 48.0)         0.831165
-11  (72.0, 72.0, 21.0)         0.831091
-13  (72.0, 65.0, 48.0)         0.831086
-14  (72.0, 65.0, 21.0)         0.831012
-24  (67.0, 52.0, 52.0)         0.830915
-16  (72.0, 52.0, 48.0)         0.830799
-19  (67.0, 72.0, 48.0)         0.830739
-17  (72.0, 52.0, 21.0)         0.830725
-20  (67.0, 72.0, 21.0)         0.830665
-22  (67.0, 65.0, 48.0)         0.830660
-23  (67.0, 65.0, 21.0)         0.830585
-
-[1] Single models: (top 5)
-
-              binary_DICE_ET  binary_DICE_TC  binary_DICE_WT  MeanBinaryDICE
-ModelVersion
-52.0                0.802207        0.819541        0.870041        0.830596
-72.0                0.804442        0.820639        0.863923        0.829668
-48.0                0.800810        0.815819        0.868415        0.828348
-69.0                0.806648        0.816957        0.860505        0.828037
-50.0                0.802969        0.815042        0.863952        0.827321
-*/
-
 int main(int argc, char** argv)
 {
+  /// models that need to be run
+  std::vector< std::vector < std::string > > triplets;
+  triplets.push_back({ "69", "72", "52" });
+  triplets.push_back({ "69", "65", "52" });
+  triplets.push_back({ "69", "52", "52" });
+  triplets.push_back({ "69", "72", "48" });
+  triplets.push_back({ "69", "72", "21" });
+  triplets.push_back({ "69", "65", "48" });
+  triplets.push_back({ "69", "65", "21" });
+  triplets.push_back({ "72", "72", "52" });
+  triplets.push_back({ "72", "65", "52" });
+  triplets.push_back({ "69", "52", "48" });
+  triplets.push_back({ "69", "52", "21" });
+  triplets.push_back({ "72", "52", "52" });
+  triplets.push_back({ "67", "72", "52" });
+  triplets.push_back({ "67", "65", "52" });
+  triplets.push_back({ "72", "72", "48" });
+  triplets.push_back({ "72", "72", "21" });
+  triplets.push_back({ "72", "65", "48" });
+  triplets.push_back({ "72", "65", "21" });
+  triplets.push_back({ "67", "52", "52" });
+  triplets.push_back({ "72", "52", "48" });
+  triplets.push_back({ "67", "72", "48" });
+  triplets.push_back({ "72", "52", "21" });
+  triplets.push_back({ "67", "72", "21" });
+  triplets.push_back({ "67", "65", "48" });
+  triplets.push_back({ "67", "65", "21" });
+  auto singlets = { "52", "72", "48", "69", "50" };
+
   cbica::CmdParser parser(argc, argv, "FeTS_CLI");
 
   auto fets_dataDir = getCaPTkDataDir();
