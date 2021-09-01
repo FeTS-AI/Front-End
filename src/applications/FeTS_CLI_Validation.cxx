@@ -36,12 +36,13 @@ int main(int argc, char** argv)
   triplets.push_back({ "67", "72", "21" });
   triplets.push_back({ "67", "65", "48" });
   triplets.push_back({ "67", "65", "21" });
-  auto singlets = { "52", "72", "48", "69", "50" };
+  std::vector < std::string > singlets = { "52", "72", "48", "69", "50" };
 
   cbica::CmdParser parser(argc, argv, "FeTS_CLI");
 
   auto fets_dataDir = getCaPTkDataDir();
   auto hardcodedFinalModelsWeightsPath = fets_dataDir + "/fets_consensus";
+  auto hardcodedFinalModelsSeriesWeightsPath = fets_dataDir + "/fets_consensus_models/";
 
   std::string dataDir, outputDir, loggingDir, fusionMethod = "STAPLE", hardcodedPlanName = "fets_phase2_2";
 
@@ -86,29 +87,64 @@ int main(int argc, char** argv)
 
   std::string command_to_run;
   
-  auto outputDir_overall = outputDir + "/overall";
-  cbica::createDir(outputDir_overall);
-  std::cout << "Starting overall model scoring.\n";
-  command_to_run = hardcodedPythonPath + " " + scriptToCall
-    + " -WT " + hardcodedFinalModelsWeightsPath + "/overall -ET " + hardcodedFinalModelsWeightsPath + "/overall -TC " + hardcodedFinalModelsWeightsPath + "/overall "
-    + "-pp " + hardcodedOpenFLPlanPath + " -op " + outputDir_overall + device_arg + " -dp " + dataDir + " -ptd";
+  /// this is only for a single overall and a single triplet
+  //auto outputDir_overall = outputDir + "/overall";
+  //cbica::createDir(outputDir_overall);
+  //std::cout << "Starting overall model scoring.\n";
+  //command_to_run = hardcodedPythonPath + " " + scriptToCall
+  //  + " -WT " + hardcodedFinalModelsWeightsPath + "/overall -ET " + hardcodedFinalModelsWeightsPath + "/overall -TC " + hardcodedFinalModelsWeightsPath + "/overall "
+  //  + "-pp " + hardcodedOpenFLPlanPath + " -op " + outputDir_overall + device_arg + " -dp " + dataDir + " -ptd";
 
-  if (std::system(command_to_run.c_str()) != 0)
+  //if (std::system(command_to_run.c_str()) != 0)
+  //{
+  //  std::cerr << "The overall models did not run, please contact admin@fets.ai.\n\n";
+  //  return EXIT_FAILURE;
+  //}
+
+  //auto outputDir_distinct = outputDir + "/distinct";
+  //cbica::createDir(outputDir_distinct);
+  //std::cout << "Starting distinct model scoring.\n";
+  //command_to_run = hardcodedPythonPath + " " + scriptToCall
+  //  + " -WT " + hardcodedFinalModelsWeightsPath + "/WT -ET " + hardcodedFinalModelsWeightsPath + "/ET -TC " + hardcodedFinalModelsWeightsPath + "/TC "
+  //  + "-pp " + hardcodedOpenFLPlanPath + " -op " + outputDir_distinct + device_arg + " -dp " + dataDir + " -ptd";
+  //if (std::system(command_to_run.c_str()) != 0)
+  //{
+  //  std::cerr << "The distinct models did not run, please contact admin@fets.ai.\n\n";
+  //  return EXIT_FAILURE;
+  //}
+
+  for (size_t i = 0; i < triplets.size(); i++)
   {
-    std::cerr << "The overall models did not run, please contact admin@fets.ai.\n\n";
-    return EXIT_FAILURE;
+    // apply triplet logic to each
+    auto current_outputDir = outputDir + "/triplet_" + std::to_string(i);
+    cbica::createDir(current_outputDir);
+    command_to_run = hardcodedPythonPath + " " + scriptToCall
+      // et, tc, wt
+      + " -ET " + hardcodedFinalModelsSeriesWeightsPath + triplets[i][0]
+      + " -TC " + hardcodedFinalModelsSeriesWeightsPath + triplets[i][1]
+      + " -WT " + hardcodedFinalModelsSeriesWeightsPath + triplets[i][2]
+      + " -pp " + hardcodedOpenFLPlanPath + " -op " + current_outputDir + device_arg + " -dp " + dataDir + " -ptd";
+    if (std::system(command_to_run.c_str()) != 0)
+    {
+      std::cerr << "WARNING: The triplet model '" << i << "' did not run, please contact admin@fets.ai.\n\n";
+    }
   }
 
-  auto outputDir_distinct = outputDir + "/distinct";
-  cbica::createDir(outputDir_distinct);
-  std::cout << "Starting distinct model scoring.\n";
-  command_to_run = hardcodedPythonPath + " " + scriptToCall
-    + " -WT " + hardcodedFinalModelsWeightsPath + "/WT -ET " + hardcodedFinalModelsWeightsPath + "/ET -TC " + hardcodedFinalModelsWeightsPath + "/TC "
-    + "-pp " + hardcodedOpenFLPlanPath + " -op " + outputDir_distinct + device_arg + " -dp " + dataDir + " -ptd";
-  if (std::system(command_to_run.c_str()) != 0)
+  for (size_t i = 0; i < singlets.size(); i++)
   {
-    std::cerr << "The distinct models did not run, please contact admin@fets.ai.\n\n";
-    return EXIT_FAILURE;
+    // apply overall logic to each
+    auto current_outputDir = outputDir + "/singlet_" + std::to_string(i);
+    cbica::createDir(current_outputDir);
+    command_to_run = hardcodedPythonPath + " " + scriptToCall
+      // et, tc, wt
+      + " -ET " + hardcodedFinalModelsSeriesWeightsPath + singlets[i]
+      + " -TC " + hardcodedFinalModelsSeriesWeightsPath + singlets[i]
+      + " -WT " + hardcodedFinalModelsSeriesWeightsPath + singlets[i]
+      + " -pp " + hardcodedOpenFLPlanPath + " -op " + current_outputDir + device_arg + " -dp " + dataDir + " -ptd";
+    if (std::system(command_to_run.c_str()) != 0)
+    {
+      std::cerr << "WARNING: The singlet model '" << i << "' did not run, please contact admin@fets.ai.\n\n";
+    }
   }
 
   std::cout << "Starting inference for previous BraTS algorithms.\n";
