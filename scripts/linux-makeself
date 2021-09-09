@@ -157,7 +157,7 @@ install_captk () {
     # if unzip -qq fets_consensus.zip ; then
     #   rm -rf fets_consensus.zip
     # fi
-    wget https://upenn.box.com/shared/static/y68l9dd7bsb5w6zjts65f4o5a5u93rvb -O ./fets_consensus_models.zip
+    wget https://upenn.box.com/shared/static/yxdjgnszygjln0fjwm0i2an7qnhbv8w6 -O ./fets_consensus_models.zip
     if unzip -qq fets_consensus_models.zip ; then
       rm -rf fets_consensus_models.zip
     fi
