@@ -148,7 +148,7 @@ install_captk () {
     echo "Downloading weights for nnUNet..."
     cd ${target_dir}/squashfs-root/usr/data/fets
     wget ${nnunet_link} -O nnunet.zip
-    if unzip nnunet.zip ; then
+    if unzip -qq nnunet.zip ; then
       rm -rf nnunet.zip
     fi
 
