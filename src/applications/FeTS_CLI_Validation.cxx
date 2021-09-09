@@ -113,6 +113,23 @@ int main(int argc, char** argv)
   //  return EXIT_FAILURE;
   //}
 
+  /// initial model score
+  {
+    // apply triplet logic to each
+    auto current_outputDir = outputDir + "/initial";
+    cbica::createDir(current_outputDir);
+    command_to_run = hardcodedPythonPath + " " + scriptToCall
+      // et, tc, wt
+      + " -ET " + hardcodedFinalModelsSeriesWeightsPath + "0"
+      + " -TC " + hardcodedFinalModelsSeriesWeightsPath + "0"
+      + " -WT " + hardcodedFinalModelsSeriesWeightsPath + "0"
+      + " -pp " + hardcodedOpenFLPlanPath + " -op " + current_outputDir + device_arg + " -dp " + dataDir + " -ptd";
+    if (std::system(command_to_run.c_str()) != 0)
+    {
+      std::cerr << "WARNING: The initial model did not run, please contact admin@fets.ai with this error.\n\n";
+    }
+  }
+
   for (size_t i = 0; i < triplets.size(); i++)
   {
     // apply triplet logic to each
@@ -126,7 +143,7 @@ int main(int argc, char** argv)
       + " -pp " + hardcodedOpenFLPlanPath + " -op " + current_outputDir + device_arg + " -dp " + dataDir + " -ptd";
     if (std::system(command_to_run.c_str()) != 0)
     {
-      std::cerr << "WARNING: The triplet model '" << i << "' did not run, please contact admin@fets.ai.\n\n";
+      std::cerr << "WARNING: The triplet model '" << i << "' did not run, please contact admin@fets.ai with this error.\n\n";
     }
   }
 
@@ -143,7 +160,7 @@ int main(int argc, char** argv)
       + " -pp " + hardcodedOpenFLPlanPath + " -op " + current_outputDir + device_arg + " -dp " + dataDir + " -ptd";
     if (std::system(command_to_run.c_str()) != 0)
     {
-      std::cerr << "WARNING: The singlet model '" << i << "' did not run, please contact admin@fets.ai.\n\n";
+      std::cerr << "WARNING: The singlet model '" << i << "' did not run, please contact admin@fets.ai with this error.\n\n";
     }
   }
 
