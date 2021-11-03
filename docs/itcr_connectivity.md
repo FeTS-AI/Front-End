@@ -2,33 +2,50 @@ This section includes a reference of all ongoing and existing connections betwee
 
 A connectivity map featuring all ITCR projects can be found [here](https://www.ndexbio.org/#/network/04c0a7e8-af92-11e7-94d3-0ac135e8bacf).
 
+<!-- vscode-markdown-toc -->
+* 1. [Existing Connections](#ExistingConnections)
+	* 1.1. [DCMTK](#DCMTK)
+	* 1.2. [DCMQI](#DCMQI)
+	* 1.3. [CaPTk](#CaPTk)
+	* 1.4. [Synapse PACS](#SynapsePACS)
+	* 1.5. [TCIA and IDC](#TCIAandIDC)
+* 2. [Ongoing Development](#OngoingDevelopment)
+	* 2.1. [XNAT](#XNAT)
+	* 2.2. [FLAIM](#FLAIM)
+	* 2.3. [PRISM](#PRISM)
 
-## Existing Connections
+<!-- vscode-markdown-toc-config
+	numbering=true
+	autoSave=true
+	/vscode-markdown-toc-config -->
+<!-- /vscode-markdown-toc -->
 
-### DCMTK
+##  1. <a name='ExistingConnections'></a>Existing Connections
+
+###  1.1. <a name='DCMTK'></a>DCMTK
 FeTS uses [DCMTK - DICOM ToolKit (DCMTK)](https://dicom.offis.de/dcmtk.php.en) for DICOM file handling. 
 
-### DCMQI
+###  1.2. <a name='DCMQI'></a>DCMQI
 FeTS leverages [DICOM for Quantitative Imaging (DCMQI)](http://qiicr.org/dcmqi-guide/tutorials/intro.html) for generating DICOM-Seg files from NIfTI files. 
 
-### CaPTk
+###  1.3. <a name='CaPTk'></a>CaPTk
 FeTS leverages the [Cancer Imaging Phenomics Toolkit (CaPTk)](https://www.med.upenn.edu/cbica/captk) for integrating CaPTk's current functionality into FeTS. 
 
-### Synapse PACS
+###  1.4. <a name='SynapsePACS'></a>Synapse PACS
 FeTS' performance evaluation metrics are used by [Synapse PACS](https://healthcaresolutions-us.fujifilm.com/enterprise-imaging/synapse-pacs).  
 
-### TCIA and IDC
+###  1.5. <a name='TCIAandIDC'></a>TCIA and IDC
 Enriching [The Cancer Imaging Archive (TCIA)](https://www.cancerimagingarchive.net/) and [Imaging Data Commons (IDC)](https://datacommons.cancer.gov/repository/imaging-data-commons) data collections with segmentations and radiomic features. Robustness analysis on radiomic features on TCIA data has also been posted back to TCIA.
 
-## Ongoing Development
+##  2. <a name='OngoingDevelopment'></a>Ongoing Development
 
-### XNAT
+###  2.1. <a name='XNAT'></a>XNAT
 Use FeTS' federated learning functionality for data discovery through [XNAT](https://xnat.org) features through its feature extraction functionality. 
 
-### FLAIM
+###  2.2. <a name='FLAIM'></a>FLAIM
 Interoperability and privacy preservation algorithmic comparison. 
 
-### PRISM
+###  2.3. <a name='PRISM'></a>PRISM
 Federated learning for segmentation of PRISM data.
 
 Contact [contact [at] fets.ai](mailto:contact@fets.ai) with any questions.
