@@ -32,7 +32,7 @@ FeTS leverages [DICOM for Quantitative Imaging (DCMQI)](http://qiicr.org/dcmqi-g
 FeTS leverages the [Cancer Imaging Phenomics Toolkit (CaPTk)](https://www.med.upenn.edu/cbica/captk) for integrating CaPTk's current functionality into FeTS. 
 
 ###  1.4. <a name='SynapsePACS'></a>Synapse PACS
-FeTS' performance evaluation metrics are used by [Synapse PACS](https://healthcaresolutions-us.fujifilm.com/enterprise-imaging/synapse-pacs).  
+FeTS' performance evaluation metrics are used by [Synapse PACS](https://www.synapse.org/).  
 
 ###  1.5. <a name='TCIAandIDC'></a>TCIA and IDC
 Enriching [The Cancer Imaging Archive (TCIA)](https://www.cancerimagingarchive.net/) and [Imaging Data Commons (IDC)](https://datacommons.cancer.gov/repository/imaging-data-commons) data collections with segmentations and radiomic features. Robustness analysis on radiomic features on TCIA data has also been posted back to TCIA.
