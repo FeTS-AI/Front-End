@@ -3,16 +3,16 @@ This section includes a reference of all ongoing and existing connections betwee
 A connectivity map featuring all ITCR projects can be found [here](https://www.ndexbio.org/#/network/04c0a7e8-af92-11e7-94d3-0ac135e8bacf).
 
 <!-- vscode-markdown-toc -->
-* [Existing Connections](#ExistingConnections)
-	* [DCMTK](#DCMTK)
-	* [DCMQI](#DCMQI)
-	* [CaPTk](#CaPTk)
-	* [Synapse PACS](#SynapsePACS)
-	* [TCIA and IDC](#TCIAandIDC)
-*  [Ongoing Development](#OngoingDevelopment)
-	* [XNAT](#XNAT)
-	* [FLAIM](#FLAIM)
-	* [PRISM](#PRISM)
+* 1. [Existing Connections](#ExistingConnections)
+	* 1.1. [DCMTK](#DCMTK)
+	* 1.2. [DCMQI](#DCMQI)
+	* 1.3. [CaPTk](#CaPTk)
+	* 1.4. [Synapse PACS](#SynapsePACS)
+	* 1.5. [TCIA and IDC](#TCIAandIDC)
+* 2. [Ongoing Development](#OngoingDevelopment)
+	* 2.1. [XNAT](#XNAT)
+	* 2.2. [FLAIM](#FLAIM)
+	* 2.3. [PRISM](#PRISM)
 
 <!-- vscode-markdown-toc-config
 	numbering=true
