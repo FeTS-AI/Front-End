@@ -11,3 +11,5 @@ navigation:
     url: runningApplication
   - title: Extras
     url: extras
+  - title: ITCR Connectivity
+    url: itcr_connectivity
