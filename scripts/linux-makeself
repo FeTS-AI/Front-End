@@ -153,16 +153,13 @@ install_captk () {
     fi
 
     cd ..
-    # wget https://upenn.box.com/shared/static/nfdxfh58u76tr53ytowlt4qeul5hplmg -O ./fets_consensus.zip
-    # if unzip -qq fets_consensus.zip ; then
-    #   rm -rf fets_consensus.zip
-    # fi
-    wget https://upenn.box.com/shared/static/yxdjgnszygjln0fjwm0i2an7qnhbv8w6 -O ./fets_consensus_models.zip
+    echo "Downloading FeTS Initiative final consensus model weights..."
+    wget https://upenn.box.com/shared/static/hhvn8nb9xtz6nxcilmdl8kbx9n1afkdu.zip -O ./fets_consensus_models.zip
     if unzip -qq fets_consensus_models.zip ; then
       rm -rf fets_consensus_models.zip
     fi
   fi
-  ## openfl installation
+  ## display messages
   echo "fets_root_dir :: \"${target_dir}/squashfs-root/usr\""
   echo "[OPTIONAL] Run the graphical front-end using the command \"${target_dir}/squashfs-root/usr/bin/FeTS\" on your console."
   rm -rf ./FeTS
