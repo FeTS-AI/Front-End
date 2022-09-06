@@ -22,7 +22,7 @@ int runCollaboratorTraining(const std::string &fullCommandToRunWithArgs)
 
 int main(int argc, char** argv)
 {
-  cbica::CmdParser parser(argc, argv, "FeTS_CLI");
+  cbica::CmdParser parser(argc, argv, "FeTS_CLI_Segment");
 
   auto hardcodedNativeModelWeightPath = getCaPTkDataDir() + "/fets";
   auto allArchs = cbica::subdirectoriesInDirectory(hardcodedNativeModelWeightPath);
