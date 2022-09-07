@@ -32,27 +32,27 @@ int main(int argc, char** argv)
     allArchsString += allArchs[i] + ",";
   }
   allArchsString.pop_back();
-
-  std::string dataDir, modelName, loggingDir, colName, archs = "3dresunet", fusionMethod = "STAPLE", hardcodedPlanName = "fets_phase2_2";
+  allArchsString += ",fets_singlet,fets_triplet"
+  
+  std::string dataDir, modelName, loggingDir, colName, archs = "fets_triplet", fusionMethod = "STAPLE", hardcodedPlanName = "fets_phase2_2";
 
   parser.addRequiredParameter("d", "dataDir", cbica::Parameter::DIRECTORY, "Dir with Read/Write access", "Input data directory");
-  parser.addRequiredParameter("t", "training", cbica::Parameter::BOOLEAN, "0 or 1", "Whether performing training or inference", "1==Train and 0==Inference");
-  parser.addOptionalParameter("tp", "trainPlan", cbica::Parameter::BOOLEAN, "YAML file", "Training plan", "Defaults to '" + hardcodedPlanName + "'");
   parser.addOptionalParameter("L", "LoggingDir", cbica::Parameter::DIRECTORY, "Dir with write access", "Location of logging directory");
   parser.addOptionalParameter("a", "archs", cbica::Parameter::STRING, allArchsString, "The architecture(s) to infer/train on", "Only a single architecture is supported for training", "Comma-separated values for multiple options", "Defaults to: " + archs);
   parser.addOptionalParameter("lF", "labelFuse", cbica::Parameter::STRING, "STAPLE,ITKVoting,SIMPLE,MajorityVoting", "The label fusion strategy to follow for multi-arch inference", "Comma-separated values for multiple options", "Defaults to: " + fusionMethod);
   parser.addOptionalParameter("g", "gpu", cbica::Parameter::BOOLEAN, "0-1", "Whether to run the process on GPU or not", "Defaults to '0'");
-  parser.addOptionalParameter("c", "colName", cbica::Parameter::STRING, "", "Common name of collaborator", "Required for training");
+  parser.addRequiredParameter("o", "outputDir", cbica::Parameter::DIRECTORY, "Dir with write access", "Location of logging directory");
   // parser.addOptionalParameter("vp", "valPatch", cbica::Parameter::BOOLEAN, "0-1", "Whether to perform per-patch validation or not", "Used for training, defaults to '0'");
 
   parser.addApplicationDescription("This is the CLI interface for FeTS");
   parser.addExampleUsage("-d /path/DataForFeTS -a deepMedic,nnUNet -lF STAPLE,ITKVoting,SIMPLE -g 1 -t 0", "This command performs inference using deepMedic,nnUNet using multiple fusion strategies on GPU and saves in data directory");
-  parser.addExampleUsage("-d /path/DataForFeTS -t 1 -g 1 -c upenn", "This command starts training performs inference using deepMedic,nnUNet using multiple fusion strategies on GPU and saves in data directory");
   
   bool gpuRequested = false, trainingRequested = false, patchValidation = true;
 
   parser.getParameterValue("d", dataDir);
   parser.getParameterValue("t", trainingRequested);
+  parser.getParameterValue("o", outputDir);
+  cbica::createDir(outputDir);
 
   if (parser.isPresent("L"))
   {
@@ -132,11 +132,15 @@ int main(int argc, char** argv)
 
   std::string 
     hardcodedOpenFLPath = fetsApplicationPath + "/OpenFederatedLearning/",
+    hardcodedOpenFLPlanPath = hardcodedOpenFLPath + "bin/federations/plans/fets_phase2_2.yaml",
     hardcodedLabelFusionPath = fetsApplicationPath + "/LabelFusion/fusion_run",
     hardcodedModelWeightPath = hardcodedOpenFLPath + "/bin/federations/weights/", // start with the common location
-    //hardcodedNativeModelWeightPath = hardcodedOpenFLPath + "/bin/federations/weights/native/", // the native weights are going in fets_data_dir/fets
     hardcodedPythonPath = hardcodedOpenFLPath + "/venv/bin/python", // this needs to change for Windows (wonder what happens for macOS?)
-    hardcodedPythonPath_fusion = fetsApplicationPath + "/LabelFusion/venv/bin/python"; // this needs to change for Windows (wonder what happens for macOS?)
+    hardcodedPythonPath_fusion = fetsApplicationPath + "/LabelFusion/venv/bin/python", // this needs to change for Windows (wonder what happens for macOS?)
+    scriptToCall = hardcodedOpenFLPath + "/submodules/fets_ai/Algorithms/fets/bin/brainmage_validation_scores_to_disk.py"; // the script that does the inference and scoring
+  auto fets_dataDir = getCaPTkDataDir();
+  auto hardcodedFinalModelsWeightsPath = fets_dataDir + "/fets_consensus";
+  auto hardcodedFinalModelsSeriesWeightsPath = fets_dataDir + "/fets_consensus_models/";
 #if WIN32
   hardcodedPythonPath = hardcodedOpenFLPath + "/venv/python.exe";
 #endif
@@ -254,44 +258,89 @@ int main(int argc, char** argv)
               auto args = " -d " + dataDir + device_arg + " -ld " + loggingDir + " -ip " + subjectDirs[s];
               if (pythonEnvironmentFound)
               {
-                // check for all other models written in pytorch here
+                std::string command_to_run;
+
+                auto current_temp_output = cbica::makeTempDir();
+                auto current_subject_temp_output = current_temp_output + "/subject";
+                cbica::createDir(current_subject_temp_output);
+                // std::string file_t1gd, file_t1, file_t2, file_flair;
+                auto file_t1gd_temp = current_subject_temp_output + "/t1gd.nii.gz",
+                  file_t1_temp = current_subject_temp_output + "/t1.nii.gz",
+                  file_t2_temp = current_subject_temp_output + "/t2.nii.gz",
+                  file_flair_temp = current_subject_temp_output + "/flair.nii.gz";
+                cbica::copyFile(file_t1gd, file_t1gd_temp);
+                cbica::copyFile(file_t1, file_t1_temp);
+                cbica::copyFile(file_t2, file_t2_temp);
+                cbica::copyFile(file_flair, file_flair_temp);
+                // check for all other models here
 
                 // check between different architectures
-                if (archs_split[a] == "3dunet")
+                if (archs_split[a] == "fets_singlet")
                 {
-                  // this is currently not defined
-                }
-                else if (archs_split[a] == "3dresunet")
+                  std::cout << "== Starting inference using FeTS Singlet Consensus model...\n";
+                  std::vector < std::string > singlets = { "52" };
+                  
+                  for (size_t i = 0; i < singlets.size(); i++)
+                  {
+                    // apply overall logic to each
+                    auto current_outputDir = currentSubjectOutputDir + "/fets_singlet";
+                    cbica::createDir(current_outputDir);
+                    command_to_run = hardcodedPythonPath + " " + scriptToCall
+                      // et, tc, wt
+                      + " -ET " + hardcodedFinalModelsSeriesWeightsPath + singlets[i]
+                      + " -TC " + hardcodedFinalModelsSeriesWeightsPath + singlets[i]
+                      + " -WT " + hardcodedFinalModelsSeriesWeightsPath + singlets[i]
+                      + " -pp " + hardcodedOpenFLPlanPath + " -op " + current_outputDir + device_arg + " -dp " + current_temp_output + " -ptd";
+                    if (std::system(command_to_run.c_str()) != 0)
+                    {
+                      std::cerr << "WARNING: The singlet model '" << i << "' did not run, please contact admin@fets.ai with this error.\n\n";
+                    }
+                    else
+                    {
+                      auto current_output_file = current_subject_temp_output + "/segmentation.nii.gz";
+                      auto fileNameToCheck = subjectDirs[s] + "_fets_singlet_seg.nii.gz";
+                      auto current_output_file_to_check = dataDir + "/" + subjectDirs[s] + "/" + fileNameToCheck;
+                      if (cbica::isFile(current_output_file))
+                      {
+                        cbica::copyFile(current_output_file, current_output_file_to_check);
+                      }
+                    }
+                  }
+                } // end of fets_singlet check
+                else if (archs_split[a] == "fets_triplet")
                 {
-                  std::cout << "3DResUNet inference is disabled for this release.\n";
-                  //auto fileNameToCheck = subjectDirs[s] + "_resunet_seg.nii.gz";
-                  //auto fileToCheck_1 = dataDir + "/" + subjectDirs[s] + "/" + fileNameToCheck;
-                  //auto fileToCheck_2 = currentSubjectOutputDir + fileNameToCheck;
-                  //if (!(cbica::isFile(fileToCheck_1) || cbica::isFile(fileToCheck_2))) // don't run if file is present
-                  //{
-                  //  std::cout << "== Starting inference using 3DResUNet...\n";
-                  //  hardcodedPlanName = "pt_3dresunet_brainmagebrats";
-                  //  auto hardcodedModelName = hardcodedPlanName + "_best.pbuf";
-                  //  if (!cbica::isFile((hardcodedModelWeightPath + "/" + hardcodedModelName))) // in case the "best" model is not present, use the "init" model that is distributed with FeTS installation
-                  //  {
-                  //    hardcodedModelName = hardcodedPlanName + "_init.pbuf";
-                  //    if (!cbica::isFile((hardcodedModelWeightPath + "/" + hardcodedModelName)))
-                  //    {
-                  //      std::cerr << "=== A compatible model weight file for the architecture '" << archs_split[a] << "' was not found. Please contact admin@fets.ai for help.\n";
-                  //    }
-                  //  }
+                  std::cout << "== Starting inference using FeTS Triplet Consensus model...\n";
+                  
+                  std::vector< std::vector < std::string > > triplets;
+                  triplets.push_back({ "69", "72", "52" });
 
-                  //  auto args_to_run = args + " -mwf " + hardcodedModelName
-                  //    + " -p " + hardcodedPlanName + ".yaml";
-                  //  //<< "-mwf" << hardcodedModelWeightPath // todo: doing customized solution above - change after model weights are using full paths for all
-
-                  //  if (std::system((fullCommandToRun + " " + args_to_run).c_str()) != 0)
-                  //  {
-                  //    std::cerr << "=== Couldn't complete the inference for 3dresunet for subject " << subjectDirs[s] << ".\n";
-                  //    subjectsWithErrors += subjectDirs[s] + ",inference,3dresunet\n";
-                  //  }
-                  //} // end of previous run file check
-                } // end of 3dresunet check
+                  for (size_t i = 0; i < triplets.size(); i++)
+                  {
+                    // apply triplet logic to each
+                    auto current_outputDir = currentSubjectOutputDir + "/fets_triplet";
+                    cbica::createDir(current_outputDir);
+                    command_to_run = hardcodedPythonPath + " " + scriptToCall
+                      // et, tc, wt
+                      + " -ET " + hardcodedFinalModelsSeriesWeightsPath + triplets[i][0]
+                      + " -TC " + hardcodedFinalModelsSeriesWeightsPath + triplets[i][1]
+                      + " -WT " + hardcodedFinalModelsSeriesWeightsPath + triplets[i][2]
+                      + " -pp " + hardcodedOpenFLPlanPath + " -op " + current_outputDir + device_arg + " -dp " + current_temp_output + " -ptd";
+                    if (std::system(command_to_run.c_str()) != 0)
+                    {
+                      std::cerr << "WARNING: The triplet model '" << i << "' did not run, please contact admin@fets.ai with this error.\n\n";
+                    }
+                    else
+                    {
+                      auto current_output_file = current_subject_temp_output + "/segmentation.nii.gz";
+                      auto fileNameToCheck = subjectDirs[s] + "_fets_triplet_seg.nii.gz";
+                      auto current_output_file_to_check = dataDir + "/" + subjectDirs[s] + "/" + fileNameToCheck;
+                      if (cbica::isFile(current_output_file))
+                      {
+                        cbica::copyFile(current_output_file, current_output_file_to_check);
+                      }
+                    }
+                  }
+                } // end of fets_triplet check
                 else
                 {
                   std::string hardcodedPlanName;
