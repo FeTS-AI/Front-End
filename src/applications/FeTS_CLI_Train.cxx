@@ -39,8 +39,6 @@ int main(int argc, char** argv)
   parser.addRequiredParameter("t", "training", cbica::Parameter::BOOLEAN, "0 or 1", "Whether performing training or inference", "1==Train and 0==Inference");
   parser.addOptionalParameter("tp", "trainPlan", cbica::Parameter::BOOLEAN, "YAML file", "Training plan", "Defaults to '" + hardcodedPlanName + "'");
   parser.addOptionalParameter("L", "LoggingDir", cbica::Parameter::DIRECTORY, "Dir with write access", "Location of logging directory");
-  parser.addOptionalParameter("a", "archs", cbica::Parameter::STRING, allArchsString, "The architecture(s) to infer/train on", "Only a single architecture is supported for training", "Comma-separated values for multiple options", "Defaults to: " + archs);
-  parser.addOptionalParameter("lF", "labelFuse", cbica::Parameter::STRING, "STAPLE,ITKVoting,SIMPLE,MajorityVoting", "The label fusion strategy to follow for multi-arch inference", "Comma-separated values for multiple options", "Defaults to: " + fusionMethod);
   parser.addOptionalParameter("g", "gpu", cbica::Parameter::BOOLEAN, "0-1", "Whether to run the process on GPU or not", "Defaults to '0'");
   parser.addOptionalParameter("c", "colName", cbica::Parameter::STRING, "", "Common name of collaborator", "Required for training");
   // parser.addOptionalParameter("vp", "valPatch", cbica::Parameter::BOOLEAN, "0-1", "Whether to perform per-patch validation or not", "Used for training, defaults to '0'");
@@ -49,7 +47,7 @@ int main(int argc, char** argv)
   parser.addExampleUsage("-d /path/DataForFeTS -a deepMedic,nnUNet -lF STAPLE,ITKVoting,SIMPLE -g 1 -t 0", "This command performs inference using deepMedic,nnUNet using multiple fusion strategies on GPU and saves in data directory");
   parser.addExampleUsage("-d /path/DataForFeTS -t 1 -g 1 -c upenn", "This command starts training performs inference using deepMedic,nnUNet using multiple fusion strategies on GPU and saves in data directory");
   
-  bool gpuRequested = false, trainingRequested = false, patchValidation = true;
+  bool gpuRequested = false, trainingRequested = true, patchValidation = true;
 
   parser.getParameterValue("d", dataDir);
   parser.getParameterValue("t", trainingRequested);
@@ -80,25 +78,6 @@ int main(int argc, char** argv)
     // {
     //   parser.getParameterValue("vp", patchValidation);
     // }
-  }
-  else
-  {
-    if (parser.isPresent("a"))
-    {
-      parser.getParameterValue("a", archs);
-    }
-    else
-    {
-      std::cerr << "Please specify at least 2 architectures on which to perform inference.\n";
-    }
-    if (parser.isPresent("lF"))
-    {
-      parser.getParameterValue("lF", fusionMethod);
-    }
-  }
-  if (parser.isPresent("g"))
-  {
-    parser.getParameterValue("g", gpuRequested);
   }
 
   std::string device_arg = " -md ";
@@ -147,7 +126,6 @@ int main(int argc, char** argv)
     pythonEnvironmentFound = true;
   }
 
-  if (!trainingRequested)
   {
     std::string subjectsWithMissingModalities, subjectsWithErrors; // string to store error cases
         
@@ -403,7 +381,7 @@ int main(int argc, char** argv)
       std::cerr << "\nThe following subjects were problematic:\nSubjectID,Application,Algorithm\n" << subjectsWithErrors;
     }
   } // end of trainingRequested check
-  else // for training
+  // for training
   {
     /// start validation of nnunet/deepscan/deepmedic on all validation cases
     auto split_info_val = dataDir + "/split_info/fets_phase2_split_1/val.csv", // revisit in case we change split in the future
