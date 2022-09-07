@@ -278,74 +278,63 @@ int main(int argc, char** argv)
                 if (archs_split[a] == "fets_singlet")
                 {
                   std::cout << "== Starting inference using FeTS Singlet Consensus model...\n";
-                  std::vector < std::string > singlets = { "52" };
                   auto current_output_file = current_subject_temp_output + "/segmentation.nii.gz";
                   auto fileNameToCheck = subjectDirs[s] + "_fets_singlet_seg.nii.gz";
                   auto current_output_file_to_check = dataDir + "/" + subjectDirs[s] + "/" + fileNameToCheck;
                   
                   if (!cbica::isFile(current_output_file_to_check))
                   {
-                    for (size_t i = 0; i < singlets.size(); i++)
+                    auto current_outputDir = currentSubjectOutputDir + "/fets_singlet";
+                    cbica::createDir(current_outputDir);
+                    command_to_run = hardcodedPythonPath + " " + scriptToCall
+                      // et, tc, wt
+                      + " -ET " + hardcodedFinalModelsSeriesWeightsPath + "52"
+                      + " -TC " + hardcodedFinalModelsSeriesWeightsPath + "52"
+                      + " -WT " + hardcodedFinalModelsSeriesWeightsPath + "52"
+                      + " -pp " + hardcodedOpenFLPlanPath + " -op " + current_outputDir + device_arg + " -dp " + current_temp_output + " -ptd";
+                    if (std::system(command_to_run.c_str()) != 0)
                     {
-                      // apply overall logic to each
-                      auto current_outputDir = currentSubjectOutputDir + "/fets_singlet";
-                      cbica::createDir(current_outputDir);
-                      command_to_run = hardcodedPythonPath + " " + scriptToCall
-                        // et, tc, wt
-                        + " -ET " + hardcodedFinalModelsSeriesWeightsPath + singlets[i]
-                        + " -TC " + hardcodedFinalModelsSeriesWeightsPath + singlets[i]
-                        + " -WT " + hardcodedFinalModelsSeriesWeightsPath + singlets[i]
-                        + " -pp " + hardcodedOpenFLPlanPath + " -op " + current_outputDir + device_arg + " -dp " + current_temp_output + " -ptd";
-                      if (std::system(command_to_run.c_str()) != 0)
+                      std::cerr << "WARNING: The singlet model '" << i << "' did not run, please contact admin@fets.ai with this error.\n\n";
+                    }
+                    else
+                    {
+                      if (cbica::isFile(current_output_file))
                       {
-                        std::cerr << "WARNING: The singlet model '" << i << "' did not run, please contact admin@fets.ai with this error.\n\n";
-                      }
-                      else
-                      {
-                        if (cbica::isFile(current_output_file))
-                        {
-                          cbica::copyFile(current_output_file, current_output_file_to_check);
-                        }
+                        cbica::copyFile(current_output_file, current_output_file_to_check);
                       }
                     }
-                  }
+                  } // end of if file exists
                 } // end of fets_singlet check
                 else if (archs_split[a] == "fets_triplet")
                 {
                   std::cout << "== Starting inference using FeTS Triplet Consensus model...\n";
                   
-                  std::vector< std::vector < std::string > > triplets;
-                  triplets.push_back({ "69", "72", "52" });
                   auto current_output_file = current_subject_temp_output + "/segmentation.nii.gz";
                   auto fileNameToCheck = subjectDirs[s] + "_fets_triplet_seg.nii.gz";
                   auto current_output_file_to_check = dataDir + "/" + subjectDirs[s] + "/" + fileNameToCheck;
 
                   if (!cbica::isFile(current_output_file_to_check))
                   {
-                    for (size_t i = 0; i < triplets.size(); i++)
+                    auto current_outputDir = currentSubjectOutputDir + "/fets_triplet";
+                    cbica::createDir(current_outputDir);
+                    command_to_run = hardcodedPythonPath + " " + scriptToCall
+                      // et, tc, wt
+                      + " -ET " + hardcodedFinalModelsSeriesWeightsPath + "69"
+                      + " -TC " + hardcodedFinalModelsSeriesWeightsPath + "72"
+                      + " -WT " + hardcodedFinalModelsSeriesWeightsPath + "52"
+                      + " -pp " + hardcodedOpenFLPlanPath + " -op " + current_outputDir + device_arg + " -dp " + current_temp_output + " -ptd";
+                    if (std::system(command_to_run.c_str()) != 0)
                     {
-                      // apply triplet logic to each
-                      auto current_outputDir = currentSubjectOutputDir + "/fets_triplet";
-                      cbica::createDir(current_outputDir);
-                      command_to_run = hardcodedPythonPath + " " + scriptToCall
-                        // et, tc, wt
-                        + " -ET " + hardcodedFinalModelsSeriesWeightsPath + triplets[i][0]
-                        + " -TC " + hardcodedFinalModelsSeriesWeightsPath + triplets[i][1]
-                        + " -WT " + hardcodedFinalModelsSeriesWeightsPath + triplets[i][2]
-                        + " -pp " + hardcodedOpenFLPlanPath + " -op " + current_outputDir + device_arg + " -dp " + current_temp_output + " -ptd";
-                      if (std::system(command_to_run.c_str()) != 0)
+                      std::cerr << "WARNING: The triplet model '" << i << "' did not run, please contact admin@fets.ai with this error.\n\n";
+                    }
+                    else
+                    {
+                      if (cbica::isFile(current_output_file))
                       {
-                        std::cerr << "WARNING: The triplet model '" << i << "' did not run, please contact admin@fets.ai with this error.\n\n";
-                      }
-                      else
-                      {
-                        if (cbica::isFile(current_output_file))
-                        {
-                          cbica::copyFile(current_output_file, current_output_file_to_check);
-                        }
+                        cbica::copyFile(current_output_file, current_output_file_to_check);
                       }
                     }
-                  }
+                  } // end of if file exists
                 } // end of fets_triplet check
                 else
                 {
