@@ -50,7 +50,6 @@ int main(int argc, char** argv)
   bool gpuRequested = false, trainingRequested = true, patchValidation = true;
 
   parser.getParameterValue("d", dataDir);
-  parser.getParameterValue("t", trainingRequested);
 
   if (parser.isPresent("L"))
   {
@@ -63,21 +62,14 @@ int main(int argc, char** argv)
     cbica::createDir(loggingDir);
   }
 
-  if (trainingRequested)
+  if (parser.isPresent("c"))
   {
-    if (parser.isPresent("c"))
-    {
-      parser.getParameterValue("c", colName);
-    }
-    else
-    {
-      std::cerr << "Collaborator name is required to beging training; please specify this using '-c'.\n";
-      return EXIT_FAILURE;
-    }
-    // if (parser.isPresent("vp"))
-    // {
-    //   parser.getParameterValue("vp", patchValidation);
-    // }
+    parser.getParameterValue("c", colName);
+  }
+  else
+  {
+    std::cerr << "Collaborator name is required to beging training; please specify this using '-c'.\n";
+    return EXIT_FAILURE;
   }
 
   std::string device_arg = " -md ";
@@ -102,12 +94,6 @@ int main(int argc, char** argv)
   auto fusion_split = cbica::stringSplit(fusionMethod, ",");
 
   auto subjectDirs = cbica::subdirectoriesInDirectory(dataDir);
-
-  if (trainingRequested && (archs_split.size() > 1))
-  {
-    std::cerr << "Training cannot be currently be performed on more than 1 architecture.\n";
-    return EXIT_FAILURE;
-  }
 
   std::string 
     hardcodedOpenFLPath = fetsApplicationPath + "/OpenFederatedLearning/",
