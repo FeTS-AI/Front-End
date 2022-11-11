@@ -44,12 +44,11 @@ int main(int argc, char** argv)
   // parser.addOptionalParameter("vp", "valPatch", cbica::Parameter::BOOLEAN, "0-1", "Whether to perform per-patch validation or not", "Used for training, defaults to '0'");
 
   parser.addApplicationDescription("This is the CLI interface for FeTS");
-  parser.addExampleUsage("-d /path/DataForFeTS -a deepMedic,nnUNet -lF STAPLE,ITKVoting,SIMPLE -g 1 -t 0", "This command performs inference using deepMedic,nnUNet using multiple fusion strategies on GPU and saves in data directory");
+  parser.addExampleUsage("-d /path/DataForFeTS -a deepMedic,nnUNet -lF STAPLE,ITKVoting,SIMPLE -g 1", "This command performs inference using deepMedic,nnUNet using multiple fusion strategies on GPU and saves in data directory");
   
   bool gpuRequested = false, trainingRequested = false, patchValidation = true;
 
   parser.getParameterValue("d", dataDir);
-  parser.getParameterValue("t", trainingRequested);
 
   if (parser.isPresent("L"))
   {
