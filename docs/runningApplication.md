@@ -86,7 +86,7 @@ The aforementioned command will perform the following steps:
 
 [Back To Top &uarr;](#table-of-contents)
 
-## Inference using BraTS-winning algorithms
+## Inference using the FeTS Consensus Models
 
 ```bash
 ${fets_root_dir}/bin/FeTS_CLI_Inference -d /path/to/output/DataForFeTS \ # data directory after invoking ${fets_root_dir}/bin/PrepareDataset
