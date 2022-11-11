@@ -5,6 +5,8 @@
 ## Table of Contents
 - [Application Path](#application-path)
 - [Inference](#inference)
+  - [Inference using BraTS-Winning Algorithms](#inference-using-brats-winning-algorithms)
+  - [Inference using FeTS Consensus Models](#inference-using-the-fets-consensus-models)
 - [Manual corrections](#manual-corrections)
 - [Sanity check](#sanity-check)
 - [Training](#training)
@@ -23,7 +25,9 @@ export LD_LIBRARY_PATH=${fets_root_dir}/lib:$LD_LIBRARY_PATH
 
 [Back To Top &uarr;](#table-of-contents)
 
-## Inference using BraTS-winning algorithms
+## Inference
+
+### Inference using BraTS-winning algorithms
 
 ```bash
 ${fets_root_dir}/bin/FeTS_CLI_Segment -d /path/to/output/DataForFeTS \ # data directory after invoking ${fets_root_dir}/bin/PrepareDataset
@@ -86,7 +90,7 @@ The aforementioned command will perform the following steps:
 
 [Back To Top &uarr;](#table-of-contents)
 
-## Inference using BraTS-winning algorithms
+### Inference using the FeTS Consensus Models
 
 ```bash
 ${fets_root_dir}/bin/FeTS_CLI_Inference -d /path/to/output/DataForFeTS \ # data directory after invoking ${fets_root_dir}/bin/PrepareDataset
