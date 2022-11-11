@@ -89,7 +89,7 @@ The aforementioned command will perform the following steps:
 ## Inference using BraTS-winning algorithms
 
 ```bash
-${fets_root_dir}/bin/FeTS_CLI_Inferece -d /path/to/output/DataForFeTS \ # data directory after invoking ${fets_root_dir}/bin/PrepareDataset
+${fets_root_dir}/bin/FeTS_CLI_Inference -d /path/to/output/DataForFeTS \ # data directory after invoking ${fets_root_dir}/bin/PrepareDataset
   -o /path/to/output/InferenceResults \ # output directory
   -g 1 \ # '0': cpu, '1': request gpu
 ```
