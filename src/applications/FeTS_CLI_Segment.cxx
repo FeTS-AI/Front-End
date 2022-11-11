@@ -41,7 +41,6 @@ int main(int argc, char** argv)
   parser.addOptionalParameter("a", "archs", cbica::Parameter::STRING, allArchsString, "The architecture(s) to infer/train on", "Only a single architecture is supported for training", "Comma-separated values for multiple options", "Defaults to: " + archs);
   parser.addOptionalParameter("lF", "labelFuse", cbica::Parameter::STRING, "STAPLE,ITKVoting,SIMPLE,MajorityVoting", "The label fusion strategy to follow for multi-arch inference", "Comma-separated values for multiple options", "Defaults to: " + fusionMethod);
   parser.addOptionalParameter("g", "gpu", cbica::Parameter::BOOLEAN, "0-1", "Whether to run the process on GPU or not", "Defaults to '0'");
-  parser.addRequiredParameter("o", "outputDir", cbica::Parameter::DIRECTORY, "Dir with write access", "Location of logging directory");
   // parser.addOptionalParameter("vp", "valPatch", cbica::Parameter::BOOLEAN, "0-1", "Whether to perform per-patch validation or not", "Used for training, defaults to '0'");
 
   parser.addApplicationDescription("This is the CLI interface for FeTS");
@@ -51,8 +50,6 @@ int main(int argc, char** argv)
 
   parser.getParameterValue("d", dataDir);
   parser.getParameterValue("t", trainingRequested);
-  parser.getParameterValue("o", outputDir);
-  cbica::createDir(outputDir);
 
   if (parser.isPresent("L"))
   {
