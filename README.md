@@ -11,11 +11,35 @@ FeTS is developed and maintained by the [Center for Biomedical Image Computing a
 
 For more details, please visit us at https://www.fets.ai/
 
-## Status & Timeline
+## Citation
 
-- FeTS is currently undergoing a Phase-1 evaluation with a limited number of international collaborating institutions.
-- The Phase-1 evaluation is expected to go on until the end of Q4 2020.
-- Phase-2 evaluation, including all committed international collaborators is expected to follow the end of Phase-1. 
+Please cite the following papers that describe the FeTS study and tool:
+
+```
+@article{pati2022federated,
+  title={Federated learning enables big data for rare cancer boundary detection},
+  author={Pati, Sarthak and Baid, Ujjwal and Edwards, Brandon and Sheller, Micah and Wang, Shih-Han and Reina, G Anthony and Foley, Patrick and Gruzdev, Alexey and Karkada, Deepthi and Davatzikos, Christos and others},
+  journal={Nature Communications},
+  volume={13},
+  number={1},
+  pages={1--17},
+  year={2022},
+  publisher={Nature Publishing Group},
+  doi={10.1038/s41467-022-33407-5}
+}
+
+@article{pati2022federated,
+  title={The federated tumor segmentation (FeTS) tool: an open-source solution to further solid tumor research},
+  author={Pati, Sarthak and Baid, Ujjwal and Edwards, Brandon and Sheller, Micah J and Foley, Patrick and Reina, G Anthony and Thakur, Siddhesh and Sako, Chiharu and Bilello, Michel and Davatzikos, Christos and others},
+  journal={Physics in Medicine \& Biology},
+  volume={67},
+  number={20},
+  pages={204002},
+  year={2022},
+  publisher={IOP Publishing},
+  doi={10.1088/1361-6560/ac9449}
+}
+```
 
 ## Supporting Grant
 
