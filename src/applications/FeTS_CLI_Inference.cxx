@@ -84,7 +84,7 @@ int main(int argc, char** argv)
     hardcodedPythonPath = hardcodedOpenFLPath + "/venv/bin/python", // this needs to change for Windows (wonder what happens for macOS?)
     hardcodedPythonPath_fusion = fetsApplicationPath + "/LabelFusion/venv/bin/python", // this needs to change for Windows (wonder what happens for macOS?)
     fullPlanPath = hardcodedOpenFLPath + "/bin/federations/plans/" + hardcodedPlanName + ".yaml", // the full path to the plan that we want to use
-    scriptToCall = hardcodedOpenFLPath + "/submodules/fets_ai/Algorithms/fets/bin/brainmage_validation_scores_to_disk.py"; // the script that does the inference and scoring
+    scriptToCall = hardcodedOpenFLPath + "/submodules/fets_ai/Algorithms/fets/bin/brainmage_validation_outputs_to_disk_newer.py"; // the script that does the inference and scoring
 
   std::string command_to_run;
   
@@ -94,7 +94,7 @@ int main(int argc, char** argv)
   //std::cout << "Starting overall model scoring.\n";
   //command_to_run = hardcodedPythonPath + " " + scriptToCall
   //  + " -WT " + hardcodedFinalModelsWeightsPath + "/overall -ET " + hardcodedFinalModelsWeightsPath + "/overall -TC " + hardcodedFinalModelsWeightsPath + "/overall "
-  //  + "-pp " + hardcodedOpenFLPlanPath + " -op " + outputDir_overall + device_arg + " -dp " + dataDir + " -ptd";
+  //  + "-pp " + hardcodedOpenFLPlanPath + " -op " + outputDir_overall + device_arg + " -dp " + dataDir;
 
   //if (std::system(command_to_run.c_str()) != 0)
   //{
@@ -107,7 +107,7 @@ int main(int argc, char** argv)
   //std::cout << "Starting distinct model scoring.\n";
   //command_to_run = hardcodedPythonPath + " " + scriptToCall
   //  + " -WT " + hardcodedFinalModelsWeightsPath + "/WT -ET " + hardcodedFinalModelsWeightsPath + "/ET -TC " + hardcodedFinalModelsWeightsPath + "/TC "
-  //  + "-pp " + hardcodedOpenFLPlanPath + " -op " + outputDir_distinct + device_arg + " -dp " + dataDir + " -ptd";
+  //  + "-pp " + hardcodedOpenFLPlanPath + " -op " + outputDir_distinct + device_arg + " -dp " + dataDir;
   //if (std::system(command_to_run.c_str()) != 0)
   //{
   //  std::cerr << "The distinct models did not run, please contact admin@fets.ai.\n\n";
@@ -124,7 +124,7 @@ int main(int argc, char** argv)
       + " -ET " + hardcodedFinalModelsSeriesWeightsPath + "0"
       + " -TC " + hardcodedFinalModelsSeriesWeightsPath + "0"
       + " -WT " + hardcodedFinalModelsSeriesWeightsPath + "0"
-      + " -pp " + hardcodedOpenFLPlanPath + " -op " + current_outputDir + device_arg + " -dp " + dataDir + " -ptd";
+      + " -pp " + hardcodedOpenFLPlanPath + " -op " + current_outputDir + device_arg + " -dp " + dataDir;
     if (std::system(command_to_run.c_str()) != 0)
     {
       std::cerr << "WARNING: The initial model did not run, please contact admin@fets.ai with this error.\n\n";
@@ -141,7 +141,7 @@ int main(int argc, char** argv)
       + " -ET " + hardcodedFinalModelsSeriesWeightsPath + triplets[i][0]
       + " -TC " + hardcodedFinalModelsSeriesWeightsPath + triplets[i][1]
       + " -WT " + hardcodedFinalModelsSeriesWeightsPath + triplets[i][2]
-      + " -pp " + hardcodedOpenFLPlanPath + " -op " + current_outputDir + device_arg + " -dp " + dataDir + " -ptd";
+      + " -pp " + hardcodedOpenFLPlanPath + " -op " + current_outputDir + device_arg + " -dp " + dataDir;
     if (std::system(command_to_run.c_str()) != 0)
     {
       std::cerr << "WARNING: The triplet model '" << i << "' did not run, please contact admin@fets.ai with this error.\n\n";
@@ -158,7 +158,7 @@ int main(int argc, char** argv)
       + " -ET " + hardcodedFinalModelsSeriesWeightsPath + singlets[i]
       + " -TC " + hardcodedFinalModelsSeriesWeightsPath + singlets[i]
       + " -WT " + hardcodedFinalModelsSeriesWeightsPath + singlets[i]
-      + " -pp " + hardcodedOpenFLPlanPath + " -op " + current_outputDir + device_arg + " -dp " + dataDir + " -ptd";
+      + " -pp " + hardcodedOpenFLPlanPath + " -op " + current_outputDir + device_arg + " -dp " + dataDir;
     if (std::system(command_to_run.c_str()) != 0)
     {
       std::cerr << "WARNING: The singlet model '" << i << "' did not run, please contact admin@fets.ai with this error.\n\n";
