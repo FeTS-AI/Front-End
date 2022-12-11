@@ -13,7 +13,7 @@ For more details, please visit us at https://www.fets.ai/
 
 ## Citation
 
-Please cite the following papers that describe the FeTS study and tool:
+If you have found the code and/or its ideas useful, please cite the following articles:
 
 ```
 @article{pati2022federated,
