@@ -45,6 +45,12 @@ If you have found the code and/or its ideas useful, please cite the following ar
 
 This work is in part supported by the National Institutes of Health / National Cancer Institute / Informatics Technology for Cancer Research (NIH/NCI/ITCR), under grant award number U01-CA242871.
 
+## Downloads
+
+By downloading FeTS, you agree to our [License](./LICENSE). 
+
+Latest installer: https://upenn.box.com/shared/static/54vtz3wwgsopozitjq1ll4h3l1z2li7m.bin
+
 ## Documentation
 
 https://fets-ai.github.io/Front-End/
@@ -57,10 +63,6 @@ https://fets-ai.github.io/Front-End/
 For more details, please visit us at https://www.fets.ai/
 
 For issues, please visit https://github.com/FETS-AI/Front-End/issues 
-
-## Downloads
-
-By downloading FeTS, you agree to our [License](./LICENSE). 
 
 ## Contact
 
