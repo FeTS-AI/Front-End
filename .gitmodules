@@ -6,10 +6,13 @@
 	url = https://github.com/CBICA/greedy.git
 [submodule "OpenFederatedLearning"]
 	path = OpenFederatedLearning
-	url = https://github.com/IntelLabs/OpenFederatedLearning.git
+	url = https://github.com/sarthakpati/OpenFederatedLearning.git
 [submodule "Models_Pretrained"]
 	path = Models_Pretrained
 	url = https://github.com/FETS-AI/Models.git
 [submodule "LabelFusion"]
 	path = LabelFusion
 	url = https://github.com/FETS-AI/LabelFusion.git
+[submodule "BrainMaGe"]
+	path = BrainMaGe
+	url = https://github.com/CBICA/BrainMaGe.git

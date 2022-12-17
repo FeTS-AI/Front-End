@@ -8,6 +8,7 @@
 #include "BiasCorrection.hpp"
 
 #include "itkMaskImageFilter.h"
+#include "itkAbsImageFilter.h"
 
 #include <map>
 
@@ -21,7 +22,7 @@ int main(int argc, char** argv)
   parser.addRequiredParameter("t2", "t2Image", cbica::Parameter::STRING, "Input Image (DICOM or NIfTI)", "Input structural T2-weighted contrast image");
   parser.addRequiredParameter("fl", "flImage", cbica::Parameter::STRING, "Input Image (DICOM or NIfTI)", "Input structural FLAIR contrast image");
   parser.addRequiredParameter("o", "outputDir", cbica::Parameter::DIRECTORY, "Directory", "Output directory for final output");
-  parser.addOptionalParameter("s", "skullStrip", cbica::Parameter::BOOLEAN, "0 or 1", "Flag whether to skull strip or not", "Defaults to 1", "This uses DeepMedic: https://cbica.github.io/CaPTk/seg_DL.html");
+  parser.addOptionalParameter("s", "skullStrip", cbica::Parameter::BOOLEAN, "0 or 1", "Flag whether to skull strip or not", "Defaults to 1", "This uses BrainMaGe [https://github.com/CBICA/BrainMaGe/] and", "falls back to DeepMedic [https://cbica.github.io/CaPTk/seg_DL.html]");
   parser.addOptionalParameter("b", "brainTumor", cbica::Parameter::BOOLEAN, "0 or 1", "Flag whether to segment brain tumors or not", "Defaults to 0", "This uses DeepMedic: https://cbica.github.io/CaPTk/seg_DL.html");
   parser.addOptionalParameter("d", "debug", cbica::Parameter::BOOLEAN, "0 or 1", "Print debugging information", "Defaults to 1");
   parser.addOptionalParameter("i", "interFiles", cbica::Parameter::BOOLEAN, "0 or 1", "Save intermediate files", "Defaults to 1");
@@ -110,10 +111,25 @@ int main(int argc, char** argv)
   {
     auto modality = it->first;
     /// [1] read image - DICOM to NIfTI conversion, if applicable
+    if (cbica::isDir(it->second))
+    {
+      std::cout << "Passed a directory as DICOM input, will take the first valid DICOM file as input for further processing.\n";
+      auto filesInDir = cbica::filesInDirectory(it->second);
+      for (size_t i = 0; i < filesInDir.size(); i++)
+      {
+        if (cbica::IsDicom(filesInDir[i]))
+        {
+          inputFiles[it->first] = filesInDir[i];
+          break;
+        }
+      }
+    }
+
     inputImages[modality] = cbica::ReadImage< ImageType >(it->second);
 
     if (inputImages[modality].IsNull() && cbica::IsDicom(it->second))
     {
+      std::cerr << "WARNING: Built-in DICOM engine did not work, trying with dcm2niix, which might result in weird output orientations of converted images.\n";
       auto dicomFolderPath = cbica::getFilenamePath(it->second);
       // construct path to dcm2niix for debug/release modes and different OS
       std::string m_exe;
@@ -365,57 +381,96 @@ int main(int argc, char** argv)
   // variables that are used later on
   auto finalBrainMask = cbica::normalizePath(outputDir + "/brainMask_SRI.nii.gz");
   auto deepMedicExe = getApplicationPath("DeepMedic");
-  auto brainMaskFile = outputDir + "/dmOut_skull/brainMask_SRI.nii.gz";
 
   if (skullStrip)
   {
-    /// [5] Skull-stripping using DeepMedic
-    if (debug)
+    /// [5] Skull-stripping
+    auto brainmage_runner = captk_currentApplicationPath + "/BrainMaGe/brain_mage_single_run";
+    bool runDM = false;
+    if (!cbica::exists(finalBrainMask))
     {
-      std::cout << "Starting skull-stripping using DeepMedic.\n";
+      if (cbica::isFile(brainmage_runner))
+      {
+        if (debug)
+        {
+          std::cout << "Trying skull-stripping using BrainMaGe.\n";
+        }
+        std::string hardcodedPythonPath = captk_currentApplicationPath + "/OpenFederatedLearning/venv/bin/python"; // this needs to change for Windows (wonder what happens for macOS?)
+        if (cbica::isFile(hardcodedPythonPath)) // try to run from virtual environment, otherwise fall back to deepmedic
+        {
+          auto command_for_brainmage = hardcodedPythonPath + " " + brainmage_runner + " -i " + outputRegisteredImages["T1"] + " -o " + finalBrainMask;
+          if (debug)
+          {
+            std::cout << "Command for BrainMaGe: " << command_for_brainmage << "\n";
+          }
+          if (std::system(command_for_brainmage.c_str()) != 0)
+          {
+            runDM = true;
+            std::cerr << "Skull-stripping using BrainMaGe could not finish, falling back to DeepMedic, instead.\n";
+          }
+        }
+        else
+        {
+          runDM = true;
+        }        
+      } // end brainmage_runner check
+      else
+      {
+        runDM = true;
+      }
+
+      if (runDM) // fall-back
+      {
+        if (debug)
+        {
+          std::cout << "Starting skull-stripping using DeepMedic.\n";
+        }
+        fullCommand = " -md " + captkDataDir + "/deepMedic/saved_models/skullStripping/ " +
+          "-i " + outputRegisteredImages["T1"] + "," +
+          outputRegisteredImages["T1CE"] + "," +
+          outputRegisteredImages["T2"] + "," +
+          outputRegisteredImages["FL"] + " -o " +
+          finalBrainMask;
+
+        if (debug)
+        {
+          std::cout << "Command for DeepMedic: " << deepMedicExe + fullCommand << "\n";
+        }
+
+        if (std::system((deepMedicExe + fullCommand).c_str()) != 0)
+        {
+          std::cerr << "Something went wrong when performing skull-stripping using DeepMedic, please re-try or contact sofware@cbica.upenn.edu.\n";
+          return EXIT_FAILURE;
+        }
+      }
     }
-
-    if (!cbica::exists(brainMaskFile))
+    else
     {
-      fullCommand = " -md " + captkDataDir + "/deepMedic/saved_models/skullStripping/ " +
-        "-i " + outputRegisteredImages["T1"] + "," +
-        outputRegisteredImages["T1CE"] + "," +
-        outputRegisteredImages["T2"] + "," +
-        outputRegisteredImages["FL"] + " -o " +
-        brainMaskFile;
-
-      if (debug)
-      {
-        std::cout << "Command for DeepMedic: " << deepMedicExe + fullCommand << "\n";
-      }
-
-      if (std::system((deepMedicExe + fullCommand).c_str()) != 0)
-      {
-        std::cerr << "Something went wrong when performing skull-stripping using DeepMedic, please re-try or contact sofware@cbica.upenn.edu.\n";
-        return EXIT_FAILURE;
-      }
-    } // end brainMask check
-
-    if (!cbica::exists(brainMaskFile))
-    {
-      std::cerr << "Brain Mask was not written, cannot proceed.\n";
-      return EXIT_FAILURE;
+      std::cout << "Found previous brain mask at: " << finalBrainMask << "\n";
     }
 
     // variables to store outputs in patient space
     std::map< std::string, std::string > outputFiles_withoutOrientationFix, outputFiles_withOrientationFix;
 
-    cbica::WriteImage< TImageType >(
-      cbica::ReadImage< TImageType >(brainMaskFile),
-      finalBrainMask
-      );
-
     // iterate over outputRegisteredMaskedImages
     for (auto it = outputRegisteredMaskedImages.begin(); it != outputRegisteredMaskedImages.end(); it++)
     {
       auto modality = it->first;
+      // this is to ensure that there are no negative values present in the final output
+      auto absFilter = itk::AbsImageFilter< ImageType, ImageType >::New();
+      absFilter->SetInput(cbica::ReadImage< ImageType >(outputRegisteredImages[modality]));
+      try
+      {
+        absFilter->Update();
+      }
+      catch (const std::exception& e)
+      {
+        std::cerr << "Something went wrong when applying the absolute filter to modality '"
+          << modality << "': " << e.what();
+        return EXIT_FAILURE;
+      }
       auto maskFilter = itk::MaskImageFilter< ImageType, ImageType >::New();
-      maskFilter->SetInput(cbica::ReadImage< ImageType >(outputRegisteredImages[modality]));
+      maskFilter->SetInput(absFilter->GetOutput());
       maskFilter->SetMaskImage(cbica::ReadImage< TImageType >(finalBrainMask));
       try
       {
