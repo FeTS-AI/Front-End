@@ -49,7 +49,7 @@ This work is in part supported by the National Institutes of Health / National C
 
 By downloading FeTS, you agree to our [License](./LICENSE). 
 
-Latest installer: https://upenn.box.com/shared/static/54vtz3wwgsopozitjq1ll4h3l1z2li7m.bin
+Latest installer: https://www.nitrc.org/frs/downloadlink.php/13219
 
 ## Documentation
 
