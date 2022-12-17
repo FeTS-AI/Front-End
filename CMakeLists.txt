@@ -13,7 +13,7 @@ SET( ${PROJECT_NAME}_Variant "Full" ) # the particular variant of CaPTk (Full/Ne
 
 SET( PROJECT_VERSION_MAJOR 0 )
 SET( PROJECT_VERSION_MINOR 0 )
-SET( PROJECT_VERSION_PATCH 7 )
+SET( PROJECT_VERSION_PATCH 9 )
 SET( PROJECT_VERSION_TWEAK )
 
 # check for the string "nonRelease" in the PROJECT_VERSION_PATCH variable
@@ -144,9 +144,9 @@ ENDIF()
 SET( PROJECT_VERSION "${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH}" CACHE STRING "The project version" FORCE )
 
 IF (APPLE)
-  SET (EXE_NAME "${PROJECT_NAME}_${PROJECT_VERSION}")
+  SET (EXE_NAME "${PROJECT_NAME}_GUI_${PROJECT_VERSION}")
 ELSE()
-  SET( EXE_NAME "${PROJECT_NAME}" )
+  SET( EXE_NAME "${PROJECT_NAME}_GUI" )
 ENDIF()
 
 #IF( NOT( ${SVN_REVISION} STREQUAL "" ) )
@@ -559,6 +559,14 @@ IF( NOT BUILD_DOCUMENTATION_ONLY )
     RESULT_VARIABLE git_result
     OUTPUT_VARIABLE git_ver)    
   ENDIF()
+
+  # get lfs to pull
+  IF( EXISTS "${PROJECT_SOURCE_DIR}/BrainMaGe" )
+    EXECUTE_PROCESS(COMMAND git lfs pull
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/BrainMaGe
+    RESULT_VARIABLE git_result
+    OUTPUT_VARIABLE git_ver)  
+  ENDIF()  
   
   # copy plans from algorithms 
   IF( EXISTS "${PROJECT_SOURCE_DIR}/OpenFederatedLearning/submodules/fets_ai/Algorithms/fets/bin/federations/plans/pt_3dresunet_brainmagebrats.yaml" )
@@ -580,32 +588,6 @@ IF( NOT BUILD_DOCUMENTATION_ONLY )
     FILE(DOWNLOAD "${DOWNLOAD_LINK}" "${FILE_TO_EXTRACT}" TIMEOUT 1000000 STATUS STATUS_CODE SHOW_PROGRESS)
     IF(NOT STATUS_CODE EQUAL 0)
       MESSAGE(FATAL_ERROR "Failed to download skull-stripping weights. Status=${STATUS_CODE}")
-    ENDIF()
-  ENDIF()
-
-  SET( DOWNLOAD_LINK "ftp://www.nitrc.org/home/groups/captk/downloads/models/torch/pt_3dresunet_brainmagebrats_init.pbuf" )
-  SET( FILE_TO_EXTRACT "${PROJECT_SOURCE_DIR}/OpenFederatedLearning/bin/federations/weights/pt_3dresunet_brainmagebrats_init.pbuf")
-
-  IF( NOT EXISTS "${FILE_TO_EXTRACT}" )
-
-    # download exe from url
-    MESSAGE( STATUS "Downloading weights for brain tumor segmentation" )
-    FILE(DOWNLOAD "${DOWNLOAD_LINK}" "${FILE_TO_EXTRACT}" TIMEOUT 1000000 STATUS STATUS_CODE SHOW_PROGRESS)
-    IF(NOT STATUS_CODE EQUAL 0)
-      MESSAGE(FATAL_ERROR "Failed to download brain tumor segmentation weights. Status=${STATUS_CODE}")
-    ENDIF()
-  ENDIF()
-
-  SET( DOWNLOAD_LINK "ftp://www.nitrc.org/home/groups/captk/downloads/models/torch/pt_3dresunet_fets_phase1_brats20pretrained_init_1.pbuf" )
-  SET( FILE_TO_EXTRACT "${PROJECT_SOURCE_DIR}/OpenFederatedLearning/bin/federations/weights/pt_3dresunet_fets_phase1_brats20pretrained_init_1.pbuf")
-
-  IF( NOT EXISTS "${FILE_TO_EXTRACT}" )
-
-    # download exe from url
-    MESSAGE( STATUS "Downloading weights for BraTS evaluation model" )
-    FILE(DOWNLOAD "${DOWNLOAD_LINK}" "${FILE_TO_EXTRACT}" TIMEOUT 1000000 STATUS STATUS_CODE SHOW_PROGRESS)
-    IF(NOT STATUS_CODE EQUAL 0)
-      MESSAGE(FATAL_ERROR "Failed to download BraTS evaluation model weights. Status=${STATUS_CODE}")
     ENDIF()
   ENDIF()
 
@@ -635,6 +617,13 @@ IF( NOT BUILD_DOCUMENTATION_ONLY )
 
   INSTALL(
     DIRECTORY "${PROJECT_SOURCE_DIR}/LabelFusion" 
+    DESTINATION bin
+    PATTERN ".git" EXCLUDE
+    PATTERN "venv" EXCLUDE
+  )
+
+  INSTALL(
+    DIRECTORY "${PROJECT_SOURCE_DIR}/BrainMaGe" 
     DESTINATION bin
     PATTERN ".git" EXCLUDE
     PATTERN "venv" EXCLUDE
@@ -1184,7 +1173,9 @@ IF( NOT BUILD_DOCUMENTATION_ONLY )
 
   # Execute a post install step. Make sure this is the last install command ran!
   IF( CMAKE_HOST_UNIX )
-    INSTALL(CODE "EXECUTE_PROCESS(COMMAND ln -sf FeTS fets WORKING_DIRECTORY ${CMAKE_INSTALL_PREFIX}/bin)")
+    INSTALL(CODE "EXECUTE_PROCESS(COMMAND ln -sf FeTS_GUI fets_gui WORKING_DIRECTORY ${CMAKE_INSTALL_PREFIX}/bin)")
+    INSTALL(CODE "EXECUTE_PROCESS(COMMAND ln -sf FeTS_CLI_Segment fets_cli_segment WORKING_DIRECTORY ${CMAKE_INSTALL_PREFIX}/bin)")
+    INSTALL(CODE "EXECUTE_PROCESS(COMMAND ln -sf FeTS_CLI_Train fets_cli_train WORKING_DIRECTORY ${CMAKE_INSTALL_PREFIX}/bin)")
   ENDIF()
 
   IF(EXISTS ${PROJECT_SOURCE_DIR}/src/applications/individualApps/libra/MCR/v84/bin/glnxa64/matlab_helper)

@@ -137,17 +137,29 @@ install_captk () {
   if make install_openfl ; then
     ./venv/bin/pip install torch==1.7.1+cu92 torchvision==0.8.2+cu92 torchaudio==0.7.2 -f https://download.pytorch.org/whl/torch_stable.html
     make install_fets
+    echo "Installing BrainMaGe..."
+    ./venv/bin/pip install ../BrainMaGe
+
     cd ../LabelFusion
     echo "Setting up the Python environment for LabelFusion (this needs SimpleITK==2.0.2, but GaNDLF needs 1.2.4)..."
     python3 -m venv venv
-    venv/bin/pip3 install -e .
+    venv/bin/pip install -e .
 
     echo "Downloading weights for nnUNet..."
     cd ${target_dir}/squashfs-root/usr/data/fets
     wget ${nnunet_link} -O nnunet.zip
-    unzip nnunet.zip
+    if unzip -qq nnunet.zip ; then
+      rm -rf nnunet.zip
+    fi
+
+    cd ..
+    echo "Downloading FeTS Initiative final consensus model weights..."
+    wget https://upenn.box.com/shared/static/hhvn8nb9xtz6nxcilmdl8kbx9n1afkdu.zip -O ./fets_consensus_models.zip
+    if unzip -qq fets_consensus_models.zip ; then
+      rm -rf fets_consensus_models.zip
+    fi
   fi
-  ## openfl installation
+  ## display messages
   echo "fets_root_dir :: \"${target_dir}/squashfs-root/usr\""
   echo "[OPTIONAL] Run the graphical front-end using the command \"${target_dir}/squashfs-root/usr/bin/FeTS\" on your console."
   rm -rf ./FeTS

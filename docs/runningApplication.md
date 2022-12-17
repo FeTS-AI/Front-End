@@ -5,6 +5,8 @@
 ## Table of Contents
 - [Application Path](#application-path)
 - [Inference](#inference)
+  - [Inference using BraTS-Winning Algorithms](#inference-using-brats-winning-algorithms)
+  - [Inference using FeTS Consensus Models](#inference-using-the-fets-consensus-models)
 - [Manual corrections](#manual-corrections)
 - [Sanity check](#sanity-check)
 - [Training](#training)
@@ -25,8 +27,10 @@ export LD_LIBRARY_PATH=${fets_root_dir}/lib:$LD_LIBRARY_PATH
 
 ## Inference
 
+### Inference using BraTS-winning algorithms
+
 ```bash
-${fets_root_dir}/bin/FeTS_CLI -d /path/to/output/DataForFeTS \ # data directory after invoking ${fets_root_dir}/bin/PrepareDataset
+${fets_root_dir}/bin/FeTS_CLI_Segment -d /path/to/output/DataForFeTS \ # data directory after invoking ${fets_root_dir}/bin/PrepareDataset
   -a deepMedic,nnunet,deepscan \ # all pre-trained models currently available in FeTS see notes below for more details
   -lF STAPLE,ITKVoting,SIMPLE,MajorityVoting \ # todo: select the most appropriate after Ujjwal's analysis
   -g 1 \ # '0': cpu, '1': request gpu
@@ -58,7 +62,7 @@ The aforementioned command will perform the following steps:
         │   │   │   │   └───fold_${k} # different folds
         │   │   │   │   │   │ ...
         ```
-      - This will now be available as a model for inference using the `FeTS_CLI` application under the `-a` parameter.
+      - This will now be available as a model for inference using the `FeTS_CLI_Segment` applications under the `-a` parameter.
     - To run [DeepScan](https://doi.org/10.1007/978-3-030-11726-9_40), at least 120G of RAM is needed. 
     - [DeepMedic](https://doi.org/10.1016/j.media.2016.10.004) runs as a CPU-only task.
 - Leverage the GPU
@@ -83,6 +87,18 @@ The aforementioned command will perform the following steps:
   └───Pat_JohnDoe
   │   │ ...
   ```
+
+[Back To Top &uarr;](#table-of-contents)
+
+### Inference using the FeTS Consensus Models
+
+```bash
+${fets_root_dir}/bin/FeTS_CLI_Inference -d /path/to/output/DataForFeTS \ # data directory after invoking ${fets_root_dir}/bin/PrepareDataset
+  -o /path/to/output/InferenceResults \ # output directory
+  -g 1 \ # '0': cpu, '1': request gpu
+```
+
+The aforementioned command will run inference using the FeTS Consensus models (both singlet and triplet) for the data directory specified by `-d`. The output will be placed in the directory specified by `-o`.
 
 [Back To Top &uarr;](#table-of-contents)
 

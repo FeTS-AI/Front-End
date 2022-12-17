@@ -1,21 +1,27 @@
 # Application Setup
 
 ## Table of Contents
-- [Requirements](#requirements)
-- [Set up the Environment](#set-up-the-environment)
-- [Set up the Collaborator](#set-up-the-collaborator)
+- [Application Setup](#application-setup)
+  - [Table of Contents](#table-of-contents)
+  - [Requirements](#requirements)
+    - [Windows](#windows)
+  - [Set up the Environment](#set-up-the-environment)
+    - [Troubleshooting](#troubleshooting)
+    - [Note for Ubuntu 20.04 users](#note-for-ubuntu-2004-users)
+    - [Optional instructions for Federation backend](#optional-instructions-for-federation-backend)
+  - [Set up the Collaborator](#set-up-the-collaborator)
 
 ## Requirements
 
 - OS: Linux (Ubuntu 18.04) [note that Ubuntu 20.04 does **not** work, and we will support Windows for Phase-2]
-- Python 3.6+: we have tested on [Python distributed by Anaconda](https://www.anaconda.com/products/individual) 3.6, 3.7, 3.8
-Example installation on Ubuntu 18.04:
+- Python 3.6+: we have tested on [Python distributed by Anaconda](https://www.anaconda.com/products/individual) 3.6, 3.7, 3.8.
+Example installation of non-Anaconda Python on Ubuntu 18.04:
 ```bash
 sudo add-apt-repository ppa:deadsnakes/ppa
 sudo apt update
 sudo apt install python3.6 python3.6-venv python3.6-dev python3-setuptools
 ```
-  - When using Anaconda, simply activate an environment with either of the following versions of python **before** starting the installation:
+  - When using Anaconda, simply activate an environment with either of the following versions of python **before** starting the installation (ensure that the command `python3 --version` returns the correct information):
     - 3.6.5
     - 3.7
     - 3.8
@@ -36,6 +42,39 @@ sudo apt install python3.6 python3.6-venv python3.6-dev python3-setuptools
     -	Edematous/Invaded tissue + Non-Enhancing-Tumor - ED
     - Enhancing - ET
     - Necrotic tumor core - NET
+
+### Windows 
+
+Since FeTS is Linux-only at the moment, Windows users will need to enable [Windows subsystem for Linux (WSL)](https://docs.microsoft.com/en-us/windows/wsl/install-win10). Here are some detailed instructions to get WSL to recognize the NVIDIA GPU:
+
+- Check the build information for your OS by searching for "about PC" in start menu or running `systeminfo | findstr /B /C:"OS Version"` in powershell.
+- If your build is `< 20145`:
+	- Enroll in [Windows Insider Program](https://insider.windows.com/en-us/) by searching for `Windows Insider Program` in settings.
+    - Once enrollment is finished, activate the **Dev** channel.
+	- This will take some time, so once you see the updates (in Windows Update), ensure you finish the download and start installation, following which you can happily go for breakfast/lunch/dinner.
+	- Verify that build number (search for "about PC" in start menu or run `systeminfo | findstr /B /C:"OS Version"` in powershell) is `>= 20145`.
+- Install [Ubuntu WSL 18.04](https://www.microsoft.com/en-us/p/ubuntu-1804-lts/9n9tngvndl3q).
+- Ensure WSL can see the GPU:
+	- Download appropriate drivers from https://developer.nvidia.com/cuda/wsl/download (you will need a free NVIDIA developer account).
+	- Install the driver.
+	- Test that WSL version is greater than `4.19.121` using the command `wsl cat /proc/version` in the powershell terminal.
+  - Run the following commands:
+  ```bash
+  sudo apt-key adv --fetch-keys http://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/7fa2af80.pub
+  sudo sh -c 'echo "deb http://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64 /" > /etc/apt/sources.list.d/cuda.list'
+  sudo apt-get update
+  sudo apt-get install -y cuda-toolkit-11-0
+  ```
+	- This will also take some time (enough for a coffee/tea)
+- Verify that WSL can see the GPU:
+  ```bash
+	cd /usr/local/cuda/samples/4_Finance/BlackScholes
+	sudo make
+	./BlackScholes
+  ```
+	- If you see "test passed", that means all is well with the world and we can now move on to do some real work.
+	- **NOTE**: For DL training, ensure that you install PyTorch with CUDA 11
+
 
 [Back To Top &uarr;](#table-of-contents)
 

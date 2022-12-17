@@ -108,7 +108,7 @@ ${fets_root_dir}/bin/PrepareDataset -i /path/to/raw_data.csv -o /path/to/output
   │   │   │   │ raw_rai_${modality}.nii.gz
   │   │   │   │ raw_rai_n4_${modality}.nii.gz
   │   │   │   │ ${modality}_to_SRI.nii.gz
-  │   │   │   │ brainMask_SRI.nii.gz # generated using DeepMedic
+  │   │   │   │ brainMask_SRI.nii.gz # generated using BrainMaGe [https://github.com/CBICA/BrainMaGe/] or DeepMedic [https://cbica.github.io/CaPTk/seg_DL.html]
   │   │   │   │ log.txt
   │   │   │   
   │   │   └───Pat_JohnDoe # this is constructed from the ${PatientID} header of CSV

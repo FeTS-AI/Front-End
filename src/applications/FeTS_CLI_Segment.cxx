@@ -22,7 +22,7 @@ int runCollaboratorTraining(const std::string &fullCommandToRunWithArgs)
 
 int main(int argc, char** argv)
 {
-  cbica::CmdParser parser(argc, argv, "FeTS_CLI");
+  cbica::CmdParser parser(argc, argv, "FeTS_CLI_Segment");
 
   auto hardcodedNativeModelWeightPath = getCaPTkDataDir() + "/fets";
   auto allArchs = cbica::subdirectoriesInDirectory(hardcodedNativeModelWeightPath);
@@ -32,27 +32,23 @@ int main(int argc, char** argv)
     allArchsString += allArchs[i] + ",";
   }
   allArchsString.pop_back();
-
-  std::string dataDir, modelName, loggingDir, colName, archs = "3dresunet", fusionMethod = "STAPLE", hardcodedPlanName = "fets_phase2_2";
+  allArchsString += ",fets_singlet,fets_triplet"
+  
+  std::string dataDir, modelName, loggingDir, colName, archs = "fets_triplet", fusionMethod = "STAPLE", hardcodedPlanName = "fets_phase2_2";
 
   parser.addRequiredParameter("d", "dataDir", cbica::Parameter::DIRECTORY, "Dir with Read/Write access", "Input data directory");
-  parser.addRequiredParameter("t", "training", cbica::Parameter::BOOLEAN, "0 or 1", "Whether performing training or inference", "1==Train and 0==Inference");
-  parser.addOptionalParameter("tp", "trainPlan", cbica::Parameter::BOOLEAN, "YAML file", "Training plan", "Defaults to '" + hardcodedPlanName + "'");
   parser.addOptionalParameter("L", "LoggingDir", cbica::Parameter::DIRECTORY, "Dir with write access", "Location of logging directory");
   parser.addOptionalParameter("a", "archs", cbica::Parameter::STRING, allArchsString, "The architecture(s) to infer/train on", "Only a single architecture is supported for training", "Comma-separated values for multiple options", "Defaults to: " + archs);
   parser.addOptionalParameter("lF", "labelFuse", cbica::Parameter::STRING, "STAPLE,ITKVoting,SIMPLE,MajorityVoting", "The label fusion strategy to follow for multi-arch inference", "Comma-separated values for multiple options", "Defaults to: " + fusionMethod);
   parser.addOptionalParameter("g", "gpu", cbica::Parameter::BOOLEAN, "0-1", "Whether to run the process on GPU or not", "Defaults to '0'");
-  parser.addOptionalParameter("c", "colName", cbica::Parameter::STRING, "", "Common name of collaborator", "Required for training");
   // parser.addOptionalParameter("vp", "valPatch", cbica::Parameter::BOOLEAN, "0-1", "Whether to perform per-patch validation or not", "Used for training, defaults to '0'");
 
   parser.addApplicationDescription("This is the CLI interface for FeTS");
-  parser.addExampleUsage("-d /path/DataForFeTS -a deepMedic,nnUNet -lF STAPLE,ITKVoting,SIMPLE -g 1 -t 0", "This command performs inference using deepMedic,nnUNet using multiple fusion strategies on GPU and saves in data directory");
-  parser.addExampleUsage("-d /path/DataForFeTS -t 1 -g 1 -c upenn", "This command starts training performs inference using deepMedic,nnUNet using multiple fusion strategies on GPU and saves in data directory");
+  parser.addExampleUsage("-d /path/DataForFeTS -a deepMedic,nnUNet -lF STAPLE,ITKVoting,SIMPLE -g 1", "This command performs inference using deepMedic,nnUNet using multiple fusion strategies on GPU and saves in data directory");
   
   bool gpuRequested = false, trainingRequested = false, patchValidation = true;
 
   parser.getParameterValue("d", dataDir);
-  parser.getParameterValue("t", trainingRequested);
 
   if (parser.isPresent("L"))
   {
@@ -132,11 +128,15 @@ int main(int argc, char** argv)
 
   std::string 
     hardcodedOpenFLPath = fetsApplicationPath + "/OpenFederatedLearning/",
+    hardcodedOpenFLPlanPath = hardcodedOpenFLPath + "bin/federations/plans/fets_phase2_2.yaml",
     hardcodedLabelFusionPath = fetsApplicationPath + "/LabelFusion/fusion_run",
     hardcodedModelWeightPath = hardcodedOpenFLPath + "/bin/federations/weights/", // start with the common location
-    //hardcodedNativeModelWeightPath = hardcodedOpenFLPath + "/bin/federations/weights/native/", // the native weights are going in fets_data_dir/fets
     hardcodedPythonPath = hardcodedOpenFLPath + "/venv/bin/python", // this needs to change for Windows (wonder what happens for macOS?)
-    hardcodedPythonPath_fusion = fetsApplicationPath + "/LabelFusion/venv/bin/python"; // this needs to change for Windows (wonder what happens for macOS?)
+    hardcodedPythonPath_fusion = fetsApplicationPath + "/LabelFusion/venv/bin/python", // this needs to change for Windows (wonder what happens for macOS?)
+    scriptToCall = hardcodedOpenFLPath + "/submodules/fets_ai/Algorithms/fets/bin/brainmage_validation_scores_to_disk.py"; // the script that does the inference and scoring
+  auto fets_dataDir = getCaPTkDataDir();
+  auto hardcodedFinalModelsWeightsPath = fets_dataDir + "/fets_consensus";
+  auto hardcodedFinalModelsSeriesWeightsPath = fets_dataDir + "/fets_consensus_models/";
 #if WIN32
   hardcodedPythonPath = hardcodedOpenFLPath + "/venv/python.exe";
 #endif
@@ -218,13 +218,15 @@ int main(int argc, char** argv)
         if (!currentSubjectIsProblematic) // proceed only if all modalities for the current subject are present
         {
           std::cout << "= Starting inference for subject: " << subjectDirs[s] << "\n";
+          auto currentSubjectOutputDir = dataDir + "/" + subjectDirs[s] + "/SegmentationsForQC/";
+          cbica::createDir(currentSubjectOutputDir);
           for (size_t a = 0; a < archs_split.size(); a++) // iterate through all requested architectures
           {
             if (archs_split[a] == "deepmedic") // special case 
             {
               std::cout << "== Starting inference using DeepMedic...\n";
               auto brainMaskFile = dataDir + "/" + subjectDirs[s] + "/" + subjectDirs[s] + "_deepmedic_seg.nii.gz";
-              auto fileToCheck_2 = dataDir + "/" + subjectDirs[s] + "/SegmentationsForQC/" + subjectDirs[s] + "_deepmedic_seg.nii.gz";
+              auto fileToCheck_2 = currentSubjectOutputDir + subjectDirs[s] + "_deepmedic_seg.nii.gz";
               if (!(cbica::isFile(brainMaskFile) || cbica::isFile(fileToCheck_2)))
               {
                 auto dm_tempOut = dataDir + "/" + subjectDirs[s] + "/dmOut/mask.nii.gz";
@@ -252,44 +254,84 @@ int main(int argc, char** argv)
               auto args = " -d " + dataDir + device_arg + " -ld " + loggingDir + " -ip " + subjectDirs[s];
               if (pythonEnvironmentFound)
               {
-                // check for all other models written in pytorch here
+                std::string command_to_run;
+
+                auto current_temp_output = cbica::createTmpDir();
+                auto current_subject_temp_output = current_temp_output + "/subject";
+                cbica::createDir(current_subject_temp_output);
+                // std::string file_t1gd, file_t1, file_t2, file_flair;
+                auto file_t1gd_temp = current_subject_temp_output + "/t1gd.nii.gz",
+                  file_t1_temp = current_subject_temp_output + "/t1.nii.gz",
+                  file_t2_temp = current_subject_temp_output + "/t2.nii.gz",
+                  file_flair_temp = current_subject_temp_output + "/flair.nii.gz";
+                cbica::copyFile(file_t1gd, file_t1gd_temp);
+                cbica::copyFile(file_t1, file_t1_temp);
+                cbica::copyFile(file_t2, file_t2_temp);
+                cbica::copyFile(file_flair, file_flair_temp);
+                // check for all other models here
 
                 // check between different architectures
-                if (archs_split[a] == "3dunet")
+                if (archs_split[a] == "fets_singlet")
                 {
-                  // this is currently not defined
-                }
-                else if (archs_split[a] == "3dresunet")
+                  std::cout << "== Starting inference using FeTS Singlet Consensus model...\n";
+                  auto current_output_file = current_subject_temp_output + "/segmentation.nii.gz";
+                  auto fileNameToCheck = subjectDirs[s] + "_fets_singlet_seg.nii.gz";
+                  auto current_output_file_to_check = dataDir + "/" + subjectDirs[s] + "/" + fileNameToCheck;
+                  
+                  if (!cbica::isFile(current_output_file_to_check))
+                  {
+                    auto current_outputDir = currentSubjectOutputDir + "/fets_singlet";
+                    cbica::createDir(current_outputDir);
+                    command_to_run = hardcodedPythonPath + " " + scriptToCall
+                      // et, tc, wt
+                      + " -ET " + hardcodedFinalModelsSeriesWeightsPath + "52"
+                      + " -TC " + hardcodedFinalModelsSeriesWeightsPath + "52"
+                      + " -WT " + hardcodedFinalModelsSeriesWeightsPath + "52"
+                      + " -pp " + hardcodedOpenFLPlanPath + " -op " + current_outputDir + device_arg + " -dp " + current_temp_output + " -ptd";
+                    if (std::system(command_to_run.c_str()) != 0)
+                    {
+                      std::cerr << "WARNING: The singlet model '" << i << "' did not run, please contact admin@fets.ai with this error.\n\n";
+                    }
+                    else
+                    {
+                      if (cbica::isFile(current_output_file))
+                      {
+                        cbica::copyFile(current_output_file, current_output_file_to_check);
+                      }
+                    }
+                  } // end of if file exists
+                } // end of fets_singlet check
+                else if (archs_split[a] == "fets_triplet")
                 {
-                  std::cout << "3DResUNet inference is disabled for this release.\n";
-                  //auto fileNameToCheck = subjectDirs[s] + "_resunet_seg.nii.gz";
-                  //auto fileToCheck_1 = dataDir + "/" + subjectDirs[s] + "/" + fileNameToCheck;
-                  //auto fileToCheck_2 = dataDir + "/" + subjectDirs[s] + "/SegmentationsForQC/" + fileNameToCheck;
-                  //if (!(cbica::isFile(fileToCheck_1) || cbica::isFile(fileToCheck_2))) // don't run if file is present
-                  //{
-                  //  std::cout << "== Starting inference using 3DResUNet...\n";
-                  //  hardcodedPlanName = "pt_3dresunet_brainmagebrats";
-                  //  auto hardcodedModelName = hardcodedPlanName + "_best.pbuf";
-                  //  if (!cbica::isFile((hardcodedModelWeightPath + "/" + hardcodedModelName))) // in case the "best" model is not present, use the "init" model that is distributed with FeTS installation
-                  //  {
-                  //    hardcodedModelName = hardcodedPlanName + "_init.pbuf";
-                  //    if (!cbica::isFile((hardcodedModelWeightPath + "/" + hardcodedModelName)))
-                  //    {
-                  //      std::cerr << "=== A compatible model weight file for the architecture '" << archs_split[a] << "' was not found. Please contact admin@fets.ai for help.\n";
-                  //    }
-                  //  }
+                  std::cout << "== Starting inference using FeTS Triplet Consensus model...\n";
+                  
+                  auto current_output_file = current_subject_temp_output + "/segmentation.nii.gz";
+                  auto fileNameToCheck = subjectDirs[s] + "_fets_triplet_seg.nii.gz";
+                  auto current_output_file_to_check = dataDir + "/" + subjectDirs[s] + "/" + fileNameToCheck;
 
-                  //  auto args_to_run = args + " -mwf " + hardcodedModelName
-                  //    + " -p " + hardcodedPlanName + ".yaml";
-                  //  //<< "-mwf" << hardcodedModelWeightPath // todo: doing customized solution above - change after model weights are using full paths for all
-
-                  //  if (std::system((fullCommandToRun + " " + args_to_run).c_str()) != 0)
-                  //  {
-                  //    std::cerr << "=== Couldn't complete the inference for 3dresunet for subject " << subjectDirs[s] << ".\n";
-                  //    subjectsWithErrors += subjectDirs[s] + ",inference,3dresunet\n";
-                  //  }
-                  //} // end of previous run file check
-                } // end of 3dresunet check
+                  if (!cbica::isFile(current_output_file_to_check))
+                  {
+                    auto current_outputDir = currentSubjectOutputDir + "/fets_triplet";
+                    cbica::createDir(current_outputDir);
+                    command_to_run = hardcodedPythonPath + " " + scriptToCall
+                      // et, tc, wt
+                      + " -ET " + hardcodedFinalModelsSeriesWeightsPath + "69"
+                      + " -TC " + hardcodedFinalModelsSeriesWeightsPath + "72"
+                      + " -WT " + hardcodedFinalModelsSeriesWeightsPath + "52"
+                      + " -pp " + hardcodedOpenFLPlanPath + " -op " + current_outputDir + device_arg + " -dp " + current_temp_output + " -ptd";
+                    if (std::system(command_to_run.c_str()) != 0)
+                    {
+                      std::cerr << "WARNING: The triplet model '" << i << "' did not run, please contact admin@fets.ai with this error.\n\n";
+                    }
+                    else
+                    {
+                      if (cbica::isFile(current_output_file))
+                      {
+                        cbica::copyFile(current_output_file, current_output_file_to_check);
+                      }
+                    }
+                  } // end of if file exists
+                } // end of fets_triplet check
                 else
                 {
                   std::string hardcodedPlanName;
@@ -307,7 +349,7 @@ int main(int argc, char** argv)
                   {
                     auto fileNameToCheck = subjectDirs[s] + "_" + hardcodedPlanName + "_seg.nii.gz";
                     auto fileToCheck_1 = dataDir + "/" + subjectDirs[s] + "/" + fileNameToCheck;
-                    auto fileToCheck_2 = dataDir + "/" + subjectDirs[s] + "/SegmentationsForQC/" + fileNameToCheck;
+                    auto fileToCheck_2 = currentSubjectOutputDir + fileNameToCheck;
                     if (!(cbica::isFile(fileToCheck_1) || cbica::isFile(fileToCheck_2))) // don't run if file is present
                     {
                       // structure according to what is needed - might need to create a function that can call run_inference_from_flplan for different hardcodedModelName
@@ -338,12 +380,11 @@ int main(int argc, char** argv)
               std::cout << "== Starting label fusion...\n";
               auto filesInSubjectDir = cbica::filesInDirectory(dataDir + "/" + subjectDirs[s]);
               auto labelFusion_command = hardcodedPythonPath_fusion + " " + hardcodedLabelFusionPath + " ";
-              std::string filesForFusion, dataForSegmentation = dataDir + "/" + subjectDirs[s] + "/SegmentationsForQC/";
-              cbica::createDir(dataForSegmentation);
+              std::string filesForFusion;
               auto dm_folder = dataDir + "/" + subjectDirs[s] + "/dmOut";
               if (cbica::isDir(dm_folder))
               {
-                cbica::copyDir(dm_folder, dataForSegmentation);
+                cbica::copyDir(dm_folder, currentSubjectOutputDir);
                 cbica::removeDirectoryRecursively(dm_folder, true);
               }
 
@@ -353,17 +394,17 @@ int main(int argc, char** argv)
                 {
                   if (filesInSubjectDir[f].find("final") == std::string::npos) // only do fusion for the files where "final" is not present
                   {
-                    auto fileToCopy = dataForSegmentation + cbica::getFilenameBase(filesInSubjectDir[f]) + ".nii.gz";
+                    auto fileToCopy = currentSubjectOutputDir + cbica::getFilenameBase(filesInSubjectDir[f]) + ".nii.gz";
                     cbica::copyFile(filesInSubjectDir[f], fileToCopy);
                     filesForFusion += fileToCopy + ",";
                     std::remove(filesInSubjectDir[f].c_str());
                   }
                 }
               } // files loop in subject directory
-              filesInSubjectDir = cbica::filesInDirectory(dataForSegmentation);
+              filesInSubjectDir = cbica::filesInDirectory(currentSubjectOutputDir);
               for (size_t f = 0; f < filesInSubjectDir.size(); f++)
               {
-                auto fileToCopy = dataForSegmentation + cbica::getFilenameBase(filesInSubjectDir[f]) + ".nii.gz";
+                auto fileToCopy = currentSubjectOutputDir + cbica::getFilenameBase(filesInSubjectDir[f]) + ".nii.gz";
                 if (filesInSubjectDir[f].find("fused") == std::string::npos) // only consider those files for fusion that are arch outputs
                 {
                   filesForFusion += fileToCopy + ",";
@@ -377,7 +418,7 @@ int main(int argc, char** argv)
 
               for (size_t f = 0; f < fusion_split.size(); f++)
               {
-                auto final_fused_file = dataForSegmentation + "/" + subjectDirs[s] + "_fused_" + fusion_split[f] + "_seg.nii.gz";
+                auto final_fused_file = currentSubjectOutputDir + "/" + subjectDirs[s] + "_fused_" + fusion_split[f] + "_seg.nii.gz";
                 auto full_fusion_command = labelFusion_command + "-inputs " + filesForFusion + " -classes 0,1,2,4 " // this needs to change after different segmentation algorithms are put in place
                   + " -method " + fusion_split[f] + " -output " + final_fused_file;
                 if (std::system(full_fusion_command.c_str()) != 0)
@@ -417,8 +458,8 @@ int main(int argc, char** argv)
 
     if (!cbica::fileExists(split_info_val))
     {
-      auto full_plan_path = hardcodedOpenFLPath + hardcodedPlanName;
-      auto command_to_run = hardcodedPythonPath + " " + hardcodedOpenFLPath + "submodules/Algorithms/fets_ai/bin/initialize_split_info.py -pp " + full_plan_path + " -dp " + dataDir;
+      auto full_plan_path = hardcodedOpenFLPath + "/bin/federations/plans/" + hardcodedPlanName + ".yaml";
+      auto command_to_run = hardcodedPythonPath + " " + hardcodedOpenFLPath + "submodules/fets_ai/Algorithms/fets/bin/initialize_split_info.py -pp " + full_plan_path + " -dp " + dataDir;
       if (std::system(command_to_run.c_str()) != 0)
       {
         std::cerr << "Initialize split did not work, continuing with validation.\n";
