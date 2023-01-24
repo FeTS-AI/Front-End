@@ -290,7 +290,7 @@ int main(int argc, char** argv)
                       + " -pp " + hardcodedOpenFLPlanPath + " -op " + current_outputDir + device_arg + " -dp " + current_temp_output + " -ptd";
                     if (std::system(command_to_run.c_str()) != 0)
                     {
-                      std::cerr << "WARNING: The singlet model '" << i << "' did not run, please contact admin@fets.ai with this error.\n\n";
+                      std::cerr << "WARNING: The singlet model '52' did not run, please contact admin@fets.ai with this error.\n\n";
                     }
                     else
                     {
@@ -321,7 +321,7 @@ int main(int argc, char** argv)
                       + " -pp " + hardcodedOpenFLPlanPath + " -op " + current_outputDir + device_arg + " -dp " + current_temp_output + " -ptd";
                     if (std::system(command_to_run.c_str()) != 0)
                     {
-                      std::cerr << "WARNING: The triplet model '" << i << "' did not run, please contact admin@fets.ai with this error.\n\n";
+                      std::cerr << "WARNING: The triplet model '[69,72,52]' did not run, please contact admin@fets.ai with this error.\n\n";
                     }
                     else
                     {
