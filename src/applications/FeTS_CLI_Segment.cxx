@@ -32,6 +32,7 @@ int main(int argc, char** argv)
     allArchsString += allArchs[i] + ",";
   }
   allArchsString.pop_back();
+  allArchsString += ",fets_singlet,fets_triplet";
   
   std::string dataDir, modelName, loggingDir, colName, archs = "fets_triplet", fusionMethod = "STAPLE", hardcodedPlanName = "fets_phase2_2";
 
