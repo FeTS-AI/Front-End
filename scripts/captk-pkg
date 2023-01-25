@@ -188,6 +188,11 @@ RUN_DEPLOYQT () {
   wget -nc https://github.com/probonopd/linuxdeployqt/releases/download/7/${LDQT}
   chmod +x ${LDQT}
 
+  # if this directory somehow gets created, delete it
+  if [ -d "appdir/usr/bin/OpenFederatedLearning/venv" ]; then
+    rm -rf appdir/usr/bin/OpenFederatedLearning/venv
+  fi
+
   # Okay here's where it gets insane
   # So we need to run linuxdeployqt, and show it where our *.desktop files are so it can generate an AppImage that
   # properly can provide a direct link to the CaPTk binary within the /bin folder of the appdir structure
@@ -206,9 +211,10 @@ RUN_DEPLOYQT () {
   # The solution is to wrap the entry of the AppImage according to this guide made by the guy who made AppImages: https://github.com/probonopd/linuxdeployqt/wiki/Custom-wrapper-script-instead-of-AppRun
   
   # Replace AppRun
+  echo "[:] Replacing AppRun..."
   rm ./appdir/AppRun
   cp ../../data/applications/AppRun ./appdir/
-  # cp ../../data/applications/CaPTk.desktop ./appdir/
+  cp ../../data/applications/FeTS.desktop ./appdir/
 
   if [ -z "$PKG_COPY_QT_LIBS" ]; then
   
