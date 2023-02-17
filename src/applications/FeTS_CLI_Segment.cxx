@@ -373,7 +373,7 @@ int main(int argc, char** argv)
           } // end of archs_split
 
           /// fusion 
-          if (pythonEnvironmentFound)
+          if (pythonEnvironmentFound && archs_split.size() > 1)
           {
             if (cbica::isFile(hardcodedLabelFusionPath))
             {
