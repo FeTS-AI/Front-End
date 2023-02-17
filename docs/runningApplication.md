@@ -3,13 +3,19 @@
 **Note** the `${fets_root_dir}` from [Setup](./setup.md#set-up-the-environment).
 
 ## Table of Contents
-- [Application Path](#application-path)
-- [Inference](#inference)
-  - [Inference using BraTS-Winning Algorithms](#inference-using-brats-winning-algorithms)
-  - [Inference using FeTS Consensus Models](#inference-using-the-fets-consensus-models)
-- [Manual corrections](#manual-corrections)
-- [Sanity check](#sanity-check)
-- [Training](#training)
+- [Running the Application](#running-the-application)
+  - [Table of Contents](#table-of-contents)
+  - [Application Path](#application-path)
+  - [Inference](#inference)
+    - [Inference using BraTS-winning algorithms](#inference-using-brats-winning-algorithms)
+    - [Inference using the FeTS Consensus Models](#inference-using-the-fets-consensus-models)
+  - [Manual Corrections](#manual-corrections)
+  - [Sanity Check](#sanity-check)
+    - [Phase-2 Intensity Check](#phase-2-intensity-check)
+  - [Training](#training)
+    - [Ensure Sanity Checking Is Done](#ensure-sanity-checking-is-done)
+    - [Transfer Certificates](#transfer-certificates)
+    - [Start Training](#start-training)
 
 ## Application Path
 
@@ -31,8 +37,8 @@ export LD_LIBRARY_PATH=${fets_root_dir}/lib:$LD_LIBRARY_PATH
 
 ```bash
 ${fets_root_dir}/bin/FeTS_CLI_Segment -d /path/to/output/DataForFeTS \ # data directory after invoking ${fets_root_dir}/bin/PrepareDataset
-  -a deepMedic,nnunet,deepscan \ # all pre-trained models currently available in FeTS see notes below for more details
-  -lF STAPLE,ITKVoting,SIMPLE,MajorityVoting \ # todo: select the most appropriate after Ujjwal's analysis
+  -a deepMedic,nnunet,deepscan,fets_singlet,fets_triplet \ # all pre-trained models currently available in FeTS see notes below for more details
+  -lF STAPLE,ITKVoting,SIMPLE,MajorityVoting \ # if a single architecture is used, this parameter is ignored
   -g 1 \ # '0': cpu, '1': request gpu
   -t 0 # '0': inference mode, '1': training mode
 ```
@@ -93,9 +99,11 @@ The aforementioned command will perform the following steps:
 ### Inference using the FeTS Consensus Models
 
 ```bash
-${fets_root_dir}/bin/FeTS_CLI_Inference -d /path/to/output/DataForFeTS \ # data directory after invoking ${fets_root_dir}/bin/PrepareDataset
-  -o /path/to/output/InferenceResults \ # output directory
+${fets_root_dir}/bin/FeTS_CLI_Segment -d /path/to/output/DataForFeTS \ # data directory after invoking ${fets_root_dir}/bin/PrepareDataset
+  -a fets_singlet,fets_triplet \ # can be used with all pre-trained models currently available in FeTS
+  -lF STAPLE,ITKVoting,SIMPLE,MajorityVoting \ # if a single architecture is used, this parameter is ignored
   -g 1 \ # '0': cpu, '1': request gpu
+  -t 0 # '0': inference mode, '1': training mode
 ```
 
 The aforementioned command will run inference using the FeTS Consensus models (both singlet and triplet) for the data directory specified by `-d`. The output will be placed in the directory specified by `-o`.
