@@ -127,8 +127,10 @@ install_captk () {
   doc_setup=https://fets-ai.github.io/Front-End/setup#set-up-the-environment
   nnunet_link=https://upenn.box.com/shared/static/f7zt19d08c545qt3tcaeg7b37z6qafum.zip
   max=8
-  ver=`python3 -c 'import sys; print(sys.version_info.minor)'`
-  if [ "$ver" -gt "$max" ]; then
+  ver_max=`python3 -c 'import sys; print(sys.version_info.minor)'`
+  min=5
+  ver_min=`python3 -c 'import sys; print(sys.version_info.micro)'`
+  if [ ("$ver_max" -gt "$max") || ("$ver_min" -lt "$min") ]; then
     echo "Python version >3.8 detected, please change default version to either 3.6.5, 3.7 or 3.8"
     exit 1
   fi
