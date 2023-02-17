@@ -139,6 +139,7 @@ int main(int argc, char** argv)
   auto hardcodedFinalModelsSeriesWeightsPath = fets_dataDir + "/fets_consensus_models/";
 #if WIN32
   hardcodedPythonPath = hardcodedOpenFLPath + "/venv/python.exe";
+  hardcodedPythonPath_fusion = fetsApplicationPath + "/LabelFusion/venv/python.exe";
 #endif
 
   auto pythonEnvironmentFound = false;
