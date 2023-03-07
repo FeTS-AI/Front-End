@@ -41,6 +41,12 @@ If you have found the code and/or its ideas useful, please cite the following ar
 }
 ```
 
+## Consensus Models for 2021 Study
+
+Currently, these are available through the FeTS Installer (see Downloads). The models can be downloaded from the following link:
+
+https://upenn.box.com/v/fets2021consensusmodels
+
 ## Table of Contents
 - [Application Setup](./setup.md)
 - [Process the Data](./process_data.md)
