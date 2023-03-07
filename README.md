@@ -28,7 +28,7 @@ If you have found the code and/or its ideas useful, please cite the following ar
   doi={10.1038/s41467-022-33407-5}
 }
 
-@article{pati2022federated,
+@article{pati2022fetsTool,
   title={The federated tumor segmentation (FeTS) tool: an open-source solution to further solid tumor research},
   author={Pati, Sarthak and Baid, Ujjwal and Edwards, Brandon and Sheller, Micah J and Foley, Patrick and Reina, G Anthony and Thakur, Siddhesh and Sako, Chiharu and Bilello, Michel and Davatzikos, Christos and others},
   journal={Physics in Medicine \& Biology},
