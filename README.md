@@ -60,6 +60,12 @@ By downloading FeTS, you agree to our [License](./LICENSE).
 
 Latest installer: https://www.nitrc.org/frs/downloadlink.php/13219
 
+## Consensus Models for 2021 Study
+
+Currently, these are available through the FeTS Installer (see Downloads). The models can be downloaded from the following link:
+
+https://upenn.box.com/v/fets2021consensusmodels
+
 ## Documentation
 
 https://fets-ai.github.io/Front-End/
