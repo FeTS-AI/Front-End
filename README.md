@@ -66,6 +66,10 @@ Currently, these are available through the FeTS Installer (see Downloads). The m
 
 https://upenn.box.com/v/fets2021consensusmodels
 
+The optimized models (available to run without requiring specialized DL accelerator cards), along with instructions to perform inference, can be downloaded from the following link:
+
+https://upenn.box.com/v/fets2021consensusmodelsOpt
+
 ## Documentation
 
 https://fets-ai.github.io/Front-End/
