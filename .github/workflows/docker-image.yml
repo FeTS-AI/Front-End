@@ -34,7 +34,7 @@ jobs:
     - name: Check out the repository
       uses: actions/checkout@v2
       with:
-        lfs: true
+        lfs: false
         submodules: 'recursive'
         
     - name: Docker prune to save space # If you switch to self-hosted runners, this should be removed.
