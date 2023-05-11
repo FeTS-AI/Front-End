@@ -25,8 +25,6 @@ jobs:
       fail-fast: false # So that remaining jobs don't instantly quit if one fails (e.g, CPU/ROCm don't upload if CUDA just fails to push to ghcr...)
       matrix:
         include: # Platform locates Dockerfile ("Dockerfile-{PLATFORM}"), docker tag has to be all lowercase alphanumeric for mysterious docker reasons
-          - platform: CUDA11.6
-            dockertag: cuda116
           - platform: CPU
             dockertag: cpu
           # - platform: ROCm
@@ -38,14 +36,6 @@ jobs:
       with:
         lfs: true
         submodules: 'recursive'
-        
-
-    - name: Log in to Docker Hub (docker.io)
-      uses: docker/login-action@v2
-      if: github.event_name != 'pull_request'
-      with:
-        username: ${{ secrets.DOCKER_HUB_USER }} # These two fields need to be set on GitHub under Secrets.
-        password: ${{ secrets.DOCKER_HUB_TOKEN }} # Recommend using a revokable token here.
         
     - name: Docker prune to save space # If you switch to self-hosted runners, this should be removed.
       run: echo y | docker system prune -a
@@ -76,7 +66,7 @@ jobs:
       id: meta
       uses: docker/metadata-action@v3
       with:
-        images: docker.io/cbica/gandlf, ghcr.io/mlcommons/gandlf # Push to both registries
+        images: ghcr.io/fets-ai/gandlf
         flavor: | # Handle prefixing and "latest" generation -- use "tags" property to specify events/tags further
           latest=true
           suffix=-${{ matrix.dockertag }},onlatest=true
@@ -93,7 +83,7 @@ jobs:
       uses: docker/build-push-action@v2
       with:
         context: .
-        file: ./Dockerfile-${{ matrix.platform }}
+        file: ./Dockerfile
         push: false
         load: true
         tags: ${{ steps.meta.outputs.tags }}
@@ -114,7 +104,7 @@ jobs:
       uses: docker/build-push-action@v2
       with:
         context: .
-        file: ./Dockerfile-${{ matrix.platform }}
+        file: ./Dockerfile
         push: true
         tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ steps.meta.outputs.labels }}
