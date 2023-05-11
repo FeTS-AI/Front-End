@@ -40,10 +40,7 @@ jobs:
     - name: Docker prune to save space # If you switch to self-hosted runners, this should be removed.
       run: echo y | docker system prune -a
     
-    
-    # Below steps are for GitHub Packages integration, metadata and signing
-    # See https://github.com/mlcommons/GaNDLF/new/master?filename=.github%2Fworkflows%2Fdocker-publish.yml&workflow_template=docker-publish
-    
+      
     # Install the cosign tool except on PR
     # https://github.com/sigstore/cosign-installer
     - name: Install cosign
@@ -66,7 +63,7 @@ jobs:
       id: meta
       uses: docker/metadata-action@v3
       with:
-        images: ghcr.io/fets-ai/gandlf
+        images: ghcr.io/fets-ai/front-end
         flavor: | # Handle prefixing and "latest" generation -- use "tags" property to specify events/tags further
           latest=true
           suffix=-${{ matrix.dockertag }},onlatest=true
@@ -93,7 +90,7 @@ jobs:
     # Run the image from the base entrypoint as a test
     - name: Test container with entrypoint
       # Run a tag we generated from the metadata extraction above -- they're all the same image, but echo it regardless just so we know.
-      run: echo "Running docker.io/cbica/gandlf:latest-${{ matrix.dockertag }} ..." && docker run --rm docker.io/cbica/gandlf:latest-${{ matrix.dockertag }}
+      run: echo "Running ghcr.io/fets-ai/front-end:latest-${{ matrix.dockertag }} ..." && docker run --rm ghcr.io/fets-ai/front-end:latest-${{ matrix.dockertag }}
 
     # Push Docker image with Buildx (but don't push on PR)
     # https://github.com/docker/build-push-action
@@ -123,5 +120,5 @@ jobs:
     #    COSIGN_EXPERIMENTAL: "true"
     #  # This step uses the identity token to provision an ephemeral certificate
     #  # against the sigstore community Fulcio instance.
-    #  run: cosign sign ghcr.io/cbica/gandlf@${{ steps.upload.outputs.digest }}
+    #  run: cosign sign ghcr.io/fets-ai/front-end@${{ steps.upload.outputs.digest }}
 
