@@ -1,5 +1,5 @@
 # FROM cbica/captk_centos7:devtoolset-4_superbuild
-FROM ubuntu:xenial
+FROM centos:7
 
 LABEL authors="FeTS_Admin <admin@fets.ai>"
 
