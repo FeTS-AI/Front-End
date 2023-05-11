@@ -6,6 +6,8 @@ RUN yum update -y
 
 RUN yum install git
 
+RUN echo "running ls -l" && ls -l
+
 # We will do git pull on the FeTS-AI/Front-End master, because that is the repo using which the base image is made
 # We will not do compiles on the PR because the idea is that the Xenial build will check the build status of
 # the PR in any case.
