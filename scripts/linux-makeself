@@ -122,44 +122,44 @@ install_captk () {
   echo "Extracting binaries..."
   cd ${target_dir}
   ./FeTS/${ver}/fets --appimage-extract
-  ## openfl installation
-  cd ${target_dir}/squashfs-root/usr/bin/OpenFederatedLearning
-  doc_setup=https://fets-ai.github.io/Front-End/setup#set-up-the-environment
-  nnunet_link=https://upenn.box.com/shared/static/f7zt19d08c545qt3tcaeg7b37z6qafum.zip
-  max=8
-  ver_max=`python3 -c 'import sys; print(sys.version_info.minor)'`
-  min=5
-  ver_min=`python3 -c 'import sys; print(sys.version_info.micro)'`
-  if [ ("$ver_max" -gt "$max") || ("$ver_min" -lt "$min") ]; then
-    echo "Python version >3.8 detected, please change default version to either 3.6.5, 3.7 or 3.8"
-    exit 1
-  fi
+  # ## openfl installation
+  # cd ${target_dir}/squashfs-root/usr/bin/OpenFederatedLearning
+  # doc_setup=https://fets-ai.github.io/Front-End/setup#set-up-the-environment
+  # nnunet_link=https://upenn.box.com/shared/static/f7zt19d08c545qt3tcaeg7b37z6qafum.zip
+  # max=8
+  # ver_max=`python3 -c 'import sys; print(sys.version_info.minor)'`
+  # min=5
+  # ver_min=`python3 -c 'import sys; print(sys.version_info.micro)'`
+  # if [ ("$ver_max" -gt "$max") || ("$ver_min" -lt "$min") ]; then
+  #   echo "Python version >3.8 detected, please change default version to either 3.6.5, 3.7 or 3.8"
+  #   exit 1
+  # fi
 
-  echo "Setting up the Python environment for OpenFederatedLearning..."
-  if make install_openfl ; then
-    ./venv/bin/pip install torch==1.7.1+cu92 torchvision==0.8.2+cu92 torchaudio==0.7.2 -f https://download.pytorch.org/whl/torch_stable.html
-    make install_fets
-    echo "Installing BrainMaGe..."
-    ./venv/bin/pip install ../BrainMaGe
+  # echo "Setting up the Python environment for OpenFederatedLearning..."
+  # if make install_openfl ; then
+  #   ./venv/bin/pip install torch==1.7.1+cu92 torchvision==0.8.2+cu92 torchaudio==0.7.2 -f https://download.pytorch.org/whl/torch_stable.html
+  #   make install_fets
+  #   echo "Installing BrainMaGe..."
+  #   ./venv/bin/pip install ../BrainMaGe
 
-    cd ../LabelFusion
-    echo "Setting up the Python environment for LabelFusion (this needs SimpleITK==2.0.2, but GaNDLF needs 1.2.4)..."
-    python3 -m venv venv
-    venv/bin/pip install -e .
+  #   cd ../LabelFusion
+  #   echo "Setting up the Python environment for LabelFusion (this needs SimpleITK==2.0.2, but GaNDLF needs 1.2.4)..."
+  #   python3 -m venv venv
+  #   venv/bin/pip install -e .
 
-    echo "Downloading weights for nnUNet..."
-    cd ${target_dir}/squashfs-root/usr/data/fets
-    wget ${nnunet_link} -O nnunet.zip
-    if unzip -qq nnunet.zip ; then
-      rm -rf nnunet.zip
-    fi
+  #   echo "Downloading weights for nnUNet..."
+  #   cd ${target_dir}/squashfs-root/usr/data/fets
+  #   wget ${nnunet_link} -O nnunet.zip
+  #   if unzip -qq nnunet.zip ; then
+  #     rm -rf nnunet.zip
+  #   fi
 
-    cd ..
-    echo "Downloading FeTS Initiative final consensus model weights..."
-    wget https://upenn.box.com/shared/static/hhvn8nb9xtz6nxcilmdl8kbx9n1afkdu.zip -O ./fets_consensus_models.zip
-    if unzip -qq fets_consensus_models.zip ; then
-      rm -rf fets_consensus_models.zip
-    fi
+  #   cd ..
+  #   echo "Downloading FeTS Initiative final consensus model weights..."
+  #   wget https://upenn.box.com/shared/static/hhvn8nb9xtz6nxcilmdl8kbx9n1afkdu.zip -O ./fets_consensus_models.zip
+  #   if unzip -qq fets_consensus_models.zip ; then
+  #     rm -rf fets_consensus_models.zip
+  #   fi
   fi
   ## display messages
   echo "fets_root_dir :: \"${target_dir}/squashfs-root/usr\""
