@@ -1,4 +1,5 @@
-FROM cbica/captk_centos7:devtoolset-4_superbuild
+# FROM cbica/captk_centos7:devtoolset-4_superbuild
+FROM ubuntu:xenial
 
 LABEL authors="FeTS_Admin <admin@fets.ai>"
 
