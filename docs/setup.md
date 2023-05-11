@@ -146,25 +146,7 @@ python3 -m venv venv
 
 ## Set up the Collaborator
 
-- Run the following commands to generate the [Certificate Signing Request (CSR)](https://en.wikipedia.org/wiki/Certificate_signing_request):
-```bash
-cd ${fets_root_dir} # see previous step for where this would be
-cd bin/OpenFederatedLearning/bin/federations/pki
-bash create-collaborator.sh ${collaborator_common_name} # keep a note of the ${collaborator_common_name}, as it will be used for authentication and to send/receive jobs to/from the aggregator at UPenn
-# this command will generate the following items, which needs to be saved for collaborator verification:
-## a CSR file at `./client/${collaborator_common_name}.csr``
-## a string of alpha-numeric numbers for hash verification - SAVE THIS FOR VERIFICATION!!
-```
-
-- Send the CSR file (`${fets_root_dir}/bin/OpenFederatedLearning/bin/federations/pki/client/${collaborator_common_name}.csr`), and **not the verificiation hash**, to **admin@fets.ai**.
-- The FeTS Team will reach back to set up a call, and you will need to provide the verification hash.
-  - *For FeTS Team ONLY*: `bash sign-csr.sh ${collaborator_common_name}.csr ${hashVerification}`
-- FeTS Team will send the following file back: `${collaborator_common_name}.crt`
-- Copy this file to the following location: `${fets_root_dir}/bin/OpenFederatedLearning/bin/federations/pki/client/`
-- (**Verification**) This location should contain the following files:
-  - `${collaborator_common_name}.crt`
-  - `${collaborator_common_name}.csr`
-  - `${collaborator_common_name}.key`
+**NOTE:** We are currently working on a follow-up study, and we will be releasing new information on how to perform certificate signing soon!
 
 [Back To Top &uarr;](#table-of-contents)
 

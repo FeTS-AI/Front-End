@@ -28,7 +28,7 @@ If you have found the code and/or its ideas useful, please cite the following ar
   doi={10.1038/s41467-022-33407-5}
 }
 
-@article{pati2022federated,
+@article{pati2022fetsTool,
   title={The federated tumor segmentation (FeTS) tool: an open-source solution to further solid tumor research},
   author={Pati, Sarthak and Baid, Ujjwal and Edwards, Brandon and Sheller, Micah J and Foley, Patrick and Reina, G Anthony and Thakur, Siddhesh and Sako, Chiharu and Bilello, Michel and Davatzikos, Christos and others},
   journal={Physics in Medicine \& Biology},
@@ -59,6 +59,16 @@ This work is in part supported by the National Institutes of Health / National C
 By downloading FeTS, you agree to our [License](./LICENSE). 
 
 Latest installer: https://www.nitrc.org/frs/downloadlink.php/13219
+
+## Consensus Models for 2021 Study
+
+Currently, these are available through the FeTS Installer (see Downloads). The models can be downloaded from the following link:
+
+https://upenn.box.com/v/fets2021consensusmodels
+
+The optimized models (available to run without requiring specialized DL accelerator cards), along with instructions to perform inference, can be downloaded from the following link:
+
+https://upenn.box.com/v/fets2021consensusmodelsOpt
 
 ## Documentation
 
