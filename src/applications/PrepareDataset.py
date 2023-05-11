@@ -95,7 +95,7 @@ def copyFilesToCorrectLocation(interimOutputDir, finalSubjectOutputDir, subjectI
   return runBratsPipeline
 
 def main():
-  copyrightMessage = 'Contact: software@cbica.upenn.edu/n/n' + 'This program is NOT FDA/CE approved and NOT intended for clinical use./nCopyright (c) ' + str(date.today().year) + ' University of Pennsylvania. All rights reserved.' 
+  copyrightMessage = 'Contact: admin@fets.ai/n/n' + 'This program is NOT FDA/CE approved and NOT intended for clinical use./nCopyright (c) ' + str(date.today().year) + ' University of Pennsylvania. All rights reserved.' 
   parser = argparse.ArgumentParser(prog='PrepareDataset', formatter_class=argparse.RawTextHelpFormatter, description = 'This application calls the BraTSPipeline for all input images and stores the final and intermediate files separately./n/n' + copyrightMessage)
   parser.add_argument('-inputCSV', type=str, help = 'The absolute, comma-separated paths of labels that need to be fused', required=True)
   parser.add_argument('-outputDir', type=str, help = 'The output file to write the results', required=True)
@@ -122,7 +122,7 @@ def main():
     runBratsPipeline = copyFilesToCorrectLocation(interimOutputDir_actual, finalSubjectOutputDir_actual, row['ID'])
 
     if runBratsPipeline:
-      command = bratsPipeline_exe + ' -t1 ' + row['T1'] + ' -t1c ' + row['T1GD'] + ' -t2 ' + row['T2'] + ' -fl ' + row['FLAIR'] + ' -o ' + interimOutputDir_actual + ' -s 1'
+      command = bratsPipeline_exe + ' -t1 ' + row['T1'] + ' -t1c ' + row['T1GD'] + ' -t2 ' + row['T2'] + ' -fl ' + row['FLAIR'] + ' -o ' + interimOutputDir_actual
       print('Command: ', command)
       subprocess.Popen(command, shell=True).wait()
     
