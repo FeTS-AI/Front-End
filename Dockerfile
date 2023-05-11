@@ -1,11 +1,10 @@
-# FROM cbica/captk_centos7:devtoolset-4_superbuild
-FROM centos:7
+FROM cbica/captk_centos7:devtoolset-4_superbuild
 
 LABEL authors="FeTS_Admin <admin@fets.ai>"
 
 RUN yum update -y
 
-RUN yum install git
+# RUN yum install git
 
 RUN echo "running ls -l" && ls -l
 
