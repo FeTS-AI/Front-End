@@ -80,8 +80,9 @@ jobs:
       uses: docker/build-push-action@v4
       with:
         context: .
-        build-contexts: |
-          project=/home/runner/work/Front-End/Front-End/ .
+        secrets: |
+          GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}
+          --mount=type=bind,source=/home/runner/work/Front-End/Front-End,target=/Front-End
         file: ./Dockerfile
         push: false
         load: true

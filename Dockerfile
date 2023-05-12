@@ -6,7 +6,7 @@ RUN yum update -y
 
 RUN yum install git
 
-WORKDIR ./Front-End/Front-End/
+RUN --mount=type=bind,target=.
 
 RUN echo "running ls -l" && ls -l
 
