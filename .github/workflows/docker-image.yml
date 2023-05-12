@@ -33,9 +33,9 @@ jobs:
     steps:
     - name: Check out the repository
       uses: actions/checkout@v3
-      with:
-        lfs: false
-        submodules: 'recursive'
+      # with:
+      #   lfs: false
+      #   submodules: 'recursive'
         
     - name: Docker prune to save space # If you switch to self-hosted runners, this should be removed.
       run: echo y | docker system prune -a
