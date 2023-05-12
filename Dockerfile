@@ -4,7 +4,9 @@ LABEL authors="FeTS_Admin <admin@fets.ai>"
 
 RUN yum update -y
 
-# RUN yum install git
+RUN yum install git
+
+WORKDIR ./Front-End/Front-End/
 
 RUN echo "running ls -l" && ls -l
 
