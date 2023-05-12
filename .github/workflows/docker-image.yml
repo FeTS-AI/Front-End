@@ -73,21 +73,23 @@ jobs:
           type=ref,event=pr
           type=ref,event=tag
           
-    # # Build Docker Image (but don't push yet -- wait for the test step first).
-    # # https://github.com/docker/build-push-action
-    # - name: Build Docker images
-    #   id: build
-    #   uses: docker/build-push-action@v4
-    #   with:
-    #     context: .
-    #     file: ./Dockerfile
-    #     push: false
-    #     load: true
-    #     tags: ${{ steps.meta.outputs.tags }}
-    #     labels: ${{ steps.meta.outputs.labels }}
+    # Build Docker Image (but don't push yet -- wait for the test step first).
+    # https://github.com/docker/build-push-action
+    - name: Build Docker images
+      id: build
+      uses: docker/build-push-action@v4
+      with:
+        context: .
+        build-contexts: |
+          project=/home/runner/work/Front-End/Front-End/ .
+        file: ./Dockerfile
+        push: false
+        load: true
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
 
-    - name: Build the Docker image
-      run: docker build . -v /Front-End:/home/runner/work/Front-End/Front-End/ --file Dockerfile --tag ${{ steps.meta.outputs.tags }}
+    # - name: Build the Docker image
+    #   run: docker build . -v /Front-End:/home/runner/work/Front-End/Front-End/ --file Dockerfile --tag ${{ steps.meta.outputs.tags }}
 
     
     # Run the image from the base entrypoint as a test
