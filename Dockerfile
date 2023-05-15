@@ -16,8 +16,9 @@ RUN echo "running ls -l" && ls -l
 RUN cd Front-End; \ 
     git pull origin master
 
-RUN cd Front-End/bin; \
-    cmake -DITK_DIR=./bin/ITK-build -DDCMTK_DIR=./bin/DCMTK-build -DCMAKE_INSTALL_PREFIX="./install/appdir/usr" -DBUILD_TESTING=OFF ..; \
+RUN cd Front-End; \
+    mkdir bin; \
+    cmake -DITK_DIR=../../CaPTK/bin/ITK-build -DDCMTK_DIR=../../CaPTK/bin/DCMTK-build -DCMAKE_INSTALL_PREFIX="./install/appdir/usr" -DBUILD_TESTING=OFF ..; \
     make && make install/strip; 
 
 # set up the docker for GUI
