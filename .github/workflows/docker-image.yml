@@ -80,9 +80,6 @@ jobs:
       uses: docker/build-push-action@v4
       with:
         context: .
-        secrets: |
-          GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}
-          --mount=type=bind,source=/home/runner/work/Front-End/Front-End,target=/Front-End
         file: ./Dockerfile
         push: false
         load: true
@@ -96,7 +93,7 @@ jobs:
     # Run the image from the base entrypoint as a test
     - name: Test container with entrypoint
       # Run a tag we generated from the metadata extraction above -- they're all the same image, but echo it regardless just so we know.
-      run: echo "Running ghcr.io/fets-ai/front-end:latest-${{ matrix.dockertag }} ..." && docker run --rm ghcr.io/fets-ai/front-end:latest-${{ matrix.dockertag }}
+      run: echo "Running ghcr.io/fets-ai/front-end:latest-${{ matrix.dockertag }} ..." && docker run --rm ghcr.io/fets-ai/front-end:latest-${{ matrix.dockertag }} -v $(pwd)/Front-End:Front-End
 
     # Push Docker image with Buildx (but don't push on PR)
     # https://github.com/docker/build-push-action
