@@ -6,8 +6,6 @@ RUN yum update -y
 
 RUN yum install git
 
-RUN --mount=type=bind,target=.
-
 RUN echo "running ls -l" && ls -l
 
 # We will do git pull on the FeTS-AI/Front-End master, because that is the repo using which the base image is made
