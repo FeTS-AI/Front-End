@@ -92,7 +92,7 @@ jobs:
     # Run the image from the base entrypoint as a test
     - name: Test container with entrypoint
       # Run a tag we generated from the metadata extraction above -- they're all the same image, but echo it regardless just so we know.
-      run: ls -lt; ls -lt ~/work; docker run --rm --entrypoint="mkdir bin; cmake -DITK_DIR=~/work/CaPTK/bin/ITK-build -DDCMTK_DIR=~/work/CaPTK/bin/DCMTK-build -DCMAKE_INSTALL_PREFIX="./install/appdir/usr" -DBUILD_TESTING=OFF ..; make && make install/strip;" -v "$(pwd)"/Front-End:/Front-End ghcr.io/fets-ai/front-end:latest
+      run: ls -lt; ls -lt /work; docker run --rm --entrypoint="mkdir bin; cmake -DITK_DIR=/work/CaPTK/bin/ITK-build -DDCMTK_DIR=/work/CaPTK/bin/DCMTK-build -DCMAKE_INSTALL_PREFIX="./install/appdir/usr" -DBUILD_TESTING=OFF ..; make && make install/strip;" -v "$(pwd)"/Front-End:/Front-End ghcr.io/fets-ai/front-end:latest
 
     # Push Docker image with Buildx (but don't push on PR)
     # https://github.com/docker/build-push-action
