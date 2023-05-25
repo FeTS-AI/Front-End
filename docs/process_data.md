@@ -62,6 +62,7 @@ Input_Data
 └───SmithJoe
 │   │ ...
 ```
+- Ensure that unexpected "special" string characters that could hamper the file system's processing are not present (read [this article](https://www.mtu.edu/umc/services/websites/writing/characters-avoid/#:~:text=Illegal%20Filename%20Characters) for more details). Some examples of this include (and are not limited to): `!`, `@`, `#`, `$`, `%`, `^`, `&`, `*`, `'`, `;`, `:`, `,`, `~`
 - Construct a CSV (let's call this **raw_data.csv**) containing the first DICOM images from each modality:
 ```
 PatientID,T1,T1GD,T2,T2FLAIR
