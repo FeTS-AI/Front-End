@@ -11,25 +11,36 @@ def GetCSVContents(filename):
         datareader = csv.reader(csvfile)
 
         parserHeader = True
-        headers = []  # save headers
+        headers = {}  # save headers
         csvContents = []  # csv contents
         for row in datareader:
             if parserHeader:  # parser headers first
                 for col in row:
                     temp = col.lower()  # convert to lower case
+                    temp = temp.replace(" ", "")  # remove spaces
+                    temp = temp.replace("_", "")  # remove underscores
+                    temp = temp.replace("-", "")  # remove dashes
                     if (
                         (temp == "patientid")
                         or (temp == "subjectid")
                         or (temp == "subject")
                         or (temp == "subid")
                     ):
-                        headers.append("ID")
+                        headers["ID"] = col
+                    elif (
+                        (temp == "timepoint")
+                        or (temp == "tp")
+                        or (temp == "time")
+                        or (temp == "series")
+                        or (temp == "subseries")
+                    ):
+                        headers["TIMEPOINT"] = col
                     elif (temp == "t1gd") or (temp == "t1ce") or (temp == "t1post"):
-                        headers.append("T1GD")
+                        headers["T1GD"] = col
                     elif (temp == "t1") or (temp == "t1pre"):
-                        headers.append("T1")
+                        headers["T1"] = col
                     elif temp == "t2":
-                        headers.append("T2")
+                        headers["T2"] = col
                     elif (
                         (temp == "t2flair")
                         or (temp == "flair")
@@ -37,27 +48,19 @@ def GetCSVContents(filename):
                         or ("fl" in temp)
                         or ("t2fl" in temp)
                     ):
-                        headers.append("FLAIR")
+                        headers["FLAIR"] = col
 
                 parserHeader = False
 
             else:
-                if len(headers) != 5:
-                    sys.exit(
-                        "All required headers were not found in CSV. Please ensure the following are present: 'PatientID,T1,T1GD,T2,T2FLAIR'"
-                    )
+                assert len(headers) == 6, "All required headers were not found in CSV. Please ensure the following are present: 'PatientID,Timepoint,T1,T1GD,T2,T2FLAIR'"
 
                 col_counter = 0
                 currentRow = {}
                 for col in row:  # iterate through columns
-                    if " " in col:
-                        sys.exit(
-                            "Please ensure that there are no spaces in the file paths."
-                        )
-                    else:
-                        currentRow[
-                            headers[col_counter]
-                        ] = col  # populate header with specific identifiers
+                    assert " " not in col, "Please ensure that there are no spaces in the file paths."
+                    # populate header with specific identifiers
+                    currentRow[headers[col_counter]] = col
                     col_counter += 1
 
                 csvContents.append(currentRow)  # populate csv rows
