@@ -82,7 +82,7 @@ int main(int argc, char** argv)
     full_command = hardcodedPythonPath + " " + preparedataset_path + " -i " + inputCSV + " -o " + outputDir;
     if (std::system(full_command.c_str()) != 0)
     {
-      std::cerr << "There was an issue running PrepareDataset, contact 'software@cbica.upenn.edu' for troubleshooting.\n";
+      std::cerr << "There was an issue running PrepareDataset, contact 'admin@fets.ai' for troubleshooting.\n";
       return EXIT_FAILURE;
     }
   }
@@ -92,7 +92,7 @@ int main(int argc, char** argv)
   full_command = fets_cli_path + " -t 0 -d " + outputDir + "/DataForFeTS" + " -a " + archs + " -lF " + fusionMethod + " -g " + gpu_request;
   if (std::system(full_command.c_str()) != 0)
   {
-    std::cerr << "There was an issue running FeTS_CLI, contact 'software@cbica.upenn.edu' for troubleshooting.\n";
+    std::cerr << "There was an issue running FeTS_CLI, contact 'admin@fets.ai' for troubleshooting.\n";
     return EXIT_FAILURE;
   }
 
