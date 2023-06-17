@@ -34,6 +34,8 @@ if __name__ == "__main__":
         entry_points={
             "console_scripts": [
                 "sanitycheck=SanityCheck:main",
+                "preparedataset=PrepareDataset:main",
+                "createcsvfordicoms=CreateCSVForDICOMs:main",
             ],
         },
         classifiers=[
