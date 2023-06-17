@@ -153,6 +153,10 @@ def main():
     if platform.system() == "Windows":
         bratsPipeline_exe += ".exe"
 
+    assert os.path.exists(
+        bratsPipeline_exe
+    ), "BraTS Pipeline executable not found, please contact admin@fets.ai for help."
+
     # only parse the headers here
     parsed_headers = parse_csv_header(args.inputCSV)
 
