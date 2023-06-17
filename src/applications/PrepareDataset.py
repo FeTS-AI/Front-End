@@ -3,6 +3,54 @@ from pathlib import Path
 from datetime import date
 from tqdm import tqdm
 import pandas as pd
+import SimpleITK as sitk
+import numpy as np
+from skimage.measure import label
+from copy import deepcopy
+
+
+def _read_image_with_min_check(filename):
+    """
+    This function fixes negatives by scaling the image according to the following logic:
+    if min(input) < 0:
+    for all x in image:
+        if x != 0:
+        x -= min
+
+    Args:
+        filename (str): The input filename.
+
+    Returns:
+        sitk.Image: The read image.
+        int: The negative count.
+    """
+    input_image = sitk.ReadImage(filename)
+    input_image_array = sitk.GetArrayFromImage(input_image)
+    min = np.min(input_image_array)
+
+    # the threshold above which an error is displayed, otherwise, the intensities are scaled
+    max_negative_count_threshold = 5000
+
+    # fixme: apply following logic
+    # check for connected components with less than a specific threshold
+    ## if less than the threshold, then apply above logic to the negative voxels
+    ## else, give error to user for manual QC
+    if min < 0:
+        blobs = input_image_array < 0
+        all_labels_nonZero = np.nonzero(label(blobs))
+        _, counts = np.unique(all_labels_nonZero, return_counts=True)
+
+        if np.max(counts) < max_negative_count_threshold:
+            output_array = deepcopy(input_image_array)
+            mask = output_array != 0
+            output_array[mask] = output_array[mask] - min
+            output_image = sitk.GetImageFromArray(output_array)
+            output_image.CopyInformation(input_image)
+            return output_image, -1
+        else:
+            return input_image, counts.astype(int)
+
+    return input_image, 0
 
 
 def parse_csv_header(filename):
