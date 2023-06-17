@@ -31,10 +31,6 @@ def _read_image_with_min_check(filename):
     # the threshold above which an error is displayed, otherwise, the intensities are scaled
     max_negative_count_threshold = 5000
 
-    # fixme: apply following logic
-    # check for connected components with less than a specific threshold
-    ## if less than the threshold, then apply above logic to the negative voxels
-    ## else, give error to user for manual QC
     if min < 0:
         blobs = input_image_array < 0
         all_labels_nonZero = np.nonzero(label(blobs))
@@ -109,7 +105,7 @@ def copyFilesToCorrectLocation(interimOutputDir, finalSubjectOutputDir, subjectI
     """
 
     # copy files to correct location for inference and training
-    runBratsPipeline = False
+    runBratsPipeline, check_negatives = False, False
     output_dict = {"ID": subjectID}
     output_t1c_brain_file_inter = os.path.join(interimOutputDir, "brain_T1CE.nii.gz")
     output_t1c_brain_file_final = os.path.join(
@@ -163,7 +159,7 @@ def copyFilesToCorrectLocation(interimOutputDir, finalSubjectOutputDir, subjectI
         else:
             runBratsPipeline = True
 
-    return runBratsPipeline, output_dict
+    return runBratsPipeline, output_dict, check_negatives
 
 
 def main():
@@ -225,11 +221,17 @@ def main():
         "FLAIR": [],
     }
 
+    common_string_for_qc = "SubjectID,Timepoint\n"
+    subjects_with_negatives = common_string_for_qc
+    subjects_with_bratspipeline_error = common_string_for_qc
+
     for row in tqdm(subjects_df.iterrows(), total=subjects_df.shape[0]):
-        subject_id_timepoint = row[parsed_headers["ID"]]
+        subject_id = row[parsed_headers["ID"]]
+        subject_id_timepoint = subject_id
         # joining timepoint to subjectid, but can create a new folder called timepoint if needed
         if parsed_headers["TIMEPOINT"] is not None:
-            subject_id_timepoint += "_" + row[parsed_headers["TIMEPOINT"]]
+            timepoint = row[parsed_headers["TIMEPOINT"]]
+            subject_id_timepoint += "_" + timepoint
         interimOutputDir_actual = os.path.join(outputDir_qc, subject_id_timepoint)
         finalSubjectOutputDir_actual = os.path.join(
             outputDir_final, subject_id_timepoint
@@ -237,51 +239,69 @@ def main():
         Path(interimOutputDir_actual).mkdir(parents=True, exist_ok=True)
         Path(finalSubjectOutputDir_actual).mkdir(parents=True, exist_ok=True)
         # check if the files exist already, if so, skip
-        runBratsPipeline, outputs = copyFilesToCorrectLocation(
+        runBratsPipeline, _, check_negatives = copyFilesToCorrectLocation(
             interimOutputDir_actual, finalSubjectOutputDir_actual, subject_id_timepoint
         )
 
-        output_dict_for_writing_csv["ID"].append(outputs["ID"])
-        ## we don't need this if the timepoint is embedded in the subject id
-        # if parsed_headers["TIMEPOINT"] is not None:
-        #     output_dict_for_writing_csv["TIMEPOINT"].append(
-        #         row[parsed_headers["TIMEPOINT"]]
-        #     )
-        output_dict_for_writing_csv["T1"].append(outputs["T1"])
-        output_dict_for_writing_csv["T1GD"].append(outputs["T1GD"])
-        output_dict_for_writing_csv["T2"].append(outputs["T2"])
-        output_dict_for_writing_csv["FLAIR"].append(outputs["FLAIR"])
+        if check_negatives:
+            subjects_with_negatives += subject_id + "," + timepoint + "\n"
+        else:
+            if runBratsPipeline:
+                command = (
+                    bratsPipeline_exe
+                    + " -t1 "
+                    + row[parsed_headers["T1"]]
+                    + " -t1c "
+                    + row[parsed_headers["T1GD"]]
+                    + " -t2 "
+                    + row[parsed_headers["T2"]]
+                    + " -fl "
+                    + row[parsed_headers["FLAIR"]]
+                    + " -o "
+                    + interimOutputDir_actual
+                )
+                print("Command: ", command)
+                subprocess.Popen(command, shell=True).wait()
 
-        if runBratsPipeline:
-            command = (
-                bratsPipeline_exe
-                + " -t1 "
-                + row[parsed_headers["T1"]]
-                + " -t1c "
-                + row[parsed_headers["T1GD"]]
-                + " -t2 "
-                + row[parsed_headers["T2"]]
-                + " -fl "
-                + row[parsed_headers["FLAIR"]]
-                + " -o "
-                + interimOutputDir_actual
-            )
-            print("Command: ", command)
-            subprocess.Popen(command, shell=True).wait()
-
-        runBratsPipeline, _ = copyFilesToCorrectLocation(
-            interimOutputDir_actual, finalSubjectOutputDir_actual, subject_id_timepoint
-        )
-        if runBratsPipeline:
-            print(
-                "BraTSPipeline failed for subject ID:",
+            runBratsPipeline, outputs, check_negatives = copyFilesToCorrectLocation(
+                interimOutputDir_actual,
+                finalSubjectOutputDir_actual,
                 subject_id_timepoint,
-                file=sys.stderr,
             )
+            if runBratsPipeline:
+                subjects_with_bratspipeline_error += subject_id + "," + timepoint + "\n"
+            if check_negatives:
+                subjects_with_negatives += subject_id + "," + timepoint + "\n"
+            # store the outputs in a dictionary when there are no errors
+            if not (check_negatives) and not (runBratsPipeline):
+                output_dict_for_writing_csv["ID"].append(outputs["ID"])
+                ## we don't need this if the timepoint is embedded in the subject id
+                # if parsed_headers["TIMEPOINT"] is not None:
+                #     output_dict_for_writing_csv["TIMEPOINT"].append(
+                #         row[parsed_headers["TIMEPOINT"]]
+                #     )
+                output_dict_for_writing_csv["T1"].append(outputs["T1"])
+                output_dict_for_writing_csv["T1GD"].append(outputs["T1GD"])
+                output_dict_for_writing_csv["T2"].append(outputs["T2"])
+                output_dict_for_writing_csv["FLAIR"].append(outputs["FLAIR"])
 
     output_csv_file = os.path.join(outputDir_final, "processed_data.csv")
     output_df = pd.DataFrame.from_dict(output_dict_for_writing_csv)
     output_df.to_csv(output_csv_file, index=False)
+
+    if subjects_with_negatives != common_string_for_qc:
+        with open(
+            os.path.join(outputDir_final, "QC_subjects_with_negative_intensities.csv"),
+            "w",
+        ) as f:
+            f.write(subjects_with_negatives)
+
+    if subjects_with_bratspipeline_error != common_string_for_qc:
+        with open(
+            os.path.join(outputDir_final, "QC_subjects_with_bratspipeline_error.csv"),
+            "w",
+        ) as f:
+            f.write(subjects_with_bratspipeline_error)
 
 
 if __name__ == "__main__":
