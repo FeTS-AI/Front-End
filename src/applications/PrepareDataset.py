@@ -62,10 +62,12 @@ def copyFilesToCorrectLocation(interimOutputDir, finalSubjectOutputDir, subjectI
 
     # copy files to correct location for inference and training
     runBratsPipeline = False
+    output_dict = {"ID": subjectID}
     output_t1c_brain_file_inter = os.path.join(interimOutputDir, "brain_T1CE.nii.gz")
     output_t1c_brain_file_final = os.path.join(
         finalSubjectOutputDir, subjectID + "_brain_t1ce.nii.gz"
     )
+    output_dict["T1GD"] = output_t1c_brain_file_final
     if not os.path.exists(output_t1c_brain_file_final):
         if os.path.exists(output_t1c_brain_file_inter):
             shutil.copyfile(output_t1c_brain_file_inter, output_t1c_brain_file_final)
@@ -84,6 +86,7 @@ def copyFilesToCorrectLocation(interimOutputDir, finalSubjectOutputDir, subjectI
     output_t1_brain_file_final = os.path.join(
         finalSubjectOutputDir, subjectID + "_brain_t1.nii.gz"
     )
+    output_dict["T1"] = output_t1_brain_file_final
     if not os.path.exists(output_t1_brain_file_final):
         if os.path.exists(output_t1_brain_file_inter):
             shutil.copyfile(output_t1_brain_file_inter, output_t1_brain_file_final)
@@ -94,6 +97,7 @@ def copyFilesToCorrectLocation(interimOutputDir, finalSubjectOutputDir, subjectI
     output_t2_brain_file_final = os.path.join(
         finalSubjectOutputDir, subjectID + "_brain_t2.nii.gz"
     )
+    output_dict["T2"] = output_t2_brain_file_final
     if not os.path.exists(output_t2_brain_file_final):
         if os.path.exists(output_t2_brain_file_inter):
             shutil.copyfile(output_t2_brain_file_inter, output_t2_brain_file_final)
@@ -104,13 +108,14 @@ def copyFilesToCorrectLocation(interimOutputDir, finalSubjectOutputDir, subjectI
     output_fl_brain_file_final = os.path.join(
         finalSubjectOutputDir, subjectID + "_brain_flair.nii.gz"
     )
+    output_dict["FLAIR"] = output_fl_brain_file_final
     if not os.path.exists(output_fl_brain_file_final):
         if os.path.exists(output_fl_brain_file_inter):
             shutil.copyfile(output_fl_brain_file_inter, output_fl_brain_file_final)
         else:
             runBratsPipeline = True
 
-    return runBratsPipeline
+    return runBratsPipeline, output_dict
 
 
 def main():
@@ -163,8 +168,18 @@ def main():
     # use pandas for this
     subjects_df = pd.read_csv(args.inputCSV)
 
+    output_dict_for_writing_csv = {
+        "ID": [],
+        "TIMEPOINT": [],
+        "T1": [],
+        "T1GD": [],
+        "T2": [],
+        "FLAIR": [],
+    }
+
     for row in tqdm(subjects_df.iterrows(), total=subjects_df.shape[0]):
         subject_id_timepoint = row[parsed_headers["ID"]]
+        # joining timepoint to subjectid, but can create a new folder called timepoint if needed
         if parsed_headers["TIMEPOINT"] is not None:
             subject_id_timepoint += "_" + row[parsed_headers["TIMEPOINT"]]
         interimOutputDir_actual = os.path.join(outputDir_qc, subject_id_timepoint)
@@ -174,9 +189,20 @@ def main():
         Path(interimOutputDir_actual).mkdir(parents=True, exist_ok=True)
         Path(finalSubjectOutputDir_actual).mkdir(parents=True, exist_ok=True)
         # check if the files exist already, if so, skip
-        runBratsPipeline = copyFilesToCorrectLocation(
-            interimOutputDir_actual, finalSubjectOutputDir_actual, row["ID"]
+        runBratsPipeline, outputs = copyFilesToCorrectLocation(
+            interimOutputDir_actual, finalSubjectOutputDir_actual, subject_id_timepoint
         )
+
+        output_dict_for_writing_csv["ID"].append(outputs["ID"])
+        ## we don't need this if the timepoint is embedded in the subject id
+        # if parsed_headers["TIMEPOINT"] is not None:
+        #     output_dict_for_writing_csv["TIMEPOINT"].append(
+        #         row[parsed_headers["TIMEPOINT"]]
+        #     )
+        output_dict_for_writing_csv["T1"].append(outputs["T1"])
+        output_dict_for_writing_csv["T1GD"].append(outputs["T1GD"])
+        output_dict_for_writing_csv["T2"].append(outputs["T2"])
+        output_dict_for_writing_csv["FLAIR"].append(outputs["FLAIR"])
 
         if runBratsPipeline:
             command = (
@@ -195,10 +221,19 @@ def main():
             print("Command: ", command)
             subprocess.Popen(command, shell=True).wait()
 
-        if copyFilesToCorrectLocation(
-            interimOutputDir_actual, finalSubjectOutputDir_actual, row["ID"]
-        ):
-            print("BraTSPipeline failed for subject '", row["ID"], file=sys.stderr)
+        runBratsPipeline, _ = copyFilesToCorrectLocation(
+            interimOutputDir_actual, finalSubjectOutputDir_actual, subject_id_timepoint
+        )
+        if runBratsPipeline:
+            print(
+                "BraTSPipeline failed for subject ID:",
+                subject_id_timepoint,
+                file=sys.stderr,
+            )
+
+    output_csv_file = os.path.join(outputDir_final, "processed_data.csv")
+    output_df = pd.DataFrame.from_dict(output_dict_for_writing_csv)
+    output_df.to_csv(output_csv_file, index=False)
 
 
 if __name__ == "__main__":
