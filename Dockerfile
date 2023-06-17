@@ -14,6 +14,8 @@ COPY . .
 
 RUN echo "running ls -l" && ls -l && pwd
 
+RUN bash ./buildscript.sh
+
 # set up the docker for GUI
 ENV QT_X11_NO_MITSHM=1
 ENV QT_GRAPHICSSYSTEM="native"
