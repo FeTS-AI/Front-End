@@ -115,15 +115,15 @@ def copyFilesToCorrectLocation(interimOutputDir, finalSubjectOutputDir, subjectI
 
 def main():
     copyrightMessage = (
-        "Contact: admin@fets.ai/n/n"
-        + "This program is NOT FDA/CE approved and NOT intended for clinical use./nCopyright (c) "
+        "Contact: admin@fets.ai\n\n"
+        + "This program is NOT FDA/CE approved and NOT intended for clinical use.\nCopyright (c) "
         + str(date.today().year)
         + " University of Pennsylvania. All rights reserved."
     )
     parser = argparse.ArgumentParser(
         prog="PrepareDataset",
         formatter_class=argparse.RawTextHelpFormatter,
-        description="This application calls the BraTSPipeline for all input images and stores the final and intermediate files separately./n/n"
+        description="This application calls the BraTSPipeline for all input images and stores the final and intermediate files separately.\n\n"
         + copyrightMessage,
     )
     parser.add_argument(
