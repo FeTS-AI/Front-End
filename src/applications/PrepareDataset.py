@@ -134,13 +134,13 @@ def main():
     parser.add_argument(
         "-inputCSV",
         type=str,
-        help="The absolute, comma-separated paths of labels that need to be fused",
+        help="The absolute path of the input CSV file containing the list of subjects and their corresponding images",
         required=True,
     )
     parser.add_argument(
         "-outputDir",
         type=str,
-        help="The output file to write the results",
+        help="The output dir to write the results",
         required=True,
     )
 
