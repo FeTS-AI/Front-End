@@ -1,71 +1,58 @@
 import os, argparse, sys, csv, platform, subprocess, shutil
 from pathlib import Path
 from datetime import date
+from tqdm import tqdm
+import pandas as pd
 
 
-def GetCSVContents(filename):
+def parse_csv_header(filename):
     """
     Read filename and return a list of dictionaries that have the csv contents
     """
     with open(filename, "r") as csvfile:
         datareader = csv.reader(csvfile)
 
-        parserHeader = True
         headers = {}  # save headers
-        csvContents = []  # csv contents
         for row in datareader:
-            if parserHeader:  # parser headers first
-                for col in row:
-                    temp = col.lower()  # convert to lower case
-                    temp = temp.replace(" ", "")  # remove spaces
-                    temp = temp.replace("_", "")  # remove underscores
-                    temp = temp.replace("-", "")  # remove dashes
-                    if (
-                        (temp == "patientid")
-                        or (temp == "subjectid")
-                        or (temp == "subject")
-                        or (temp == "subid")
-                    ):
-                        headers["ID"] = col
-                    elif (
-                        (temp == "timepoint")
-                        or (temp == "tp")
-                        or (temp == "time")
-                        or (temp == "series")
-                        or (temp == "subseries")
-                    ):
-                        headers["TIMEPOINT"] = col
-                    elif (temp == "t1gd") or (temp == "t1ce") or (temp == "t1post"):
-                        headers["T1GD"] = col
-                    elif (temp == "t1") or (temp == "t1pre"):
-                        headers["T1"] = col
-                    elif temp == "t2":
-                        headers["T2"] = col
-                    elif (
-                        (temp == "t2flair")
-                        or (temp == "flair")
-                        or (temp == "fl")
-                        or ("fl" in temp)
-                        or ("t2fl" in temp)
-                    ):
-                        headers["FLAIR"] = col
+            for col in row:
+                temp = col.lower()  # convert to lower case
+                temp = temp.replace(" ", "")  # remove spaces
+                temp = temp.replace("_", "")  # remove underscores
+                temp = temp.replace("-", "")  # remove dashes
+                if (
+                    (temp == "patientid")
+                    or (temp == "subjectid")
+                    or (temp == "subject")
+                    or (temp == "subid")
+                ):
+                    headers["ID"] = col
+                elif (
+                    (temp == "timepoint")
+                    or (temp == "tp")
+                    or (temp == "time")
+                    or (temp == "series")
+                    or (temp == "subseries")
+                ):
+                    headers["TIMEPOINT"] = col
+                elif (temp == "t1gd") or (temp == "t1ce") or (temp == "t1post"):
+                    headers["T1GD"] = col
+                elif (temp == "t1") or (temp == "t1pre"):
+                    headers["T1"] = col
+                elif temp == "t2":
+                    headers["T2"] = col
+                elif (
+                    (temp == "t2flair")
+                    or (temp == "flair")
+                    or (temp == "fl")
+                    or ("fl" in temp)
+                    or ("t2fl" in temp)
+                ):
+                    headers["FLAIR"] = col
+            break
 
-                parserHeader = False
-
-            else:
-                assert len(headers) == 6, "All required headers were not found in CSV. Please ensure the following are present: 'PatientID,Timepoint,T1,T1GD,T2,T2FLAIR'"
-
-                col_counter = 0
-                currentRow = {}
-                for col in row:  # iterate through columns
-                    assert " " not in col, "Please ensure that there are no spaces in the file paths."
-                    # populate header with specific identifiers
-                    currentRow[headers[col_counter]] = col
-                    col_counter += 1
-
-                csvContents.append(currentRow)  # populate csv rows
-
-    return csvContents
+    if "TIMEPOINT" not in headers:
+        headers["TIMEPOINT"] = None
+    return headers
 
 
 def copyFilesToCorrectLocation(interimOutputDir, finalSubjectOutputDir, subjectID):
@@ -166,13 +153,23 @@ def main():
     if platform.system() == "Windows":
         bratsPipeline_exe += ".exe"
 
-    csvContents = GetCSVContents(args.inputCSV)
+    # only parse the headers here
+    parsed_headers = parse_csv_header(args.inputCSV)
 
-    for row in csvContents:
-        interimOutputDir_actual = os.path.join(outputDir_qc, row["ID"])
-        finalSubjectOutputDir_actual = os.path.join(outputDir_final, row["ID"])
+    # use pandas for this
+    subjects_df = pd.read_csv(args.inputCSV)
+
+    for row in tqdm(subjects_df.iterrows(), total=subjects_df.shape[0]):
+        subject_id_timepoint = row[parsed_headers["ID"]]
+        if parsed_headers["TIMEPOINT"] is not None:
+            subject_id_timepoint += "_" + row[parsed_headers["TIMEPOINT"]]
+        interimOutputDir_actual = os.path.join(outputDir_qc, subject_id_timepoint)
+        finalSubjectOutputDir_actual = os.path.join(
+            outputDir_final, subject_id_timepoint
+        )
         Path(interimOutputDir_actual).mkdir(parents=True, exist_ok=True)
         Path(finalSubjectOutputDir_actual).mkdir(parents=True, exist_ok=True)
+        # check if the files exist already, if so, skip
         runBratsPipeline = copyFilesToCorrectLocation(
             interimOutputDir_actual, finalSubjectOutputDir_actual, row["ID"]
         )
@@ -181,13 +178,13 @@ def main():
             command = (
                 bratsPipeline_exe
                 + " -t1 "
-                + row["T1"]
+                + row[parsed_headers["T1"]]
                 + " -t1c "
-                + row["T1GD"]
+                + row[parsed_headers["T1GD"]]
                 + " -t2 "
-                + row["T2"]
+                + row[parsed_headers["T2"]]
                 + " -fl "
-                + row["FLAIR"]
+                + row[parsed_headers["FLAIR"]]
                 + " -o "
                 + interimOutputDir_actual
             )
