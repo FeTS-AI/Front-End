@@ -261,7 +261,9 @@ def main():
                     + interimOutputDir_actual
                 )
                 print("Command: ", command)
-                subprocess.Popen(command, shell=True).wait()
+                subprocess.Popen(
+                    command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True
+                ).wait()
 
             runBratsPipeline, outputs, check_negatives = copyFilesToCorrectLocation(
                 interimOutputDir_actual,
