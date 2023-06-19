@@ -5,6 +5,8 @@ from tqdm import tqdm
 import pandas as pd
 import SimpleITK as sitk
 
+from . import modality_id_dict
+
 
 def verify_dicom_folder(dicom_folder):
     series_IDs = sitk.ImageSeriesReader.GetGDCMSeriesIDs(dicom_folder)
@@ -55,22 +57,10 @@ def main():
     )
 
     args = parser.parse_args()
-    output_dict_for_writing_csv = {
-        "SubjectID": [],
-        "TIMEPOINT": [],
-        "T1": [],
-        "T1GD": [],
-        "T2": [],
-        "FLAIR": [],
-    }
 
-    # check against all these modality ID strings with extensions
-    modality_id_dict = {
-        "T1": ["t1", "t1pre", "t1precontrast"],
-        "T1GD": ["t1ce", "t1gd", "t1post", "t1postcontrast"],
-        "T2": ["t2"],
-        "FLAIR": ["flair", "fl", "t2flair"],
-    }
+    output_df_for_csv = pd.DataFrame(
+        columns=["SubjectID", "Timepoint", "T1", "T1GD", "T2", "FLAIR"]
+    )
 
     subject_timepoint_missing_modalities, subject_timepoint_extra_modalities = [], []
 
@@ -141,17 +131,21 @@ def main():
 
                         # if no modalities are missing, then add to the output csv
                         if not modalities_missing:
-                            output_dict_for_writing_csv["SubjectID"].append(subject)
-                            output_dict_for_writing_csv["TIMEPOINT"].append(timepoint)
-                            for modality in detected_modalities:
-                                output_dict_for_writing_csv[modality].append(
-                                    detected_modalities[modality]
-                                )
+                            output_df_for_csv = output_df_for_csv.append(
+                                {
+                                    "SubjectID": subject,
+                                    "Timepoint": timepoint,
+                                    "T1": detected_modalities["T1"],
+                                    "T1GD": detected_modalities["T1GD"],
+                                    "T2": detected_modalities["T2"],
+                                    "FLAIR": detected_modalities["FLAIR"],
+                                },
+                                ignore_index=True,
+                            )
 
     # write the output csv
-    output_csv_file = os.path.join(args.outputCSV)
-    output_df = pd.DataFrame.from_dict(output_dict_for_writing_csv)
-    output_df.to_csv(output_csv_file, index=False)
+    if output_df_for_csv.shape[0] > 0:
+        output_df_for_csv.to_csv(args.outputCSV, index=False)
 
     # print out the missing modalities
     if len(subject_timepoint_missing_modalities) > 0:
