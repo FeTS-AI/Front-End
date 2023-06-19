@@ -1,5 +1,4 @@
-import os, argparse, sys, csv, platform, subprocess, shutil
-from pathlib import Path
+import os, argparse, sys, platform
 from datetime import date
 from tqdm import tqdm
 import pandas as pd
@@ -64,7 +63,7 @@ def main():
 
     subject_timepoint_missing_modalities, subject_timepoint_extra_modalities = [], []
 
-    for subject in os.listdir(args.inputDir):
+    for subject in tqdm(os.listdir(args.inputDir)):
         current_subject_dir = os.path.join(args.inputDir, subject)
         if os.path.isdir(current_subject_dir):
             for timepoint in os.listdir(current_subject_dir):
