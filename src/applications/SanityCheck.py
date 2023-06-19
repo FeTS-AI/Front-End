@@ -106,12 +106,10 @@ def checkBraTSLabels(
     """
     returnString = ""
     mask_array = sitk.GetArrayFromImage(sitk.ReadImage(currentLabelFile))
-    unique, counts = np.unique(\n\n
-        mask_array, return_counts=True\n\n
-    )  # get unique elements and their counts
-    if not (
-        np.array_equal(unique, label_values_expected)
-    ):  # this is for the case where the label contains numbers other than 0,1,2,4
+    # get unique elements and their counts
+    unique, counts = np.unique(mask_array, return_counts=True)
+    # this is for the case where the label contains numbers other than 0,1,2,4
+    if not (np.array_equal(unique, label_values_expected)):
         for j in range(0, len(unique)):  # iterate over a range to get counts easier
             if not (unique[j] in label_values_expected):
                 if (
