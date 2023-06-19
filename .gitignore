@@ -58,3 +58,4 @@ vsts*
 superbuild
 build
 debug.log
+data/dicoms_from_tcia/*
