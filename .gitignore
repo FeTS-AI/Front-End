@@ -62,3 +62,4 @@ data/dicoms_from_tcia/*
 venv/*
 src/applications/FeTS_Tool_Helper.egg-info/*
 src/applications/__pycache__/*
+data/*.zip
