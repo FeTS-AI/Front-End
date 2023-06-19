@@ -79,7 +79,12 @@ def parse_csv_header(filename):
                     or (temp == "subseries")
                 ):
                     headers["Timepoint"] = col
-                elif (temp == "t1gd") or (temp == "t1ce") or (temp == "t1post"):
+                elif (
+                    (temp == "t1gd")
+                    or (temp == "t1ce")
+                    or (temp == "t1post")
+                    or (temp == "t1c")
+                ):
                     headers["T1GD"] = col
                 elif (temp == "t1") or (temp == "t1pre"):
                     headers["T1"] = col
