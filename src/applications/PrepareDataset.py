@@ -287,7 +287,7 @@ def main():
                 + row[parsed_headers["T2"]]
                 + " -fl "
                 + row[parsed_headers["FLAIR"]]
-                + " -o "
+                + " -s 0 -b 0 -o "
                 + interimOutputDir_actual
             )
             print("Command: ", command)
