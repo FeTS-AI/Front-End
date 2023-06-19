@@ -1,7 +1,6 @@
 import os, argparse, sys, csv, platform, subprocess, shutil
 from pathlib import Path
 from datetime import date
-from tqdm import tqdm
 import pandas as pd
 import SimpleITK as sitk
 import numpy as np
@@ -247,9 +246,7 @@ def main():
     )
     subjects_with_bratspipeline_error = pd.DataFrame(columns=["SubjectID", "Timepoint"])
 
-    errors_detected_negatives, errors_detected_bratspipeline = False, False
-
-    for row in tqdm(subjects_df.iterrows(), total=subjects_df.shape[0]):
+    for _, row in subjects_df.iterrows():
         subject_id = row[parsed_headers["ID"]]
         subject_id_timepoint = subject_id
         # create QC and Final output dirs for each subject
@@ -269,6 +266,10 @@ def main():
             finalSubjectOutputDir_actual = os.path.join(
                 finalSubjectOutputDir_subject, timepoint
             )
+            print(f"Processing {subject_id} timepoint {timepoint}")
+        else:
+            print(f"Processing {subject_id}")
+
         Path(interimOutputDir_actual).mkdir(parents=True, exist_ok=True)
         Path(finalSubjectOutputDir_actual).mkdir(parents=True, exist_ok=True)
         # check if the files exist already, if so, skip
@@ -290,10 +291,8 @@ def main():
                 + " -s 0 -b 0 -o "
                 + interimOutputDir_actual
             )
-            print("Command: ", command)
-            subprocess.Popen(
-                command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True
-            ).wait()
+            # print("Command: ", command)
+            subprocess.Popen(command, shell=True).wait()
 
             runBratsPipeline, outputs = copyFilesToCorrectLocation(
                 interimOutputDir_actual,
