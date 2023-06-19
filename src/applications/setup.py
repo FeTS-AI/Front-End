@@ -2,8 +2,6 @@
 
 """The setup script."""
 
-
-import sys, re
 from setuptools import setup, find_packages
 
 __version__ = "2.0.0"
@@ -27,7 +25,7 @@ if __name__ == "__main__":
     setup(
         name="FeTS_Tool_Helper",
         version=__version__,
-        author="FeTS.AI",
+        author="FeTS-AI",
         author_email="admin@fets.ai",
         python_requires=">=3.8",
         packages=find_packages(),
