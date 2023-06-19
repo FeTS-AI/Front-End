@@ -4,7 +4,14 @@ from tqdm import tqdm
 import pandas as pd
 import SimpleITK as sitk
 
-from . import modality_id_dict
+
+# check against all these modality ID strings with extensions
+modality_id_dict = {
+    "T1": ["t1", "t1pre", "t1precontrast"],
+    "T1GD": ["t1ce", "t1gd", "t1post", "t1postcontrast", "t1gallodinium", "t1c"],
+    "T2": ["t2"],
+    "FLAIR": ["flair", "fl", "t2flair"],
+}
 
 
 def verify_dicom_folder(dicom_folder):
@@ -130,16 +137,45 @@ def main():
 
                         # if no modalities are missing, then add to the output csv
                         if not modalities_missing:
-                            output_df_for_csv = output_df_for_csv.append(
-                                {
-                                    "SubjectID": subject,
-                                    "Timepoint": timepoint,
-                                    "T1": detected_modalities["T1"],
-                                    "T1GD": detected_modalities["T1GD"],
-                                    "T2": detected_modalities["T2"],
-                                    "FLAIR": detected_modalities["FLAIR"],
-                                },
-                                ignore_index=True,
+                            dict_to_append = {
+                                "SubjectID": subject,
+                                "Timepoint": timepoint,
+                                "T1": detected_modalities["T1"],
+                                "T1GD": detected_modalities["T1GD"],
+                                "T2": detected_modalities["T2"],
+                                "FLAIR": detected_modalities["FLAIR"],
+                            }
+                            # output_df_for_csv = pd.concat(
+                            #     [
+                            #         dict_to_append,
+                            #         pd.DataFrame(
+                            #             columns=[
+                            #                 "SubjectID",
+                            #                 "Timepoint",
+                            #                 "T1",
+                            #                 "T1GD",
+                            #                 "T2",
+                            #                 "FLAIR",
+                            #             ],
+                            #         ),
+                            #     ],
+                            #     ignore_index=True,
+                            # )
+                            output_df_for_csv = pd.concat(
+                                [
+                                    output_df_for_csv,
+                                    pd.DataFrame(
+                                        [dict_to_append],
+                                        columns=[
+                                            "SubjectID",
+                                            "Timepoint",
+                                            "T1",
+                                            "T1GD",
+                                            "T2",
+                                            "FLAIR",
+                                        ],
+                                    ),
+                                ],
                             )
 
     # write the output csv
@@ -149,13 +185,13 @@ def main():
     # print out the missing modalities
     if len(subject_timepoint_missing_modalities) > 0:
         print(
-            "WARNING: The following subject timepoints are missing modalities: "
-            + subject_timepoint_missing_modalities
+            "WARNING: The following subject timepoints are missing modalities: ",
+            subject_timepoint_missing_modalities,
         )
     if len(subject_timepoint_extra_modalities) > 0:
         print(
-            "WARNING: The following subject timepoints have extra modalities: "
-            + subject_timepoint_extra_modalities
+            "WARNING: The following subject timepoints have extra modalities: ",
+            subject_timepoint_extra_modalities,
         )
 
     print("Done!")
