@@ -15,10 +15,10 @@ requirements = [
     "scikit-image>=0.19.1",
     "tqdm",
     "setuptools",
+    "pandas<2.0.0",
     "pyyaml",
     "pytest",
     "pytest-cov",
-    "pyradiomics==3.1",
 ]
 
 if __name__ == "__main__":
