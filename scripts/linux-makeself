@@ -122,6 +122,16 @@ install_captk () {
   echo "Extracting binaries..."
   cd ${target_dir}
   ./FeTS/${ver}/fets --appimage-extract
+  # ## FeTS_Tool_Helper scripts installation
+  echo "Installing FeTS_Tool_Helper scripts..."
+  cd ${target_dir}/squashfs-root/usr/bin/
+  python3 -m venv venv
+  if venv/bin/pip install -e .; then
+    echo "FeTS_Tool_Helper scripts installed successfully!"
+  else
+    echo "FeTS_Tool_Helper scripts installation failed! Please contact admin@fets.ai"
+    exit 1
+  fi
   # ## openfl installation
   # cd ${target_dir}/squashfs-root/usr/bin/OpenFederatedLearning
   # doc_setup=https://fets-ai.github.io/Front-End/setup#set-up-the-environment
