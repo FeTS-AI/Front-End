@@ -213,15 +213,6 @@ def main():
     # use pandas for this
     subjects_df = pd.read_csv(args.inputCSV)
 
-    output_dict_for_writing_csv = {
-        "SubjectID": [],
-        "Timepoint": [],
-        "T1": [],
-        "T1GD": [],
-        "T2": [],
-        "FLAIR": [],
-    }
-
     output_df_for_csv = pd.DataFrame(
         columns=["SubjectID", "Timepoint", "T1", "T1GD", "T2", "FLAIR"]
     )
@@ -320,9 +311,11 @@ def main():
                         ignore_index=True,
                     )
 
-    output_csv_file = os.path.join(outputDir_final, "processed_data.csv")
-    output_df = pd.DataFrame.from_dict(output_dict_for_writing_csv)
-    output_df.to_csv(output_csv_file, index=False)
+    # write the output file
+    if output_df_for_csv.shape[0] > 0:
+        output_df_for_csv.to_csv(
+            os.path.join(outputDir_final, "processed_data.csv"), index=False
+        )
 
     # write the QC files
     if subjects_with_negatives.shape[0] > 0:
