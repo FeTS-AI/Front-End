@@ -8,6 +8,8 @@ import numpy as np
 from skimage.measure import label
 from copy import deepcopy
 
+from . import modality_id_dict
+
 
 def _read_image_with_min_check(filename):
     """
@@ -79,26 +81,38 @@ def parse_csv_header(filename):
                     or (temp == "subseries")
                 ):
                     headers["Timepoint"] = col
-                elif (
-                    (temp == "t1gd")
-                    or (temp == "t1ce")
-                    or (temp == "t1post")
-                    or (temp == "t1c")
-                ):
-                    headers["T1GD"] = col
-                elif (temp == "t1") or (temp == "t1pre"):
-                    headers["T1"] = col
-                elif temp == "t2":
-                    headers["T2"] = col
-                elif (
-                    (temp == "t2flair")
-                    or (temp == "flair")
-                    or (temp == "fl")
-                    or ("fl" in temp)
-                    or ("t2fl" in temp)
-                ):
-                    headers["FLAIR"] = col
-            break
+                else:
+                    for key in modality_id_dict.keys():
+                        if temp in modality_id_dict[key]:
+                            headers[key] = col
+                            break
+            #     elif (
+            #         (temp == "t1gd")
+            #         or (temp == "t1ce")
+            #         or (temp == "t1post")
+            #         or (temp == "t1postcontrast")
+            #         or (temp == "t1gallodinium")
+            #         or (temp == "t1c")
+            #     ):
+            #         headers["T1GD"] = col
+            #     elif (
+            #         (temp == "t1")
+            #         or (temp == "t1pre")
+            #         or (temp == "t1precontrast")
+            #         or (temp == "t1p")
+            #     ):
+            #         headers["T1"] = col
+            #     elif temp == "t2":
+            #         headers["T2"] = col
+            #     elif (
+            #         (temp == "t2flair")
+            #         or (temp == "flair")
+            #         or (temp == "fl")
+            #         or ("fl" in temp)
+            #         or ("t2fl" in temp)
+            #     ):
+            #         headers["FLAIR"] = col
+            # break
 
     if "Timepoint" not in headers:
         headers["Timepoint"] = None
