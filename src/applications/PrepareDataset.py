@@ -215,6 +215,8 @@ def main():
     )
 
     args = parser.parse_args()
+
+    assert os.path.exists(args.inputCSV), "Input CSV file not found"
     outputDir_qc = os.path.normpath(args.outputDir + "/DataForQC")
     outputDir_final = os.path.normpath(args.outputDir + "/DataForFeTS")
 
