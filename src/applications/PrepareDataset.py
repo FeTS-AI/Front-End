@@ -132,60 +132,80 @@ def copyFilesToCorrectLocation(interimOutputDir, finalSubjectOutputDir, subjectI
 
     # copy files to correct location for inference and training
     runBratsPipeline = False
-    output_dict = {"ID": subjectID}
-    output_t1c_brain_file_inter = os.path.join(interimOutputDir, "brain_T1CE.nii.gz")
-    output_t1c_brain_file_final = os.path.join(
-        finalSubjectOutputDir, subjectID + "_brain_t1ce.nii.gz"
-    )
-    output_dict["T1GD"] = output_t1c_brain_file_final
-    if not os.path.exists(output_t1c_brain_file_final):
-        if os.path.exists(output_t1c_brain_file_inter):
-            shutil.copyfile(output_t1c_brain_file_inter, output_t1c_brain_file_final)
-        else:
-            output_t1c_brain_file_inter = os.path.join(
-                interimOutputDir, "brain_T1GD.nii.gz"
-            )
-            if os.path.exists(output_t1c_brain_file_inter):
-                shutil.copyfile(
-                    output_t1c_brain_file_inter, output_t1c_brain_file_final
-                )
+    input_files = {
+        "T1": os.path.join(interimOutputDir, "T1_to_SRI.nii.gz"),
+        "T1GD": os.path.join(interimOutputDir, "T1CE_to_SRI.nii.gz"),
+        "T2": os.path.join(interimOutputDir, "T2_to_SRI.nii.gz"),
+        "FLAIR": os.path.join(interimOutputDir, "FL_to_SRI.nii.gz"),
+    }
+    expected_outputs = {
+        "ID": subjectID,
+        "T1": os.path.join(finalSubjectOutputDir, subjectID + "_brain_t1.nii.gz"),
+        "T1GD": os.path.join(finalSubjectOutputDir, subjectID + "_brain_t1ce.nii.gz"),
+        "T2": os.path.join(finalSubjectOutputDir, subjectID + "_brain_t2.nii.gz"),
+        "FLAIR": os.path.join(finalSubjectOutputDir, subjectID + "_brain_flair.nii.gz"),
+    }
+
+    for key in input_files.keys():
+        if not os.path.exists(expected_outputs[key]):
+            if os.path.exists(input_files[key]):
+                shutil.copyfile(input_files[key], expected_outputs[key])
             else:
                 runBratsPipeline = True
 
-    output_t1_brain_file_inter = os.path.join(interimOutputDir, "brain_T1.nii.gz")
-    output_t1_brain_file_final = os.path.join(
-        finalSubjectOutputDir, subjectID + "_brain_t1.nii.gz"
-    )
-    output_dict["T1"] = output_t1_brain_file_final
-    if not os.path.exists(output_t1_brain_file_final):
-        if os.path.exists(output_t1_brain_file_inter):
-            shutil.copyfile(output_t1_brain_file_inter, output_t1_brain_file_final)
-        else:
-            runBratsPipeline = True
+    # output_t1c_brain_file_inter = os.path.join(interimOutputDir, "brain_T1CE.nii.gz")
+    # output_t1c_brain_file_final = os.path.join(
+    #     finalSubjectOutputDir, subjectID + "_brain_t1ce.nii.gz"
+    # )
+    # output_dict["T1GD"] = output_t1c_brain_file_final
+    # if not os.path.exists(output_t1c_brain_file_final):
+    #     if os.path.exists(output_t1c_brain_file_inter):
+    #         shutil.copyfile(output_t1c_brain_file_inter, output_t1c_brain_file_final)
+    #     else:
+    #         output_t1c_brain_file_inter = os.path.join(
+    #             interimOutputDir, "brain_T1GD.nii.gz"
+    #         )
+    #         if os.path.exists(output_t1c_brain_file_inter):
+    #             shutil.copyfile(
+    #                 output_t1c_brain_file_inter, output_t1c_brain_file_final
+    #             )
+    #         else:
+    #             runBratsPipeline = True
 
-    output_t2_brain_file_inter = os.path.join(interimOutputDir, "brain_T2.nii.gz")
-    output_t2_brain_file_final = os.path.join(
-        finalSubjectOutputDir, subjectID + "_brain_t2.nii.gz"
-    )
-    output_dict["T2"] = output_t2_brain_file_final
-    if not os.path.exists(output_t2_brain_file_final):
-        if os.path.exists(output_t2_brain_file_inter):
-            shutil.copyfile(output_t2_brain_file_inter, output_t2_brain_file_final)
-        else:
-            runBratsPipeline = True
+    # output_t1_brain_file_inter = os.path.join(interimOutputDir, "brain_T1.nii.gz")
+    # output_t1_brain_file_final = os.path.join(
+    #     finalSubjectOutputDir, subjectID + "_brain_t1.nii.gz"
+    # )
+    # output_dict["T1"] = output_t1_brain_file_final
+    # if not os.path.exists(output_t1_brain_file_final):
+    #     if os.path.exists(output_t1_brain_file_inter):
+    #         shutil.copyfile(output_t1_brain_file_inter, output_t1_brain_file_final)
+    #     else:
+    #         runBratsPipeline = True
 
-    output_fl_brain_file_inter = os.path.join(interimOutputDir, "brain_FL.nii.gz")
-    output_fl_brain_file_final = os.path.join(
-        finalSubjectOutputDir, subjectID + "_brain_flair.nii.gz"
-    )
-    output_dict["FLAIR"] = output_fl_brain_file_final
-    if not os.path.exists(output_fl_brain_file_final):
-        if os.path.exists(output_fl_brain_file_inter):
-            shutil.copyfile(output_fl_brain_file_inter, output_fl_brain_file_final)
-        else:
-            runBratsPipeline = True
+    # output_t2_brain_file_inter = os.path.join(interimOutputDir, "brain_T2.nii.gz")
+    # output_t2_brain_file_final = os.path.join(
+    #     finalSubjectOutputDir, subjectID + "_brain_t2.nii.gz"
+    # )
+    # output_dict["T2"] = output_t2_brain_file_final
+    # if not os.path.exists(output_t2_brain_file_final):
+    #     if os.path.exists(output_t2_brain_file_inter):
+    #         shutil.copyfile(output_t2_brain_file_inter, output_t2_brain_file_final)
+    #     else:
+    #         runBratsPipeline = True
 
-    return runBratsPipeline, output_dict
+    # output_fl_brain_file_inter = os.path.join(interimOutputDir, "brain_FL.nii.gz")
+    # output_fl_brain_file_final = os.path.join(
+    #     finalSubjectOutputDir, subjectID + "_brain_flair.nii.gz"
+    # )
+    # output_dict["FLAIR"] = output_fl_brain_file_final
+    # if not os.path.exists(output_fl_brain_file_final):
+    #     if os.path.exists(output_fl_brain_file_inter):
+    #         shutil.copyfile(output_fl_brain_file_inter, output_fl_brain_file_final)
+    #     else:
+    #         runBratsPipeline = True
+
+    return runBratsPipeline, expected_outputs
 
 
 def main():
@@ -315,11 +335,17 @@ def main():
                 subject_id_timepoint,
             )
             if runBratsPipeline:
-                subjects_with_bratspipeline_error = (
-                    subjects_with_bratspipeline_error.append(
-                        {"SubjectID": subject_id, "Timepoint": timepoint},
-                        ignore_index=True,
-                    )
+                subjects_with_bratspipeline_error = pd.concat(
+                    [
+                        subjects_with_bratspipeline_error,
+                        pd.DataFrame(
+                            {
+                                "SubjectID": subject_id,
+                                "Timepoint": timepoint,
+                            },
+                            index=[0],
+                        ),
+                    ]
                 )
             # store the outputs in a dictionary when there are no errors
             else:
@@ -327,27 +353,37 @@ def main():
                 for modality in ["T1", "T1GD", "T2", "FLAIR"]:
                     count = _read_image_with_min_check(outputs[modality])
                     if count > 0:
-                        subjects_with_negatives = subjects_with_negatives.append(
-                            {
-                                "SubjectID": subject_id,
-                                "Timepoint": timepoint,
-                                "Modality": modality,
-                                "Count": count,
-                            },
-                            ignore_index=True,
+                        subjects_with_negatives = pd.concat(
+                            [
+                                subjects_with_negatives,
+                                pd.DataFrame(
+                                    {
+                                        "SubjectID": subject_id,
+                                        "Timepoint": timepoint,
+                                        "Modality": modality,
+                                        "Count": count,
+                                    },
+                                    index=[0],
+                                ),
+                            ]
                         )
                         negatives_detected = True
                 if not negatives_detected:
-                    output_df_for_csv = output_df_for_csv.append(
-                        {
-                            "SubjectID": subject_id,
-                            "Timepoint": timepoint,
-                            "T1": outputs["T1"],
-                            "T1GD": outputs["T1GD"],
-                            "T2": outputs["T2"],
-                            "FLAIR": outputs["FLAIR"],
-                        },
-                        ignore_index=True,
+                    output_df_for_csv = pd.concat(
+                        [
+                            output_df_for_csv,
+                            pd.DataFrame(
+                                {
+                                    "SubjectID": subject_id,
+                                    "Timepoint": timepoint,
+                                    "T1": outputs["T1"],
+                                    "T1GD": outputs["T1GD"],
+                                    "T2": outputs["T2"],
+                                    "FLAIR": outputs["FLAIR"],
+                                },
+                                index=[0],
+                            ),
+                        ]
                     )
 
     # write the output file
