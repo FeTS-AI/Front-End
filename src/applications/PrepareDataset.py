@@ -217,12 +217,12 @@ def main():
     args = parser.parse_args()
 
     assert os.path.exists(args.inputCSV), "Input CSV file not found"
+
     outputDir_qc = os.path.normpath(args.outputDir + "/DataForQC")
     outputDir_final = os.path.normpath(args.outputDir + "/DataForFeTS")
 
-    Path(args.outputDir).mkdir(parents=True, exist_ok=True)
-    Path(outputDir_qc).mkdir(parents=True, exist_ok=True)
-    Path(outputDir_final).mkdir(parents=True, exist_ok=True)
+    for dir_to_create in [args.outputDir, outputDir_qc, outputDir_final]:
+        Path(dir_to_create).mkdir(parents=True, exist_ok=True)
 
     bratsPipeline_exe = os.path.join(
         os.path.dirname(os.path.abspath(__file__)), "BraTSPipeline"
