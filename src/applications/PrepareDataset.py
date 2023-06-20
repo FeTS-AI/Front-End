@@ -249,8 +249,12 @@ def main():
     )
     subjects_with_bratspipeline_error = pd.DataFrame(columns=["SubjectID", "Timepoint"])
 
-    bratspipeline_stdout_log = os.path.join(args.outputDir, "bratspipeline_stdout.txt")
-    bratspipeline_stderr_log = os.path.join(args.outputDir, "bratspipeline_stderr.txt")
+    preparedataset_stdout_log = os.path.join(
+        args.outputDir, "preparedataset_stdout.txt"
+    )
+    preparedataset_stderr_log = os.path.join(
+        args.outputDir, "preparedataset_stderr.txt"
+    )
 
     # tqdm
     for _, row in tqdm(subjects_df.iterrows(), total=subjects_df.shape[0]):
@@ -298,8 +302,8 @@ def main():
                 + " -s 0 -b 0 -o "
                 + interimOutputDir_actual
             )
-            with open(bratspipeline_stdout_log, "a+") as out, open(
-                bratspipeline_stderr_log, "a+"
+            with open(preparedataset_stdout_log, "a+") as out, open(
+                preparedataset_stderr_log, "a+"
             ) as err:
                 out.write(f"***\n{command}\n***")
                 err.write(f"***\n{command}\n***")
