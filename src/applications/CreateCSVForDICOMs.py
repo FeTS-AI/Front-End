@@ -1,4 +1,4 @@
-import os, argparse, sys, platform
+import os, argparse, sys, platform, posixpath
 from datetime import date
 from tqdm import tqdm
 import pandas as pd
@@ -71,10 +71,10 @@ def main():
     subject_timepoint_missing_modalities, subject_timepoint_extra_modalities = [], []
 
     for subject in tqdm(os.listdir(args.inputDir)):
-        current_subject_dir = os.path.join(args.inputDir, subject)
+        current_subject_dir = posixpath.join(args.inputDir, subject)
         if os.path.isdir(current_subject_dir):
             for timepoint in os.listdir(current_subject_dir):
-                current_subject_timepoint_dir = os.path.join(
+                current_subject_timepoint_dir = posixpath.join(
                     current_subject_dir, timepoint
                 )
                 if os.path.isdir(current_subject_timepoint_dir):
@@ -98,7 +98,7 @@ def main():
                             "FLAIR": None,
                         }
                         for modality in modality_folders:
-                            modality_path = os.path.join(
+                            modality_path = posixpath.join(
                                 current_subject_timepoint_dir, modality
                             )
                             modality_lower = modality.lower()
