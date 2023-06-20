@@ -1,4 +1,4 @@
-import os, argparse, sys, csv, platform, subprocess, shutil
+import os, argparse, sys, csv, platform, subprocess, shutil, posixpath
 from pathlib import Path
 from datetime import date
 import pandas as pd
@@ -92,33 +92,6 @@ def parse_csv_header(filename):
                         if temp in modality_id_dict[key]:
                             headers[key] = col
                             break
-            #     elif (
-            #         (temp == "t1gd")
-            #         or (temp == "t1ce")
-            #         or (temp == "t1post")
-            #         or (temp == "t1postcontrast")
-            #         or (temp == "t1gallodinium")
-            #         or (temp == "t1c")
-            #     ):
-            #         headers["T1GD"] = col
-            #     elif (
-            #         (temp == "t1")
-            #         or (temp == "t1pre")
-            #         or (temp == "t1precontrast")
-            #         or (temp == "t1p")
-            #     ):
-            #         headers["T1"] = col
-            #     elif temp == "t2":
-            #         headers["T2"] = col
-            #     elif (
-            #         (temp == "t2flair")
-            #         or (temp == "flair")
-            #         or (temp == "fl")
-            #         or ("fl" in temp)
-            #         or ("t2fl" in temp)
-            #     ):
-            #         headers["FLAIR"] = col
-            # break
 
     if "Timepoint" not in headers:
         headers["Timepoint"] = None
@@ -140,10 +113,10 @@ def copyFilesToCorrectLocation(interimOutputDir, finalSubjectOutputDir, subjectI
     }
     expected_outputs = {
         "ID": subjectID,
-        "T1": os.path.join(finalSubjectOutputDir, subjectID + "_t1.nii.gz"),
-        "T1GD": os.path.join(finalSubjectOutputDir, subjectID + "_t1ce.nii.gz"),
-        "T2": os.path.join(finalSubjectOutputDir, subjectID + "_t2.nii.gz"),
-        "FLAIR": os.path.join(finalSubjectOutputDir, subjectID + "_flair.nii.gz"),
+        "T1": posixpath.join(finalSubjectOutputDir, subjectID + "_t1.nii.gz"),
+        "T1GD": posixpath.join(finalSubjectOutputDir, subjectID + "_t1ce.nii.gz"),
+        "T2": posixpath.join(finalSubjectOutputDir, subjectID + "_t2.nii.gz"),
+        "FLAIR": posixpath.join(finalSubjectOutputDir, subjectID + "_flair.nii.gz"),
     }
 
     for key in input_files.keys():
@@ -186,8 +159,8 @@ def main():
 
     assert os.path.exists(args.inputCSV), "Input CSV file not found"
 
-    outputDir_qc = os.path.normpath(args.outputDir + "/DataForQC")
-    outputDir_final = os.path.normpath(args.outputDir + "/DataForFeTS")
+    outputDir_qc = posixpath.join(args.outputDir, "DataForQC")
+    outputDir_final = posixpath.join(args.outputDir, "DataForFeTS")
 
     for dir_to_create in [args.outputDir, outputDir_qc, outputDir_final]:
         Path(dir_to_create).mkdir(parents=True, exist_ok=True)
@@ -224,38 +197,44 @@ def main():
         args.outputDir, "preparedataset_stderr.txt"
     )
 
-    # tqdm
-    for _, row in tqdm(subjects_df.iterrows(), total=subjects_df.shape[0]):
+    for _, row in tqdm(
+        subjects_df.iterrows(),
+        total=subjects_df.shape[0],
+        desc="Preparing Dataset (1-10 min per subject)",
+    ):
         subject_id = row[parsed_headers["ID"]]
         subject_id_timepoint = subject_id
         # create QC and Final output dirs for each subject
-        interimOutputDir_subject = os.path.join(outputDir_qc, subject_id_timepoint)
+        interimOutputDir_subject = posixpath.join(outputDir_qc, subject_id_timepoint)
         Path(interimOutputDir_subject).mkdir(parents=True, exist_ok=True)
-        finalSubjectOutputDir_subject = os.path.join(
+        finalSubjectOutputDir_subject = posixpath.join(
             outputDir_final, subject_id_timepoint
         )
         Path(finalSubjectOutputDir_subject).mkdir(parents=True, exist_ok=True)
         interimOutputDir_actual = interimOutputDir_subject
         finalSubjectOutputDir_actual = finalSubjectOutputDir_subject
         # per the data ingestion step, we are creating a new folder called timepoint, can join timepoint to subjectid if needed
-        string_to_write_to_logs = f"Processing {subject_id}"
+        # string_to_write_to_logs = f"Processing {subject_id}"
         if parsed_headers["Timepoint"] is not None:
             timepoint = row[parsed_headers["Timepoint"]]
             subject_id_timepoint += "_" + timepoint
-            interimOutputDir_actual = os.path.join(interimOutputDir_subject, timepoint)
-            finalSubjectOutputDir_actual = os.path.join(
+            interimOutputDir_actual = posixpath.join(
+                interimOutputDir_subject, timepoint
+            )
+            finalSubjectOutputDir_actual = posixpath.join(
                 finalSubjectOutputDir_subject, timepoint
             )
-            # print(f"Processing {subject_id} timepoint {timepoint}")
-            string_to_write_to_logs = f"Processing {subject_id} timepoint {timepoint}"
+            # string_to_write_to_logs = f"Processing {subject_id} timepoint {timepoint}"
+            # print(string_to_write_to_logs)
 
         Path(interimOutputDir_actual).mkdir(parents=True, exist_ok=True)
         Path(finalSubjectOutputDir_actual).mkdir(parents=True, exist_ok=True)
         # check if the files exist already, if so, skip
-        runBratsPipeline, _ = copyFilesToCorrectLocation(
+        runBratsPipeline, outputs = copyFilesToCorrectLocation(
             interimOutputDir_actual, finalSubjectOutputDir_actual, subject_id_timepoint
         )
 
+        negatives_detected = False
         if runBratsPipeline:
             command = (
                 bratsPipeline_exe
@@ -297,7 +276,6 @@ def main():
                 )
             # store the outputs in a dictionary when there are no errors
             else:
-                negatives_detected = False
                 for modality in ["T1", "T1GD", "T2", "FLAIR"]:
                     count = _read_image_with_min_check(outputs[modality])
                     if count > 0:
@@ -316,23 +294,23 @@ def main():
                             ]
                         )
                         negatives_detected = True
-                if not negatives_detected:
-                    output_df_for_csv = pd.concat(
-                        [
-                            output_df_for_csv,
-                            pd.DataFrame(
-                                {
-                                    "SubjectID": subject_id,
-                                    "Timepoint": timepoint,
-                                    "T1": outputs["T1"],
-                                    "T1GD": outputs["T1GD"],
-                                    "T2": outputs["T2"],
-                                    "FLAIR": outputs["FLAIR"],
-                                },
-                                index=[0],
-                            ),
-                        ]
-                    )
+        if not negatives_detected:
+            output_df_for_csv = pd.concat(
+                [
+                    output_df_for_csv,
+                    pd.DataFrame(
+                        {
+                            "SubjectID": subject_id,
+                            "Timepoint": timepoint,
+                            "T1": outputs["T1"],
+                            "T1GD": outputs["T1GD"],
+                            "T2": outputs["T2"],
+                            "FLAIR": outputs["FLAIR"],
+                        },
+                        index=[0],
+                    ),
+                ]
+            )
 
     # write the output file
     if output_df_for_csv.shape[0] > 0:
