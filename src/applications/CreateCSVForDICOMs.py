@@ -180,6 +180,8 @@ def main():
 
     # write the output csv
     if output_df_for_csv.shape[0] > 0:
+        if not(args.outputCSV.endswith(".csv")):
+            args.outputCSV += ".csv"
         output_df_for_csv.to_csv(args.outputCSV, index=False)
 
     # print out the missing modalities
