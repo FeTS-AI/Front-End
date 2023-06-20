@@ -3,6 +3,7 @@ from pathlib import Path
 from datetime import date
 import pandas as pd
 import SimpleITK as sitk
+from tqdm import tqdm
 import numpy as np
 from skimage.measure import label
 from copy import deepcopy
@@ -246,7 +247,11 @@ def main():
     )
     subjects_with_bratspipeline_error = pd.DataFrame(columns=["SubjectID", "Timepoint"])
 
-    for _, row in subjects_df.iterrows():
+    bratspipeline_stdout_log = os.path.join(args.outputDir, "bratspipeline_stdout.txt")
+    bratspipeline_stderr_log = os.path.join(args.outputDir, "bratspipeline_stderr.txt")
+
+    # tqdm
+    for _, row in tqdm(subjects_df.iterrows(), total=subjects_df.shape[0]):
         subject_id = row[parsed_headers["ID"]]
         subject_id_timepoint = subject_id
         # create QC and Final output dirs for each subject
@@ -259,6 +264,7 @@ def main():
         interimOutputDir_actual = interimOutputDir_subject
         finalSubjectOutputDir_actual = finalSubjectOutputDir_subject
         # per the data ingestion step, we are creating a new folder called timepoint, can join timepoint to subjectid if needed
+        string_to_write_to_logs = f"Processing {subject_id}"
         if parsed_headers["Timepoint"] is not None:
             timepoint = row[parsed_headers["Timepoint"]]
             subject_id_timepoint += "_" + timepoint
@@ -266,9 +272,8 @@ def main():
             finalSubjectOutputDir_actual = os.path.join(
                 finalSubjectOutputDir_subject, timepoint
             )
-            print(f"Processing {subject_id} timepoint {timepoint}")
-        else:
-            print(f"Processing {subject_id}")
+            # print(f"Processing {subject_id} timepoint {timepoint}")
+            string_to_write_to_logs = f"Processing {subject_id} timepoint {timepoint}"
 
         Path(interimOutputDir_actual).mkdir(parents=True, exist_ok=True)
         Path(finalSubjectOutputDir_actual).mkdir(parents=True, exist_ok=True)
@@ -291,8 +296,12 @@ def main():
                 + " -s 0 -b 0 -o "
                 + interimOutputDir_actual
             )
-            # print("Command: ", command)
-            subprocess.Popen(command, shell=True).wait()
+            with open(bratspipeline_stdout_log, "a+") as out, open(
+                bratspipeline_stderr_log, "a+"
+            ) as err:
+                out.write(f"***\n{command}\n***")
+                err.write(f"***\n{command}\n***")
+                subprocess.Popen(command, stdout=out, stderr=err, shell=True).wait()
 
             runBratsPipeline, outputs = copyFilesToCorrectLocation(
                 interimOutputDir_actual,
