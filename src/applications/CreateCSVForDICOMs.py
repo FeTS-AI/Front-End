@@ -145,22 +145,6 @@ def main():
                                 "T2": detected_modalities["T2"],
                                 "FLAIR": detected_modalities["FLAIR"],
                             }
-                            # output_df_for_csv = pd.concat(
-                            #     [
-                            #         dict_to_append,
-                            #         pd.DataFrame(
-                            #             columns=[
-                            #                 "SubjectID",
-                            #                 "Timepoint",
-                            #                 "T1",
-                            #                 "T1GD",
-                            #                 "T2",
-                            #                 "FLAIR",
-                            #             ],
-                            #         ),
-                            #     ],
-                            #     ignore_index=True,
-                            # )
                             output_df_for_csv = pd.concat(
                                 [
                                     output_df_for_csv,
@@ -180,7 +164,7 @@ def main():
 
     # write the output csv
     if output_df_for_csv.shape[0] > 0:
-        if not(args.outputCSV.endswith(".csv")):
+        if not (args.outputCSV.endswith(".csv")):
             args.outputCSV += ".csv"
         output_df_for_csv.to_csv(args.outputCSV, index=False)
 
