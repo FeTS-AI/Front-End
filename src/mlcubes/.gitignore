@@ -1,0 +1,7 @@
+*.csv
+*.txt
+*.nii.gz
+*.mat
+*.dcm
+report.yaml
+statistics.yaml
