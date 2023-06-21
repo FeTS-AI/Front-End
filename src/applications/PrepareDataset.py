@@ -220,8 +220,7 @@ def main():
         Path(finalSubjectOutputDir_subject).mkdir(parents=True, exist_ok=True)
         interimOutputDir_actual = interimOutputDir_subject
         finalSubjectOutputDir_actual = finalSubjectOutputDir_subject
-        # # per the data ingestion step, we are creating a new folder called timepoint, can join timepoint to subjectid if needed
-        # string_to_write_to_logs = f"Processing {subject_id}"
+        # per the data ingestion step, we are creating a new folder called timepoint, can join timepoint to subjectid if needed
         if parsed_headers["Timepoint"] is not None:
             timepoint = row[parsed_headers["Timepoint"]]
             subject_id_timepoint += "_" + timepoint
@@ -231,8 +230,6 @@ def main():
             finalSubjectOutputDir_actual = posixpath.join(
                 finalSubjectOutputDir_subject, timepoint
             )
-            # string_to_write_to_logs = f"Processing {subject_id} timepoint {timepoint}"
-            # print(string_to_write_to_logs)
 
         Path(interimOutputDir_actual).mkdir(parents=True, exist_ok=True)
         Path(finalSubjectOutputDir_actual).mkdir(parents=True, exist_ok=True)
