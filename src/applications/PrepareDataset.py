@@ -17,6 +17,35 @@ modality_id_dict = {
 }
 
 
+def setup_parser():
+    copyrightMessage = (
+        "Contact: admin@fets.ai\n\n"
+        + "This program is NOT FDA/CE approved and NOT intended for clinical use.\nCopyright (c) "
+        + str(date.today().year)
+        + " University of Pennsylvania. All rights reserved."
+    )
+    parser = argparse.ArgumentParser(
+        prog="PrepareDataset",
+        formatter_class=argparse.RawTextHelpFormatter,
+        description="This application calls the BraTSPipeline for all input images and stores the final and intermediate files separately.\n\n"
+        + copyrightMessage,
+    )
+    parser.add_argument(
+        "-inputCSV",
+        type=str,
+        help="The absolute path of the input CSV file containing the list of subjects and their corresponding images",
+        required=True,
+    )
+    parser.add_argument(
+        "-outputDir",
+        type=str,
+        help="The output dir to write the results",
+        required=True,
+    )
+
+    return parser
+
+
 def _read_image_with_min_check(filename):
     """
     This function fixes negatives by scaling the image according to the following logic:
@@ -156,202 +185,165 @@ def copyFilesToCorrectLocation(interimOutputDir, finalSubjectOutputDir, subjectI
     return runBratsPipeline, expected_outputs
 
 
-def main():
-    copyrightMessage = (
-        "Contact: admin@fets.ai\n\n"
-        + "This program is NOT FDA/CE approved and NOT intended for clinical use.\nCopyright (c) "
-        + str(date.today().year)
-        + " University of Pennsylvania. All rights reserved."
-    )
-    parser = argparse.ArgumentParser(
-        prog="PrepareDataset",
-        formatter_class=argparse.RawTextHelpFormatter,
-        description="This application calls the BraTSPipeline for all input images and stores the final and intermediate files separately.\n\n"
-        + copyrightMessage,
-    )
-    parser.add_argument(
-        "-inputCSV",
-        type=str,
-        help="The absolute path of the input CSV file containing the list of subjects and their corresponding images",
-        required=True,
-    )
-    parser.add_argument(
-        "-outputDir",
-        type=str,
-        help="The output dir to write the results",
-        required=True,
-    )
+class Preparator:
+    def __init__(self, input_csv: str, output_dir: str):
+        script_path = os.path.dirname(os.path.abspath(__file__))
 
-    args = parser.parse_args()
+        self.input_csv = input_csv
+        self.output_dir = os.path.normpath(output_dir)
+        self.interim_output_dir = os.path.join(self.output_dir, "DataForQC")
+        self.final_output_dir = os.path.join(self.output_dir, "DataForFeTS")
+        self.parsed_headers = parse_csv_header(input_csv)
+        self.subjects_df = pd.read_csv(input_csv)
+        self.__init_out_dfs()
+        self.stdout_log = os.path.join(self.output_dir, "preparedataset_stdout.txt")
+        self.stderr_log = os.path.join(self.output_dir, "preparedataset_stderr.txt")
+        self.brats_pipeline_exe = os.path.join(script_path, "BraTSPipeline")
 
-    assert os.path.exists(args.inputCSV), "Input CSV file not found"
+        if platform.system() == "Windows":
+            self.brats_pipeline_exe += ".exe"
 
-    outputDir_qc = os.path.normpath(args.outputDir + "/DataForQC")
-    outputDir_final = os.path.normpath(args.outputDir + "/DataForFeTS")
+    def __init_out_dfs(self):
+        self.subjects = pd.DataFrame(
+            columns=["SubjectID", "Timepoint", "T1", "T1GD", "T2", "FLAIR"]
+        )
 
-    for dir_to_create in [args.outputDir, outputDir_qc, outputDir_final]:
-        Path(dir_to_create).mkdir(parents=True, exist_ok=True)
+        self.neg_subjects = pd.DataFrame(
+            columns=["SubjectID", "Timepoint", "Modality", "Count"]
+        )
+        self.failing_subjects = pd.DataFrame(columns=["SubjectID", "Timepoint"])
 
-    bratsPipeline_exe = os.path.join(
-        os.path.dirname(os.path.abspath(__file__)), "BraTSPipeline"
-    )
-    if platform.system() == "Windows":
-        bratsPipeline_exe += ".exe"
+    def validate(self):
+        assert os.path.exists(self.input_csv), "Input CSV file not found"
 
-    assert os.path.exists(
-        bratsPipeline_exe
-    ), "BraTS Pipeline executable not found, please contact admin@fets.ai for help."
+        assert os.path.exists(
+            self.brats_pipeline_exe
+        ), "BraTS Pipeline executable not found, please contact admin@fets.ai for help."
 
-    # only parse the headers here
-    parsed_headers = parse_csv_header(args.inputCSV)
+    def process_data(self):
+        total = self.subjects_df.shape[0]
+        for _, row in tqdm(self.subjects_df.iterrows(), total=total):
+            self.process_row(row)
 
-    # use pandas for this
-    subjects_df = pd.read_csv(args.inputCSV)
+    def process_row(self, row: pd.Series):
+        parsed_headers = self.parsed_headers
+        bratsPipeline_exe = self.brats_pipeline_exe
 
-    output_df_for_csv = pd.DataFrame(
-        columns=["SubjectID", "Timepoint", "T1", "T1GD", "T2", "FLAIR"]
-    )
-
-    subjects_with_negatives = pd.DataFrame(
-        columns=["SubjectID", "Timepoint", "Modality", "Count"]
-    )
-    subjects_with_bratspipeline_error = pd.DataFrame(columns=["SubjectID", "Timepoint"])
-
-    preparedataset_stdout_log = os.path.join(
-        args.outputDir, "preparedataset_stdout.txt"
-    )
-    preparedataset_stderr_log = os.path.join(
-        args.outputDir, "preparedataset_stderr.txt"
-    )
-
-    # tqdm
-    for _, row in tqdm(subjects_df.iterrows(), total=subjects_df.shape[0]):
         subject_id = row[parsed_headers["ID"]]
         subject_id_timepoint = subject_id
+
         # create QC and Final output dirs for each subject
-        interimOutputDir_subject = os.path.join(outputDir_qc, subject_id_timepoint)
-        Path(interimOutputDir_subject).mkdir(parents=True, exist_ok=True)
-        finalSubjectOutputDir_subject = os.path.join(
-            outputDir_final, subject_id_timepoint
-        )
-        Path(finalSubjectOutputDir_subject).mkdir(parents=True, exist_ok=True)
-        interimOutputDir_actual = interimOutputDir_subject
-        finalSubjectOutputDir_actual = finalSubjectOutputDir_subject
+        interimOutputDir_actual = os.path.join(self.interim_output_dir, subject_id_timepoint)
+        finalSubjectOutputDir_actual = os.path.join(self.final_output_dir, subject_id_timepoint)
+
         # per the data ingestion step, we are creating a new folder called timepoint, can join timepoint to subjectid if needed
         string_to_write_to_logs = f"Processing {subject_id}"
         if parsed_headers["Timepoint"] is not None:
             timepoint = row[parsed_headers["Timepoint"]]
             subject_id_timepoint += "_" + timepoint
-            interimOutputDir_actual = os.path.join(interimOutputDir_subject, timepoint)
+            interimOutputDir_actual = os.path.join(interimOutputDir_actual, timepoint)
             finalSubjectOutputDir_actual = os.path.join(
-                finalSubjectOutputDir_subject, timepoint
+                finalSubjectOutputDir_actual, timepoint
             )
             # print(f"Processing {subject_id} timepoint {timepoint}")
             string_to_write_to_logs = f"Processing {subject_id} timepoint {timepoint}"
 
+        with open(self.stdout_log, "a+") as out:
+            out.write(string_to_write_to_logs)
+
         Path(interimOutputDir_actual).mkdir(parents=True, exist_ok=True)
         Path(finalSubjectOutputDir_actual).mkdir(parents=True, exist_ok=True)
-        # check if the files exist already, if so, skip
         runBratsPipeline, _ = copyFilesToCorrectLocation(
             interimOutputDir_actual, finalSubjectOutputDir_actual, subject_id_timepoint
         )
 
+        # check if the files exist already, if so, skip
+        if not runBratsPipeline:
+            return
+
+        command = (
+            bratsPipeline_exe
+            + " -t1 "
+            + row[parsed_headers["T1"]]
+            + " -t1c "
+            + row[parsed_headers["T1GD"]]
+            + " -t2 "
+            + row[parsed_headers["T2"]]
+            + " -fl "
+            + row[parsed_headers["FLAIR"]]
+            + " -s 0 -b 0 -o "
+            + interimOutputDir_actual
+        )
+
+        with open(self.stdout_log, "a+") as out, open(
+            self.stderr_log, "a+"
+        ) as err:
+            out.write(f"***\n{command}\n***")
+            err.write(f"***\n{command}\n***")
+            subprocess.Popen(command, stdout=out, stderr=err, shell=True).wait()
+
+        runBratsPipeline, outputs = copyFilesToCorrectLocation(
+            interimOutputDir_actual,
+            finalSubjectOutputDir_actual,
+            subject_id_timepoint,
+        )
+
         if runBratsPipeline:
-            command = (
-                bratsPipeline_exe
-                + " -t1 "
-                + row[parsed_headers["T1"]]
-                + " -t1c "
-                + row[parsed_headers["T1GD"]]
-                + " -t2 "
-                + row[parsed_headers["T2"]]
-                + " -fl "
-                + row[parsed_headers["FLAIR"]]
-                + " -s 0 -b 0 -o "
-                + interimOutputDir_actual
+            # The BraTS command failed, and no files were found
+            # flag this subject as failing
+            failing_data = {"SubjectID": subject_id, "Timepoint": timepoint}
+            failing_subject = pd.DataFrame(failing_data, index=[0])
+            self.failing_subjects = pd.concat([self.failing_subjects, failing_subject])
+            return
+
+        # store the outputs in a dictionary when there are no errors
+        negatives_detected = False
+        for modality in ["T1", "T1GD", "T2", "FLAIR"]:
+            count = _read_image_with_min_check(outputs[modality])
+            if count == 0:
+                continue
+            neg_data = {
+                "SubjectID": subject_id,
+                "Timepoint": timepoint,
+                "Modality": modality,
+                "Count": count,
+            }
+            neg_subject = pd.DataFrame(neg_data, index=[0])
+            self.neg_subjects = pd.concat([self.neg_subjects, neg_subject])
+            negatives_detected = True
+
+        if not negatives_detected:
+            subject_data = {
+                "SubjectID": subject_id,
+                "Timepoint": timepoint,
+                "T1": outputs["T1"],
+                "T1GD": outputs["T1GD"],
+                "T2": outputs["T2"],
+                "FLAIR": outputs["FLAIR"],
+            }
+            subject = pd.DataFrame(subject_data, index=[0])
+            self.subjects = pd.concat([self.subjects,subject,])
+
+    def write(self):
+        self.__write_csv(self.subjects, "processed_data.csv")
+        self.__write_csv(self.neg_subjects, "QC_subjects_with_negative_intensities.csv")
+        self.__write_csv(self.failing_subjects, "QC_subjects_with_bratspipeline_error.csv")
+
+    def __write_csv(self, df: pd.DataFrame, output_file: str):
+        if df.shape[0] > 0:
+            df.to_csv(
+                os.path.join(self.final_output_dir, output_file), index=False
             )
-            with open(preparedataset_stdout_log, "a+") as out, open(
-                preparedataset_stderr_log, "a+"
-            ) as err:
-                out.write(f"***\n{command}\n***")
-                err.write(f"***\n{command}\n***")
-                subprocess.Popen(command, stdout=out, stderr=err, shell=True).wait()
 
-            runBratsPipeline, outputs = copyFilesToCorrectLocation(
-                interimOutputDir_actual,
-                finalSubjectOutputDir_actual,
-                subject_id_timepoint,
-            )
-            if runBratsPipeline:
-                subjects_with_bratspipeline_error = pd.concat(
-                    [
-                        subjects_with_bratspipeline_error,
-                        pd.DataFrame(
-                            {
-                                "SubjectID": subject_id,
-                                "Timepoint": timepoint,
-                            },
-                            index=[0],
-                        ),
-                    ]
-                )
-            # store the outputs in a dictionary when there are no errors
-            else:
-                negatives_detected = False
-                for modality in ["T1", "T1GD", "T2", "FLAIR"]:
-                    count = _read_image_with_min_check(outputs[modality])
-                    if count > 0:
-                        subjects_with_negatives = pd.concat(
-                            [
-                                subjects_with_negatives,
-                                pd.DataFrame(
-                                    {
-                                        "SubjectID": subject_id,
-                                        "Timepoint": timepoint,
-                                        "Modality": modality,
-                                        "Count": count,
-                                    },
-                                    index=[0],
-                                ),
-                            ]
-                        )
-                        negatives_detected = True
-                if not negatives_detected:
-                    output_df_for_csv = pd.concat(
-                        [
-                            output_df_for_csv,
-                            pd.DataFrame(
-                                {
-                                    "SubjectID": subject_id,
-                                    "Timepoint": timepoint,
-                                    "T1": outputs["T1"],
-                                    "T1GD": outputs["T1GD"],
-                                    "T2": outputs["T2"],
-                                    "FLAIR": outputs["FLAIR"],
-                                },
-                                index=[0],
-                            ),
-                        ]
-                    )
 
-    # write the output file
-    if output_df_for_csv.shape[0] > 0:
-        output_df_for_csv.to_csv(
-            os.path.join(outputDir_final, "processed_data.csv"), index=False
-        )
+def main():
+    parser = setup_parser()
+    args = parser.parse_args()
 
-    # write the QC files
-    if subjects_with_negatives.shape[0] > 0:
-        subjects_with_negatives.to_csv(
-            os.path.join(outputDir_final, "QC_subjects_with_negative_intensities.csv"),
-            index=False,
-        )
-
-    if subjects_with_bratspipeline_error.shape[0] > 0:
-        subjects_with_bratspipeline_error.to_csv(
-            os.path.join(outputDir_final, "QC_subjects_with_bratspipeline_error.csv"),
-            index=False,
-        )
+    prep = Preparator(args.inputCSV, args.outputDir)
+    prep.validate()
+    prep.process_data()
+    prep.write()
 
 
 if __name__ == "__main__":
