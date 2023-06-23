@@ -22,7 +22,9 @@ int main(int argc, char** argv)
   parser.addRequiredParameter("t2", "t2Image", cbica::Parameter::STRING, "Input Image (DICOM or NIfTI)", "Input structural T2-weighted contrast image");
   parser.addRequiredParameter("fl", "flImage", cbica::Parameter::STRING, "Input Image (DICOM or NIfTI)", "Input structural FLAIR contrast image");
   parser.addRequiredParameter("o", "outputDir", cbica::Parameter::DIRECTORY, "Directory", "Output directory for final output");
-  // parser.addOptionalParameter("s", "skullStrip", cbica::Parameter::BOOLEAN, "0 or 1", "Flag whether to skull strip or not", "Defaults to 1", "This uses BrainMaGe [https://github.com/CBICA/BrainMaGe/] and", "falls back to DeepMedic [https://cbica.github.io/CaPTk/seg_DL.html]");
+  parser.addOptionalParameter("s", "skullStrip", cbica::Parameter::BOOLEAN, "0 or 1", "Flag whether to skull strip", "present only for compatibility purposes");
+  parser.addOptionalParameter("b", "brainTumor", cbica::Parameter::BOOLEAN, "0 or 1", "Flag for brain tumor segmentation", "present only for compatibility purposes");
+  // parser.addOptionalParameter("s", "skullStrip", cbica::Parameter::BOOLEAN, "0 or 1", "Flag whether to skull strip or not", "Defaults to 0", "This uses BrainMaGe [https://github.com/CBICA/BrainMaGe/] and", "falls back to DeepMedic [https://cbica.github.io/CaPTk/seg_DL.html]");
   // parser.addOptionalParameter("b", "brainTumor", cbica::Parameter::BOOLEAN, "0 or 1", "Flag whether to segment brain tumors or not", "Defaults to 0", "This uses DeepMedic: https://cbica.github.io/CaPTk/seg_DL.html");
   parser.addOptionalParameter("d", "debug", cbica::Parameter::BOOLEAN, "0 or 1", "Print debugging information", "Defaults to 1");
   parser.addOptionalParameter("i", "interFiles", cbica::Parameter::BOOLEAN, "0 or 1", "Save intermediate files", "Defaults to 1");
@@ -46,14 +48,14 @@ int main(int argc, char** argv)
 
   cbica::createDir(outputDir);
 
-  if (parser.isPresent("s"))
-  {
-    parser.getParameterValue("s", skullStrip);
-  }
-  if (parser.isPresent("b"))
-  {
-    parser.getParameterValue("b", brainTumor);
-  }
+  // if (parser.isPresent("s"))
+  // {
+  //   parser.getParameterValue("s", skullStrip);
+  // }
+  // if (parser.isPresent("b"))
+  // {
+  //   parser.getParameterValue("b", brainTumor);
+  // }
   if (parser.isPresent("d"))
   {
     parser.getParameterValue("d", debug);
