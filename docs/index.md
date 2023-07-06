@@ -12,6 +12,11 @@ FeTS is developed and maintained by the [Center for Biomedical Image Computing a
 
 For more details, please visit us at [www.fets.ai](https://www.fets.ai/).
 
+**NOTE**
+- If you are looking for the 2022 FeTS study on pre-operative glioblastoma segmentation, please visit the following link: [fets-ai.github.io/FL-Pre](https://fets-ai.github.io/FL-Pre/)
+- If you are looking for the 2023 FeTS study on post-operative glioblastoma segmentation, please visit the following link: 
+[fets-ai.github.io/FL-PoST](https://fets-ai.github.io/FL-PoST/)
+
 ## Citation
 
 If you have found the code and/or its ideas useful, please cite the following articles:
