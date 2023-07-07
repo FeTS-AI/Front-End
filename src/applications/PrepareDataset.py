@@ -187,18 +187,22 @@ def copyFilesToCorrectLocation(interimOutputDir, finalSubjectOutputDir, subjectI
 
 class Preparator:
     def __init__(self, input_csv: str, output_dir: str):
-        script_path = os.path.dirname(os.path.abspath(__file__))
-
         self.input_csv = input_csv
+        self.input_dir = str(Path(input_csv).parent)
         self.output_dir = os.path.normpath(output_dir)
         self.interim_output_dir = os.path.join(self.output_dir, "DataForQC")
         self.final_output_dir = os.path.join(self.output_dir, "DataForFeTS")
-        self.parsed_headers = parse_csv_header(input_csv)
-        self.subjects_df = pd.read_csv(input_csv)
+        self.subjects_file = os.path.join(self.final_output_dir, "processed_data.csv")
+        self.neg_subjects_file = os.path.join(
+            self.final_output_dir, "QC_subjects_with_negative_intensities.csv"
+        )
+        self.failing_subjects_file = os.path.join(
+            self.final_output_dir, "QC_subjects_with_bratspipeline_error.csv"
+        )
         self.__init_out_dfs()
         self.stdout_log = os.path.join(self.output_dir, "preparedataset_stdout.txt")
         self.stderr_log = os.path.join(self.output_dir, "preparedataset_stderr.txt")
-        self.brats_pipeline_exe = os.path.join(script_path, "BraTSPipeline")
+        self.brats_pipeline_exe = "BraTSPipeline"
 
         if platform.system() == "Windows":
             self.brats_pipeline_exe += ".exe"
@@ -216,9 +220,9 @@ class Preparator:
     def validate(self):
         assert os.path.exists(self.input_csv), "Input CSV file not found"
 
-        assert os.path.exists(
-            self.brats_pipeline_exe
-        ), "BraTS Pipeline executable not found, please contact admin@fets.ai for help."
+        # assert os.path.exists(
+        #     self.brats_pipeline_exe
+        # ), "BraTS Pipeline executable not found, please contact admin@fets.ai for help."
 
     def process_data(self):
         total = self.subjects_df.shape[0]
@@ -233,8 +237,12 @@ class Preparator:
         subject_id_timepoint = subject_id
 
         # create QC and Final output dirs for each subject
-        interimOutputDir_actual = os.path.join(self.interim_output_dir, subject_id_timepoint)
-        finalSubjectOutputDir_actual = os.path.join(self.final_output_dir, subject_id_timepoint)
+        interimOutputDir_actual = os.path.join(
+            self.interim_output_dir, subject_id_timepoint
+        )
+        finalSubjectOutputDir_actual = os.path.join(
+            self.final_output_dir, subject_id_timepoint
+        )
 
         # per the data ingestion step, we are creating a new folder called timepoint, can join timepoint to subjectid if needed
         string_to_write_to_logs = f"Processing {subject_id}"
@@ -271,13 +279,11 @@ class Preparator:
             + row[parsed_headers["T2"]]
             + " -fl "
             + row[parsed_headers["FLAIR"]]
-            + " -s 0 -b 0 -o "
+            + " -o "
             + interimOutputDir_actual
         )
 
-        with open(self.stdout_log, "a+") as out, open(
-            self.stderr_log, "a+"
-        ) as err:
+        with open(self.stdout_log, "a+") as out, open(self.stderr_log, "a+") as err:
             out.write(f"***\n{command}\n***")
             err.write(f"***\n{command}\n***")
             subprocess.Popen(command, stdout=out, stderr=err, shell=True).wait()
@@ -322,18 +328,30 @@ class Preparator:
                 "FLAIR": outputs["FLAIR"],
             }
             subject = pd.DataFrame(subject_data, index=[0])
-            self.subjects = pd.concat([self.subjects,subject,])
+            self.subjects = pd.concat(
+                [
+                    self.subjects,
+                    subject,
+                ]
+            )
 
     def write(self):
-        self.__write_csv(self.subjects, "processed_data.csv")
-        self.__write_csv(self.neg_subjects, "QC_subjects_with_negative_intensities.csv")
-        self.__write_csv(self.failing_subjects, "QC_subjects_with_bratspipeline_error.csv")
+        if self.subjects.shape[0]:
+            self.subjects.to_csv(self.subjects_file)
+        if self.neg_subjects.shape[0]:
+            self.neg_subjects.to_csv(self.neg_subjects_file)
+        if self.failing_subjects.shape[0]:
+            self.failing_subjects.to_csv(self.failing_subjects_file)
 
-    def __write_csv(self, df: pd.DataFrame, output_file: str):
-        if df.shape[0] > 0:
-            df.to_csv(
-                os.path.join(self.final_output_dir, output_file), index=False
-            )
+    def read(self):
+        self.parsed_headers = parse_csv_header(self.input_csv)
+        self.subjects_df = pd.read_csv(self.input_csv)
+        if os.path.exists(self.subjects_file):
+            self.subjects = pd.read_csv(self.subjects_file)
+        if os.path.exists(self.neg_subjects_file):
+            self.neg_subjects = pd.read_csv(self.neg_subjects_file)
+        if os.path.exists(self.failing_subjects_file):
+            self.failing_subjects = pd.read_csv(self.failing_subjects_file)
 
 
 def main():
@@ -342,11 +360,13 @@ def main():
 
     prep = Preparator(args.inputCSV, args.outputDir)
     prep.validate()
+    prep.read()
     prep.process_data()
     prep.write()
 
 
 if __name__ == "__main__":
+    main()
     if platform.system() == "Darwin":
         sys.exit("macOS is not supported")
     else:
