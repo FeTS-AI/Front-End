@@ -68,12 +68,12 @@ COPY . /project
 # TODO: This should be removed once everything gets merged
 RUN rm -rf /Front-End
 
-RUN git clone --branch reformat-prepare-script https://github.com/aristizabal95/FeTS-AI-Front-End
+RUN git clone --branch reformat-prepare-script https://github.com/aristizabal95/FeTS-AI-Front-End /Front-End
 ##############################################################
 
-COPY /Front-End/src/applications/PrepareDataset.py /project/stages/PrepareDataset.py
+RUN cp /Front-End/src/applications/PrepareDataset.py /project/stages/PrepareDataset.py
 
-COPY /Front-End/src/applications/CreateCSVForDICOMs.py /project/stages/CreateCSVForDICOMs.py
+RUN cp /Front-End/src/applications/CreateCSVForDICOMs.py /project/stages/CreateCSVForDICOMs.py
 
 ENV QT_X11_NO_MITSHM=1
 ENV QT_GRAPHICSSYSTEM="native"
