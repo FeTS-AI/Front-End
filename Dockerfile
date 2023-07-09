@@ -20,7 +20,8 @@ COPY . .
 
 RUN echo "running ls -l" && ls -l && pwd
 
-RUN cmake -DITK_DIR="/CaPTk/bin/ITK-build" -DDCMTK_DIR="/CaPTk/bin/DCMTK-build" -DBUILD_TESTING=OFF .. \
+RUN mkdir bin && cd bin \
+    cmake -DCMAKE_INSTALL_PREFIX="./install/appdir/usr" -DITK_DIR="/CaPTk/bin/ITK-build" -DDCMTK_DIR="/CaPTk/bin/DCMTK-build" -DBUILD_TESTING=OFF .. \
     make -j$(nproc) \
     make install/strip
 
