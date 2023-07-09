@@ -20,10 +20,12 @@ COPY . .
 
 RUN echo "running ls -l" && ls -l && pwd
 
-RUN mkdir bin && cd bin \
-    cmake -DCMAKE_INSTALL_PREFIX="./install/appdir/usr" -DITK_DIR="/CaPTk/bin/ITK-build" -DDCMTK_DIR="/CaPTk/bin/DCMTK-build" -DBUILD_TESTING=OFF .. \
-    make -j$(nproc) \
-    make install/strip
+RUN mkdir bin && cd bin && cmake -DCMAKE_INSTALL_PREFIX="./install/appdir/usr" -DITK_DIR="/CaPTk/bin/ITK-build" -DDCMTK_DIR="/CaPTk/bin/DCMTK-build" -DBUILD_TESTING=OFF .. && make -j$(nproc) && make install/strip
+
+RUN ls -l /Front-End/bin/install/ \
+    ls -l /Front-End/bin/install/appdir/ \
+    ls -l /Front-End/bin/install/appdir/usr/ \
+    ls -l /Front-End/bin/install/appdir/usr/bin/ 
 
 # RUN bash ./buildscript.sh
 
