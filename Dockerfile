@@ -1,10 +1,10 @@
-FROM cbica/captk_centos7:devtoolset-4_superbuild
+FROM ghcr.io/fets-ai/fetstool_docker_dependencies
 
 LABEL authors="FeTS_Admin <admin@fets.ai>"
 
-RUN yum update -y
+RUN apt-get update && apt-get update --fix-missing
 
-RUN yum install git
+RUN apt-get install git
 
 RUN echo "running ls -l" && ls -l && pwd
 
