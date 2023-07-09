@@ -6,7 +6,10 @@ RUN apt-get update && apt-get update --fix-missing
 
 RUN apt-get install git
 
-RUN echo "running ls -l" && ls -l && pwd
+RUN echo "running ls -l" && ls -l \
+    ls -l /CaPTk \
+    ls -l /CaPTk/bin \
+    ls -l /bin
 
 WORKDIR /Front-End
 
