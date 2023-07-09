@@ -3,8 +3,8 @@ mkdir -p ./bin
 cd ./bin
 
 echo "Exporting environment variables"
-export PATH=/opt/qt/5.11.2/gcc_64/bin:/opt/qt/5.11.2/gcc_64/libexec:$PATH
-export CMAKE_PREFIX_PATH=/work/CaPTk/bin/ITK-build:/work/CaPTk/bin/DCMTK-build:/opt/qt/5.11.2/gcc_64/lib/cmake/Qt5:$CMAKE_PREFIX_PATH
+export PATH=/work/CaPTk/bin/qt/5.12.1/bin:/work/CaPTk/bin/qt/5.12.1/libexec:$PATH
+export CMAKE_PREFIX_PATH=/work/CaPTk/bin/ITK-build:/work/CaPTk/bin/DCMTK-build:/work/CaPTk/bin/qt/5.12.1/lib/cmake/Qt5:$CMAKE_PREFIX_PATH
 
 echo "Running CMake"
 cmake -DCMAKE_INSTALL_PREFIX="./install/appdir/usr" -DITK_DIR="/work/CaPTk/bin/ITK-build" -DDCMTK_DIR="/work/CaPTk/bin/DCMTK-build" -DBUILD_TESTING=OFF ..
