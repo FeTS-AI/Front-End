@@ -63,6 +63,6 @@ RUN cp /Front-End/src/applications/CreateCSVForDICOMs.py /project/stages/CreateC
 ENV QT_X11_NO_MITSHM=1
 ENV QT_GRAPHICSSYSTEM="native"
 
-RUN rm -rf /Front-End
-
+# RUN rm -rf /Front-End
+# 
 ENTRYPOINT ["python3", "/project/mlcube.py"]
