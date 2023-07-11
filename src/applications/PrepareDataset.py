@@ -8,7 +8,7 @@ import numpy as np
 from skimage.measure import label
 from copy import deepcopy
 
-from FigureGenerator.screenshot_maker import FigureGenerator
+from FigureGenerator.screenshot_maker import figure_generator
 
 # check against all these modality ID strings with extensions
 modality_id_dict = {
@@ -239,7 +239,7 @@ def main():
         Path(dir_to_create).mkdir(parents=True, exist_ok=True)
 
     bratsPipeline_exe = os.path.join(
-        os.path.dirname(os.path.abspath(__file__)), "BraTSPipeline"
+        Path(__file__).parent.resolve(), "BraTSPipeline"
     )
     if platform.system().lower() == "windows":
         bratsPipeline_exe += ".exe"
@@ -404,8 +404,7 @@ def main():
             )
 
             # save the screenshot
-            args_for_fig_gen = argparse.ArgumentParser()
-            args_for_fig_gen.images = (",").join(
+            images = (",").join(
                 [
                     outputs["T1"],
                     outputs["T1GD"],
@@ -413,7 +412,7 @@ def main():
                     outputs["FLAIR"],
                 ]
             )
-            args_for_fig_gen.ylabels = (",").join(
+            ylabels = (",").join(
                 [
                     "T1",
                     "T1GD",
@@ -421,16 +420,13 @@ def main():
                     "FLAIR",
                 ]
             )
-            args_for_fig_gen.opacity = 0.5
-            args_for_fig_gen.borderpc = 0.05
-            args_for_fig_gen.axisrow = False 
-            args_for_fig_gen.fontsize = 15
-            args_for_fig_gen.boundtype = "image"
-            args_for_fig_gen.output = os.path.join(
-                outputDir_final, subject_id_timepoint + ".png"
+            figure_generator(
+                images,
+                ylabels,
+                os.path.join(interimOutputDir_actual, "screenshot.png"),
+                flip_sagittal=True,
+                flip_coronal=True,
             )
-            fig_generator = FigureGenerator(args_for_fig_gen)
-            fig_generator.save_image(args_for_fig_gen.output)
 
     # write the output file
     if output_df_for_csv.shape[0] > 0:
