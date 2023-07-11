@@ -8,6 +8,7 @@ __version__ = "2.0.0"
 
 requirements = [
     "black",
+    "FigureGenerator==0.0.3",
     "numpy==1.24.0",
     "SimpleITK!=2.0.*",
     "SimpleITK!=2.2.1",  # https://github.com/mlcommons/GaNDLF/issues/536
