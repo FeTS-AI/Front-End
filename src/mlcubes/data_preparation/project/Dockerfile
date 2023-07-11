@@ -23,25 +23,37 @@ RUN git clone --branch fets_2.0 https://github.com/FeTS-AI/Front-End
 
 WORKDIR /Front-End
 
+
+######## BUILD THE OLD WAY
+RUN bash ./buildscript.sh; exit 0
+
+RUN bash ./buildscript.sh
+
+######## BUILD THE OLD WAY
+
 # Build binaries
-RUN mkdir bin
+# RUN mkdir bin
+# 
+# WORKDIR /Front-End/bin
+# 
+# RUN cmake ..
+# 
+# RUN make -j4
+# 
+# ENV PATH=/opt/qt/5.11.2/gcc_64/bin:/opt/qt/5.11.2/gcc_64/libexec:$PATH
+# 
+# ENV CMAKE_PREFIX_PATH=/work/CaPTk/bin/ITK-build:/work/CaPTk/bin/DCMTK-build:/opt/qt/5.11.2/gcc_64/lib/cmake/Qt5:$CMAKE_PREFIX_PATH
+# 
+# RUN cmake -DCMAKE_INSTALL_PREFIX="./install/appdir/usr" -DITK_DIR="/work/CaPTk/bin/ITK-build" -DDCMTK_DIR="/work/CaPTk/bin/DCMTK-build" -DBUILD_TESTING=OFF ..
+# 
+# RUN make -j4
+# 
+# RUN make install/strip
 
-WORKDIR /Front-End/bin
-
-RUN cmake ..
-
-RUN make -j4
-
-ENV PATH=/opt/qt/5.11.2/gcc_64/bin:/opt/qt/5.11.2/gcc_64/libexec:$PATH
-
-ENV CMAKE_PREFIX_PATH=/work/CaPTk/bin/ITK-build:/work/CaPTk/bin/DCMTK-build:/opt/qt/5.11.2/gcc_64/lib/cmake/Qt5:$CMAKE_PREFIX_PATH
-
-RUN cmake -DCMAKE_INSTALL_PREFIX="./install/appdir/usr" -DITK_DIR="/work/CaPTk/bin/ITK-build" -DDCMTK_DIR="/work/CaPTk/bin/DCMTK-build" -DBUILD_TESTING=OFF ..
-
-RUN make -j4
-
-RUN make install/strip
-
+# RUN bash ./buildscript.sh; exit 0
+# 
+# RUN bash ./buildscript.sh
+# 
 RUN find /Front-End/bin/install/appdir/usr/bin -type f \( -perm -u=x -o -type l \) -exec cp -P {} /usr/bin \;
 
 WORKDIR /
@@ -70,7 +82,7 @@ RUN rm -rf /Front-End
 
 RUN git clone --branch reformat-prepare-script https://github.com/aristizabal95/FeTS-AI-Front-End /Front-End
 ##############################################################
-
+# 
 RUN cp /Front-End/src/applications/PrepareDataset.py /project/stages/PrepareDataset.py
 
 RUN cp /Front-End/src/applications/CreateCSVForDICOMs.py /project/stages/CreateCSVForDICOMs.py
@@ -78,6 +90,6 @@ RUN cp /Front-End/src/applications/CreateCSVForDICOMs.py /project/stages/CreateC
 ENV QT_X11_NO_MITSHM=1
 ENV QT_GRAPHICSSYSTEM="native"
 
-RUN rm -rf /Front-End
-
+# RUN rm -rf /Front-End
+# 
 ENTRYPOINT ["python3", "/project/mlcube.py"]
