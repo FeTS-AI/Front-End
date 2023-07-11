@@ -269,6 +269,7 @@ def main():
         args.outputDir, "preparedataset_stderr.txt"
     )
 
+    # initialize the dicom tag information to write
     dicom_tag_information_to_write_collaborator, dicom_tag_information_to_write_anon = (
         {},
         {},
@@ -301,9 +302,9 @@ def main():
                 finalSubjectOutputDir_subject, timepoint
             )
 
+        # get the relevant dicom tags
         dicom_tag_information_to_write_collaborator[subject_id_timepoint] = {}
         dicom_tag_information_to_write_anon[str(idx)] = {}
-
         for modality in ["T1", "T1GD", "T2", "FLAIR"]:
             tags_from_modality = _get_relevant_dicom_tags(row[parsed_headers[modality]])
             dicom_tag_information_to_write_collaborator[subject_id_timepoint][
