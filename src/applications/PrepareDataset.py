@@ -1,4 +1,4 @@
-import os, argparse, sys, csv, platform, subprocess, shutil, posixpath
+import os, argparse, sys, csv, platform, subprocess, shutil, posixpath, yaml
 from pathlib import Path
 from datetime import date
 import pandas as pd
@@ -15,6 +15,71 @@ modality_id_dict = {
     "T2": ["t2"],
     "FLAIR": ["flair", "fl", "t2flair"],
 }
+
+
+def _get_relevant_dicom_tags(filename: str) -> dict:
+    """
+    This function reads the relevant DICOM tags from the input DICOM directory.
+
+    Args:
+        filename (str): The input DICOM filename.
+
+    Returns:
+        dict: The relevant DICOM tags.
+    """
+    input_dicom_dir = filename
+    if os.path.isfile(filename):
+        input_dicom_dir = os.path.dirname(filename)
+
+    output_dict = {}
+    try:
+        series_IDs = sitk.ImageSeriesReader.GetGDCMSeriesIDs(input_dicom_dir)
+        # if len(series_IDs) > 1:
+        #     print(
+        #         f"WARNING: Multiple series IDs detected in {input_dicom_dir}.",
+        #         file=sys.stderr,
+        #     )
+
+        series_file_names = sitk.ImageSeriesReader.GetGDCMSeriesFileNames(
+            input_dicom_dir, series_IDs[0]
+        )
+        series_reader = sitk.ImageSeriesReader()
+        series_reader.SetFileNames(series_file_names)
+        series_reader.MetaDataDictionaryArrayUpdateOn()
+        series_reader.LoadPrivateTagsOn()
+        itk_image = series_reader.Execute()
+        output_dict = {
+            "Resolution": str(itk_image.GetSpacing()).replace(" ", ""),
+        }
+        # although _technically_ the metadata is different for each slice, we'll just use the first slice's metadata, since the rest is not relevant for our purposes
+        ## reference: https://simpleitk.readthedocs.io/en/master/link_DicomSeriesReadModifyWrite_docs.html
+        keys_to_extract = [
+            "0008|0070",  # Manufacturer
+            "0008|1090",  # Manufacturer's Model Name
+            "0008|103e",  # Series Description
+            "0008|0021",  # Series Date
+            "0008|0031",  # Series Time
+        ]
+        keys_to_extract = {
+            "0008|0070": "Manufacturer",
+            "0008|1090": "Manufacturer's Model Name",
+            "0008|0022": "Acquisition Date",
+            "0008|0032": "Acquisition Time",
+            "0018|0087": "Magnetic Field Strength",
+            "0018|1050": "Slice Thickness",
+            "0018|0088": "Spacing Between Slices",
+            "0010|1010": "Patient's Age",
+            "0010|0040": "Patient's Sex",
+        }
+        for key in keys_to_extract:
+            output_dict[keys_to_extract[key]] = series_reader.GetMetaData(0, key)
+    except RuntimeError as e:
+        # print(
+        #     f"WARNING: Could not read DICOM tags from {input_dicom_dir}.",
+        # )
+        pass
+
+    return output_dict
 
 
 def _read_image_with_min_check(filename):
@@ -204,7 +269,12 @@ def main():
         args.outputDir, "preparedataset_stderr.txt"
     )
 
-    for _, row in tqdm(
+    dicom_tag_information_to_write_collaborator, dicom_tag_information_to_write_anon = (
+        {},
+        {},
+    )
+
+    for idx, row in tqdm(
         subjects_df.iterrows(),
         total=subjects_df.shape[0],
         desc="Preparing Dataset (1-10 min per subject)",
@@ -230,6 +300,16 @@ def main():
             finalSubjectOutputDir_actual = posixpath.join(
                 finalSubjectOutputDir_subject, timepoint
             )
+
+        dicom_tag_information_to_write_collaborator[subject_id_timepoint] = {}
+        dicom_tag_information_to_write_anon[str(idx)] = {}
+
+        for modality in ["T1", "T1GD", "T2", "FLAIR"]:
+            tags_from_modality = _get_relevant_dicom_tags(row[parsed_headers[modality]])
+            dicom_tag_information_to_write_collaborator[subject_id_timepoint][
+                modality
+            ] = tags_from_modality
+            dicom_tag_information_to_write_anon[str(idx)][modality] = tags_from_modality
 
         Path(interimOutputDir_actual).mkdir(parents=True, exist_ok=True)
         Path(finalSubjectOutputDir_actual).mkdir(parents=True, exist_ok=True)
@@ -337,6 +417,19 @@ def main():
             os.path.join(outputDir_final, "QC_subjects_with_bratspipeline_error.csv"),
             index=False,
         )
+
+    # write the dicom tag information
+    with open(
+        os.path.join(outputDir_final, "dicom_tag_information_collaborator.yaml"), "w"
+    ) as f:
+        yaml.safe_dump(
+            dicom_tag_information_to_write_collaborator, f, allow_unicode=True
+        )
+
+    with open(
+        os.path.join(outputDir_final, "dicom_tag_information_anon.yaml"), "w"
+    ) as f:
+        yaml.safe_dump(dicom_tag_information_to_write_anon, f, allow_unicode=True)
 
 
 if __name__ == "__main__":
