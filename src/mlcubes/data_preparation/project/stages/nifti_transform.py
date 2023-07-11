@@ -42,7 +42,6 @@ class NIfTITransform(RowStage):
         """
         self.__prepare_exec()
         self.__process_case(index)
-        self.__update_prev_stage_state(index, report)
         report = self.__update_report(index, report)
         self.prep.write()
 
@@ -65,6 +64,13 @@ class NIfTITransform(RowStage):
         prev_data_path = report.loc[index]["data_path"]
         shutil.rmtree(prev_data_path)
 
+    def __undo_current_stage_changes(self, index: Union[str, int]):
+        id, tp = get_id_tp(index)
+        fets_path = os.path.join(self.out_path, "DataForFeTS", id, tp)
+        qc_path = os.path.join(self.out_path, "DataForQC", id, tp)
+        shutil.rmtree(fets_path, ignore_errors=True)
+        shutil.rmtree(qc_path, ignore_errors=True)
+
     def __update_report(
         self, index: Union[str, int], report: pd.DataFrame
     ) -> pd.DataFrame:
@@ -78,8 +84,10 @@ class NIfTITransform(RowStage):
         ]
         if len(failing_subject):
             report = self.__report_failure(index, report)
+            self.__undo_current_stage_changes(index)
         else:
             report = self.__report_success(index, report)
+            self.__update_prev_stage_state(index, report)
 
         return report
 
@@ -102,7 +110,7 @@ class NIfTITransform(RowStage):
         self, index: Union[str, int], report: pd.DataFrame
     ) -> pd.DataFrame:
         id, tp = get_id_tp(index)
-        qc_path = os.path.join(self.out_path, "DataForQC", id, tp)
+        prev_data_path = report.loc[index]["data_path"]
 
         with open(self.prep.stderr_log, "r") as f:
             msg = f.read()
@@ -111,7 +119,7 @@ class NIfTITransform(RowStage):
             "status": -2,
             "status_name": "NIfTI_CONVERSION_FAILED",
             "comment": msg,
-            "data_path": qc_path,
+            "data_path": prev_data_path,
             "labels_path": "",
         }
         update_row_with_dict(report, report_data, index)
