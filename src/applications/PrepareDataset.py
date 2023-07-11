@@ -8,6 +8,8 @@ import numpy as np
 from skimage.measure import label
 from copy import deepcopy
 
+from FigureGenerator.screenshot_maker import FigureGenerator
+
 # check against all these modality ID strings with extensions
 modality_id_dict = {
     "T1": ["t1", "t1pre", "t1precontrast"],
@@ -400,6 +402,35 @@ def main():
                     ),
                 ]
             )
+
+            # save the screenshot
+            args_for_fig_gen = argparse.ArgumentParser()
+            args_for_fig_gen.images = (",").join(
+                [
+                    outputs["T1"],
+                    outputs["T1GD"],
+                    outputs["T2"],
+                    outputs["FLAIR"],
+                ]
+            )
+            args_for_fig_gen.ylabels = (",").join(
+                [
+                    "T1",
+                    "T1GD",
+                    "T2",
+                    "FLAIR",
+                ]
+            )
+            args_for_fig_gen.opacity = 0.5
+            args_for_fig_gen.borderpc = 0.05
+            args_for_fig_gen.axisrow = False 
+            args_for_fig_gen.fontsize = 15
+            args_for_fig_gen.boundtype = "image"
+            args_for_fig_gen.output = os.path.join(
+                outputDir_final, subject_id_timepoint + ".png"
+            )
+            fig_generator = FigureGenerator(args_for_fig_gen)
+            fig_generator.save_image(args_for_fig_gen.output)
 
     # write the output file
     if output_df_for_csv.shape[0] > 0:
