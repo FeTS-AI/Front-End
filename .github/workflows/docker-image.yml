@@ -17,13 +17,6 @@ jobs:
 
   build_test_push:
     runs-on: ubuntu-latest
-    container:
-      # image: 'ubuntu:20.04' # can also use this to test
-      image: ghcr.io/fets-ai/fetstool_docker_dependencies
-    permissions:
-      contents: read
-      packages: write
-      id-token: write
     strategy:
       fail-fast: false # So that remaining jobs don't instantly quit if one fails (e.g, CPU/ROCm don't upload if CUDA just fails to push to ghcr...)
       # matrix:
