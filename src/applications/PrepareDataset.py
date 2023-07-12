@@ -336,7 +336,7 @@ class Preparator:
             + row[parsed_headers["T2"]]
             + " -fl "
             + row[parsed_headers["FLAIR"]]
-            + " -o "
+            + " -s 0 -o "
             + interimOutputDir_actual
         )
 
