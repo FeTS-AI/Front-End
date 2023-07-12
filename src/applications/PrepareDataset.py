@@ -10,6 +10,8 @@ from copy import deepcopy
 
 from FigureGenerator.screenshot_maker import figure_generator
 
+from GANDLF.cli import main_run
+
 # check against all these modality ID strings with extensions
 modality_id_dict = {
     "T1": ["t1", "t1pre", "t1precontrast"],
@@ -263,9 +265,21 @@ def _copy_files_to_correct_location(interimOutputDir, finalSubjectOutputDir, sub
 
 
 def _run_brain_extraction_using_gandlf(
-    input_oriented_images: dict, models_to_infer: str, base_output_dir: str
+    subject_id: str,
+    input_oriented_images: dict,
+    models_to_infer: str,
+    base_output_dir: str,
 ) -> None:
-    test = 1
+    df_for_gandlf = pd.DataFrame(columns=["SubjectID", "Channel_0"])
+    for key in input_oriented_images.keys():
+        df_for_gandlf.loc[0, "SubjectID"] = subject_id
+        df_for_gandlf.loc[0, "Channel_0"] = input_oriented_images[key]
+    df_for_gandlf.to_csv(
+        posixpath.join(base_output_dir, "gandlf_brain_extraction.csv"),
+        index=False,
+    )
+
+    models_to_run = models_to_infer.split(",")
 
 
 class Preparator:
