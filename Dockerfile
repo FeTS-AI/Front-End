@@ -33,8 +33,8 @@ RUN cd ./FeTS_${VERSION}/squashfs-root/usr/bin/OpenFederatedLearning && \
     ./venv/bin/pip install scikit-build && \
     ./venv/bin/pip install SimpleITK==1.2.4 && \
     ./venv/bin/pip install protobuf==3.17.3 && \
-    ./venv/bin/pip install opencv-python==4.2.0.34 && \
-    ./venv/bin/pip install python-gdcm
+    ./venv/bin/pip install opencv-python==4.2.0.34
+    # ./venv/bin/pip install python-gdcm
 
 RUN cd ./FeTS_${VERSION}/squashfs-root/usr/bin/OpenFederatedLearning && \
     ./venv/bin/pip install setuptools --upgrade && \
