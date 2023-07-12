@@ -245,6 +245,12 @@ class Preparator:
         self.failing_subjects_file = posixpath.join(
             self.final_output_dir, "QC_subjects_with_bratspipeline_error.csv"
         )
+        self.dicom_tag_information_to_write_anon_file = posixpath.join(
+            self.final_output_dir, "dicom_tag_information_to_write_anon.csv"
+        )
+        self.dicom_tag_information_to_write_collab_file = posixpath.join(
+            self.final_output_dir, "dicom_tag_information_to_write_collab.csv"
+        )
         self.__init_out_dfs()
         self.stdout_log = posixpath.join(self.output_dir, "preparedataset_stdout.txt")
         self.stderr_log = posixpath.join(self.output_dir, "preparedataset_stderr.txt")
@@ -295,6 +301,8 @@ class Preparator:
         finalSubjectOutputDir_actual = posixpath.join(
             self.final_output_dir, subject_id_timepoint
         )
+        Path(interimOutputDir_actual).mkdir(parents=True, exist_ok=True)
+        Path(finalSubjectOutputDir_actual).mkdir(parents=True, exist_ok=True)
 
         # per the data ingestion step, we are creating a new folder called timepoint, can join timepoint to subjectid if needed
         if parsed_headers["Timepoint"] is not None:
@@ -304,6 +312,8 @@ class Preparator:
             finalSubjectOutputDir_actual = posixpath.join(
                 finalSubjectOutputDir_actual, timepoint
             )
+        Path(interimOutputDir_actual).mkdir(parents=True, exist_ok=True)
+        Path(finalSubjectOutputDir_actual).mkdir(parents=True, exist_ok=True)
 
         # get the relevant dicom tags
         self.dicom_tag_information_to_write_collab[subject_id_timepoint] = {}
@@ -313,12 +323,17 @@ class Preparator:
             self.dicom_tag_information_to_write_collab[subject_id_timepoint][
                 modality
             ] = tags_from_modality
+            with open(
+                os.path.join(
+                    interimOutputDir_actual, f"dicom_tag_information_{modality}.yaml"
+                ),
+                "w",
+            ) as f:
+                yaml.safe_dump(tags_from_modality, f, allow_unicode=True)
             self.dicom_tag_information_to_write_anon[str(idx)][
                 modality
             ] = tags_from_modality
 
-        Path(interimOutputDir_actual).mkdir(parents=True, exist_ok=True)
-        Path(finalSubjectOutputDir_actual).mkdir(parents=True, exist_ok=True)
         interimOutputDir_actual_reoriented = posixpath.join(
             interimOutputDir_actual_reoriented, "reoriented"
         )
@@ -370,7 +385,7 @@ class Preparator:
         # store the outputs in a dictionary when there are no errors
         negatives_detected = False
         for modality in ["T1", "T1GD", "T2", "FLAIR"]:
-            count = _read_image_with_min_check(outputs[modality])
+            count = _read_image_with_min_check(outputs_reoriented[modality])
             # if there are any negative values, then store the subjectid, timepoint, modality and count of negative values
             if count == 0:
                 continue
@@ -436,6 +451,14 @@ class Preparator:
             self.neg_subjects.to_csv(self.neg_subjects_file, index=False)
         if self.failing_subjects.shape[0]:
             self.failing_subjects.to_csv(self.failing_subjects_file, index=False)
+        with open(self.dicom_tag_information_to_write_collab_file, "w") as f:
+            yaml.safe_dump(
+                self.dicom_tag_information_to_write_collab, f, allow_unicode=True
+            )
+        with open(self.dicom_tag_information_to_write_anon_file, "w") as f:
+            yaml.safe_dump(
+                self.dicom_tag_information_to_write_anon, f, allow_unicode=True
+            )
 
     def read(self):
         self.parsed_headers = parse_csv_header(self.input_csv)
@@ -446,6 +469,10 @@ class Preparator:
             self.neg_subjects = pd.read_csv(self.neg_subjects_file)
         if os.path.exists(self.failing_subjects_file):
             self.failing_subjects = pd.read_csv(self.failing_subjects_file)
+        with open(self.dicom_tag_information_to_write_collab_file, "r") as f:
+            self.dicom_tag_information_to_write_collab = yaml.safe_load(f)
+        with open(self.dicom_tag_information_to_write_anon_file, "r") as f:
+            self.dicom_tag_information_to_write_anon = yaml.safe_load(f)
 
 
 def main():
