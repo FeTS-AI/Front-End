@@ -37,9 +37,11 @@ jobs:
       #   lfs: false
       #   submodules: 'recursive'
         
+    - name: Check if the repository has changed
+      run: ls -l
+
     - name: Docker prune to save space # If you switch to self-hosted runners, this should be removed.
       run: echo y | docker system prune -a
-    
       
     # Install the cosign tool except on PR
     # https://github.com/sigstore/cosign-installer
@@ -71,7 +73,7 @@ jobs:
           type=ref,event=branch
           type=ref,event=pr
           type=ref,event=tag
-          
+
     # Build Docker Image (but don't push yet -- wait for the test step first).
     # https://github.com/docker/build-push-action
     - name: Build Docker images
@@ -79,6 +81,7 @@ jobs:
       uses: docker/build-push-action@v4
       with:
         context: .
+        # cache-from: type=local,src=/tmp/.buildx-cache
         file: ./Dockerfile
         push: false
         load: true
