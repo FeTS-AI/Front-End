@@ -20,12 +20,15 @@ RUN wget https://fets.projects.nitrc.org/FeTS_${VERSION}_Installer.bin && chmod 
 # install FeTS and remove installer
 RUN yes yes | ./FeTS_${VERSION}_Installer.bin --target ./FeTS_${VERSION} -- --cudaVersion 11 && rm -rf ./FeTS_${VERSION}_Installer.bin
 
+ENV PATH=./FeTS_${VERSION}/squashfs-root/usr/bin/:$PATH
+ENV LD_LIBRARY_PATH=./FeTS_${VERSION}/squashfs-root/usr/lib/:$LD_LIBRARY_PATH
+
 # set up environment and install correct version of pytorch
-RUN cd FeTS_${VERSION}/squashfs-root/usr/bin/OpenFederatedLearning && \
+RUN cd ./FeTS_${VERSION}/squashfs-root/usr/bin/OpenFederatedLearning && \
     rm -rf ./venv && python3.7 -m venv ./venv && \
     ./venv/bin/pip install torch==1.7.1+cu110 torchvision==0.8.2+cu110 torchaudio==0.7.2 -f https://download.pytorch.org/whl/torch_stable.html 
 
-RUN cd FeTS_${VERSION}/squashfs-root/usr/bin/OpenFederatedLearning && \
+RUN cd ./FeTS_${VERSION}/squashfs-root/usr/bin/OpenFederatedLearning && \
     ./venv/bin/pip install wheel && \
     ./venv/bin/pip install scikit-build && \
     ./venv/bin/pip install SimpleITK==1.2.4 && \
@@ -33,7 +36,7 @@ RUN cd FeTS_${VERSION}/squashfs-root/usr/bin/OpenFederatedLearning && \
     ./venv/bin/pip install opencv-python==4.2.0.34 && \
     ./venv/bin/pip install python-gdcm
 
-RUN cd FeTS_${VERSION}/squashfs-root/usr/bin/OpenFederatedLearning && \
+RUN cd ./FeTS_${VERSION}/squashfs-root/usr/bin/OpenFederatedLearning && \
     ./venv/bin/pip install setuptools --upgrade && \
     make install_openfl && \
     make install_fets && \
