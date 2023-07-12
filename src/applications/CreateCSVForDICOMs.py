@@ -81,7 +81,7 @@ class CSVCreator:
             self.process_row(subject)
 
     def process_row(self, subject):
-        inputDir = self.inputDir
+        inputDir = posixpath.normpath(self.inputDir)
         current_subject_dir = posixpath.join(inputDir, subject)
 
         if not os.path.isdir(current_subject_dir):
