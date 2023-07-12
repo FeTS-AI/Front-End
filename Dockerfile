@@ -8,6 +8,7 @@ ENV PATH=/CaPTk/bin/qt/5.12.1/bin:/CaPTk/bin/qt/5.12.1/libexec:$PATH
 ENV CMAKE_PREFIX_PATH=/CaPTk/bin/ITK-build:/CaPTk/bin/DCMTK-build:/CaPTk/bin/qt/5.12.1/lib/cmake/Qt5:$CMAKE_PREFIX_PATH
 
 RUN pwd && ls -l
+VOLUME /Front-End
 WORKDIR /Front-End
 RUN pwd && ls -l
 
