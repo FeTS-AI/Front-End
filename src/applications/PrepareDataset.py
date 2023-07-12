@@ -44,6 +44,13 @@ def setup_parser():
         help="The output dir to write the results",
         required=True,
     )
+    parser.add_argument(
+        "-executablePath",
+        type=str,
+        help="The path to the BraTSPipeline executable. If not given, will infer from current script's location.",
+        nargs="?",
+        const=None,
+    )
 
     return parser
 
@@ -178,7 +185,7 @@ def _read_image_with_min_check(filename):
     return 0
 
 
-def parse_csv_header(filename):
+def _parse_csv_header(filename):
     """
     Read filename and return the parsed headers.
 
@@ -256,7 +263,7 @@ def copyFilesToCorrectLocation(interimOutputDir, finalSubjectOutputDir, subjectI
 
 
 class Preparator:
-    def __init__(self, input_csv: str, output_dir: str):
+    def __init__(self, input_csv: str, output_dir: str, executablePath: str):
         self.input_csv = input_csv
         self.input_dir = str(Path(input_csv).parent)
         self.output_dir = os.path.normpath(output_dir)
@@ -280,9 +287,11 @@ class Preparator:
         self.stderr_log = posixpath.join(self.output_dir, "preparedataset_stderr.txt")
         self.dicom_tag_information_to_write_collab = {}
         self.dicom_tag_information_to_write_anon = {}
-        self.brats_pipeline_exe = os.path.join(
-            Path(__file__).parent.resolve(), "BraTSPipeline"
-        )
+        self.brats_pipeline_exe = executablePath
+        if self.brats_pipeline_exe is None:
+            self.brats_pipeline_exe = os.path.join(
+                Path(__file__).parent.resolve(), "BraTSPipeline"
+            )
 
         if platform.system() == "Windows":
             self.brats_pipeline_exe += ".exe"
@@ -469,7 +478,7 @@ class Preparator:
             )
 
     def read(self):
-        self.parsed_headers = parse_csv_header(self.input_csv)
+        self.parsed_headers = _parse_csv_header(self.input_csv)
         self.subjects_df = pd.read_csv(self.input_csv)
         if os.path.exists(self.subjects_file):
             self.subjects = pd.read_csv(self.subjects_file)
@@ -487,7 +496,7 @@ def main():
     parser = setup_parser()
     args = parser.parse_args()
 
-    prep = Preparator(args.inputCSV, args.outputDir)
+    prep = Preparator(args.inputCSV, args.outputDir, args.executablePath)
     prep.validate()
     prep.read()
     prep.process_data()
