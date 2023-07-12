@@ -208,10 +208,10 @@ def copyFilesToCorrectLocation(interimOutputDir, finalSubjectOutputDir, subjectI
     # copy files to correct location for inference and training
     runBratsPipeline = False
     input_files = {
-        "T1": os.path.join(interimOutputDir, "T1_to_SRI.nii.gz"),
-        "T1GD": os.path.join(interimOutputDir, "T1CE_to_SRI.nii.gz"),
-        "T2": os.path.join(interimOutputDir, "T2_to_SRI.nii.gz"),
-        "FLAIR": os.path.join(interimOutputDir, "FL_to_SRI.nii.gz"),
+        "T1": posixpath.join(interimOutputDir, "T1_to_SRI.nii.gz"),
+        "T1GD": posixpath.join(interimOutputDir, "T1CE_to_SRI.nii.gz"),
+        "T2": posixpath.join(interimOutputDir, "T2_to_SRI.nii.gz"),
+        "FLAIR": posixpath.join(interimOutputDir, "FL_to_SRI.nii.gz"),
     }
     expected_outputs = {
         "ID": subjectID,
@@ -236,18 +236,18 @@ class Preparator:
         self.input_csv = input_csv
         self.input_dir = str(Path(input_csv).parent)
         self.output_dir = os.path.normpath(output_dir)
-        self.interim_output_dir = os.path.join(self.output_dir, "DataForQC")
-        self.final_output_dir = os.path.join(self.output_dir, "DataForFeTS")
-        self.subjects_file = os.path.join(self.final_output_dir, "processed_data.csv")
-        self.neg_subjects_file = os.path.join(
+        self.interim_output_dir = posixpath.join(self.output_dir, "DataForQC")
+        self.final_output_dir = posixpath.join(self.output_dir, "DataForFeTS")
+        self.subjects_file = posixpath.join(self.final_output_dir, "processed_data.csv")
+        self.neg_subjects_file = posixpath.join(
             self.final_output_dir, "QC_subjects_with_negative_intensities.csv"
         )
-        self.failing_subjects_file = os.path.join(
+        self.failing_subjects_file = posixpath.join(
             self.final_output_dir, "QC_subjects_with_bratspipeline_error.csv"
         )
         self.__init_out_dfs()
-        self.stdout_log = os.path.join(self.output_dir, "preparedataset_stdout.txt")
-        self.stderr_log = os.path.join(self.output_dir, "preparedataset_stderr.txt")
+        self.stdout_log = posixpath.join(self.output_dir, "preparedataset_stdout.txt")
+        self.stderr_log = posixpath.join(self.output_dir, "preparedataset_stderr.txt")
         self.dicom_tag_information_to_write_collab = {}
         self.dicom_tag_information_to_write_anon = {}
         self.brats_pipeline_exe = "BraTSPipeline"
@@ -409,7 +409,7 @@ class Preparator:
         figure_generator(
             images,
             ylabels,
-            os.path.join(interimOutputDir_actual, "screenshot.png"),
+            posixpath.join(interimOutputDir_actual, "screenshot.png"),
             flip_sagittal=True,
             flip_coronal=True,
         )
