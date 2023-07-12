@@ -47,4 +47,4 @@ ENV QT_X11_NO_MITSHM=1
 ENV QT_GRAPHICSSYSTEM="native"
 
 # define entry point
-ENTRYPOINT ["/FeTS_\${VERSION}/bin/install/appdir/usr/bin/FeTS_CLI"]
+ENTRYPOINT ["/FeTS_\${VERSION}/bin/install/appdir/usr/bin/FeTS_CLI_Inference"]
