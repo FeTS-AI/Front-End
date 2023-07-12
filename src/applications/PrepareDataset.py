@@ -439,7 +439,7 @@ class Preparator:
         figure_generator(
             images,
             ylabels,
-            posixpath.join(interimOutputDir_actual, "screenshot_reoriented.png"),
+            posixpath.join(interimOutputDir_actual_reoriented, "screenshot.png"),
             flip_sagittal=True,
             flip_coronal=True,
         )
