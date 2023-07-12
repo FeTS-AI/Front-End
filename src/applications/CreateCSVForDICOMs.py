@@ -1,4 +1,5 @@
 import os, argparse, sys, platform, posixpath
+from pathlib import Path
 from datetime import date
 from tqdm import tqdm
 import pandas as pd
@@ -36,7 +37,7 @@ def verify_dicom_folder(dicom_folder):
     return True, series_file_names[0]
 
 
-def main():
+def setup_argparser():
     copyrightMessage = (
         "Contact: admin@fets.ai\n\n"
         + "This program is NOT FDA/CE approved and NOT intended for clinical use.\nCopyright (c) "
@@ -62,128 +63,146 @@ def main():
         required=True,
     )
 
-    args = parser.parse_args()
+    return parser.parse_args()
 
-    output_df_for_csv = pd.DataFrame(
-        columns=["SubjectID", "Timepoint", "T1", "T1GD", "T2", "FLAIR"]
-    )
 
-    subject_timepoint_missing_modalities, subject_timepoint_extra_modalities = [], []
+class CSVCreator:
+    def __init__(self, inputDir: str, outputCSV: str):
+        self.inputDir = inputDir
+        self.outputCSV = outputCSV
+        self.subject_timepoint_missing_modalities = []
+        self.subject_timepoint_extra_modalities = []
+        self.output_df_for_csv = pd.DataFrame(
+            columns=["SubjectID", "Timepoint", "T1", "T1GD", "T2", "FLAIR"]
+        )
 
-    for subject in tqdm(os.listdir(args.inputDir)):
-        current_subject_dir = posixpath.join(args.inputDir, subject)
-        if os.path.isdir(current_subject_dir):
-            for timepoint in os.listdir(current_subject_dir):
-                current_subject_timepoint_dir = posixpath.join(
-                    current_subject_dir, timepoint
-                )
-                if os.path.isdir(current_subject_timepoint_dir):
-                    modality_folders = os.listdir(current_subject_timepoint_dir)
-                    # check if there are missing modalities
-                    if len(modality_folders) < 4:
-                        subject_timepoint_missing_modalities.append(
-                            subject + "_" + timepoint
-                        )
-                    # check if there are extra modalities
-                    elif len(modality_folders) > 4:
-                        subject_timepoint_extra_modalities.append(
-                            subject + "_" + timepoint
-                        )
-                    # goldilocks zone
+    def process_data(self):
+        for subject in tqdm(os.listdir(self.inputDir)):
+            self.process_row(subject)
+
+    def process_row(self, subject):
+        inputDir = self.inputDir
+        current_subject_dir = posixpath.join(inputDir, subject)
+
+        if not os.path.isdir(current_subject_dir):
+            return
+
+        for timepoint in os.listdir(current_subject_dir):
+            self.process_timepoint(timepoint, subject, current_subject_dir)
+
+    def process_timepoint(self, timepoint, subject, subject_dir):
+        timepoint_dir = posixpath.join(subject_dir, timepoint)
+        if not os.path.isdir(timepoint_dir):
+            return
+
+        modality_folders = os.listdir(timepoint_dir)
+        # check if there are missing modalities
+        if len(modality_folders) < 4:
+            self.subject_timepoint_missing_modalities.append(subject + "_" + timepoint)
+            return
+        # check if there are extra modalities
+        if len(modality_folders) > 4:
+            self.subject_timepoint_extra_modalities.append(subject + "_" + timepoint)
+            return
+
+        # goldilocks zone
+        detected_modalities = {
+            "T1": None,
+            "T1GD": None,
+            "T2": None,
+            "FLAIR": None,
+        }
+        for modality in modality_folders:
+            modality_path = posixpath.join(timepoint_dir, modality)
+            modality_lower = modality.lower()
+            for modality_to_check in modality_id_dict:
+                if detected_modalities[modality_to_check] is not None:
+                    continue
+
+                for modality_id in modality_id_dict[modality_to_check]:
+                    if modality_id not in modality_lower:
+                        continue
+
+                    valid_dicom, first_dicom_file = verify_dicom_folder(modality_path)
+                    if valid_dicom:
+                        detected_modalities[modality_to_check] = first_dicom_file
+                        break
                     else:
-                        detected_modalities = {
-                            "T1": None,
-                            "T1GD": None,
-                            "T2": None,
-                            "FLAIR": None,
-                        }
-                        for modality in modality_folders:
-                            modality_path = posixpath.join(
-                                current_subject_timepoint_dir, modality
-                            )
-                            modality_lower = modality.lower()
-                            for modality_to_check in modality_id_dict:
-                                if detected_modalities[modality_to_check] is None:
-                                    for modality_id in modality_id_dict[
-                                        modality_to_check
-                                    ]:
-                                        if modality_id in modality_lower:
-                                            (
-                                                valid_dicom,
-                                                first_dicom_file,
-                                            ) = verify_dicom_folder(modality_path)
-                                            if valid_dicom:
-                                                detected_modalities[
-                                                    modality_to_check
-                                                ] = first_dicom_file
-                                                break
-                                            else:
-                                                subject_timepoint_missing_modalities.append(
-                                                    subject
-                                                    + "_"
-                                                    + timepoint
-                                                    + "_"
-                                                    + modality
-                                                )
+                        self.subject_timepoint_missing_modalities.append(
+                            subject + "_" + timepoint + "_" + modality
+                        )
 
-                        # check if any modalities are missing
-                        modalities_missing = False
-                        for modality in detected_modalities:
-                            if detected_modalities[modality] is None:
-                                modalities_missing = True
-                                subject_timepoint_missing_modalities.append(
-                                    subject + "_" + timepoint + "_" + modality
-                                )
+        # check if any modalities are missing
+        modalities_missing = False
+        for modality in detected_modalities:
+            if detected_modalities[modality] is None:
+                modalities_missing = True
+                self.subject_timepoint_missing_modalities.append(
+                    subject + "_" + timepoint + "_" + modality
+                )
 
-                        # if no modalities are missing, then add to the output csv
-                        if not modalities_missing:
-                            dict_to_append = {
-                                "SubjectID": subject,
-                                "Timepoint": timepoint,
-                                "T1": detected_modalities["T1"],
-                                "T1GD": detected_modalities["T1GD"],
-                                "T2": detected_modalities["T2"],
-                                "FLAIR": detected_modalities["FLAIR"],
-                            }
-                            output_df_for_csv = pd.concat(
-                                [
-                                    output_df_for_csv,
-                                    pd.DataFrame(
-                                        [dict_to_append],
-                                        columns=[
-                                            "SubjectID",
-                                            "Timepoint",
-                                            "T1",
-                                            "T1GD",
-                                            "T2",
-                                            "FLAIR",
-                                        ],
-                                    ),
-                                ],
-                            )
+        if modalities_missing:
+            return
 
-    # write the output csv
-    if output_df_for_csv.shape[0] > 0:
-        if not (args.outputCSV.endswith(".csv")):
-            args.outputCSV += ".csv"
-        output_df_for_csv.to_csv(args.outputCSV, index=False)
+        # if no modalities are missing, then add to the output csv
+        dict_to_append = {
+            "SubjectID": subject,
+            "Timepoint": timepoint,
+            "T1": detected_modalities["T1"],
+            "T1GD": detected_modalities["T1GD"],
+            "T2": detected_modalities["T2"],
+            "FLAIR": detected_modalities["FLAIR"],
+        }
+        self.output_df_for_csv = pd.concat(
+            [
+                self.output_df_for_csv,
+                pd.DataFrame(
+                    [dict_to_append],
+                    columns=[
+                        "SubjectID",
+                        "Timepoint",
+                        "T1",
+                        "T1GD",
+                        "T2",
+                        "FLAIR",
+                    ],
+                ),
+            ],
+        )
+
+    def write(self):
+        if self.output_df_for_csv.shape[0] > 0:
+            if not (self.outputCSV.endswith(".csv")):
+                self.outputCSV += ".csv"
+            self.output_df_for_csv.to_csv(self.outputCSV, index=False)
+
+
+def main(inputDir: str, outputCSV: str):
+    inputDir = str(Path(inputDir).resolve())
+    csv_creator = CSVCreator(inputDir, outputCSV)
+    csv_creator.process_data()
+    csv_creator.write()
 
     # print out the missing modalities
-    if len(subject_timepoint_missing_modalities) > 0:
+    missing = csv_creator.subject_timepoint_missing_modalities
+    extra = csv_creator.subject_timepoint_extra_modalities
+    if len(missing) > 0:
         print(
             "WARNING: The following subject timepoints are missing modalities: ",
-            subject_timepoint_missing_modalities,
+            missing,
         )
-    if len(subject_timepoint_extra_modalities) > 0:
+    if len(extra) > 0:
         print(
             "WARNING: The following subject timepoints have extra modalities: ",
-            subject_timepoint_extra_modalities,
+            extra,
         )
 
     print("Done!")
 
 
 if __name__ == "__main__":
+    args = setup_argparser()
+    main(args.inputDir, args.outputCSV)
     if platform.system() == "Darwin":
         sys.exit("macOS is not supported")
     else:
