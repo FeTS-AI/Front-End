@@ -3,5 +3,7 @@
 *.nii.gz
 *.mat
 *.dcm
+*.png
 report.yaml
 statistics.yaml
+!requirements.txt

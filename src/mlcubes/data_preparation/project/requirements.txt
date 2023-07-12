@@ -1,0 +1,8 @@
+typer
+pandas
+PyYAML
+# Include all your requirements here
+SimpleITK
+tqdm
+scikit-image
+FigureGenerator==0.0.4
