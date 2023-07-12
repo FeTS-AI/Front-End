@@ -19,6 +19,35 @@ modality_id_dict = {
 }
 
 
+def setup_parser():
+    copyrightMessage = (
+        "Contact: admin@fets.ai\n\n"
+        + "This program is NOT FDA/CE approved and NOT intended for clinical use.\nCopyright (c) "
+        + str(date.today().year)
+        + " University of Pennsylvania. All rights reserved."
+    )
+    parser = argparse.ArgumentParser(
+        prog="PrepareDataset",
+        formatter_class=argparse.RawTextHelpFormatter,
+        description="This application calls the BraTSPipeline for all input images and stores the final and intermediate files separately.\n\n"
+        + copyrightMessage,
+    )
+    parser.add_argument(
+        "-inputCSV",
+        type=str,
+        help="The absolute path of the input CSV file containing the list of subjects and their corresponding images",
+        required=True,
+    )
+    parser.add_argument(
+        "-outputDir",
+        type=str,
+        help="The output dir to write the results",
+        required=True,
+    )
+
+    return parser
+
+
 def _get_relevant_dicom_tags(filename: str) -> dict:
     """
     This function reads the relevant DICOM tags from the input DICOM directory.
@@ -179,10 +208,10 @@ def copyFilesToCorrectLocation(interimOutputDir, finalSubjectOutputDir, subjectI
     # copy files to correct location for inference and training
     runBratsPipeline = False
     input_files = {
-        "T1": os.path.join(interimOutputDir, "T1_to_SRI.nii.gz"),
-        "T1GD": os.path.join(interimOutputDir, "T1CE_to_SRI.nii.gz"),
-        "T2": os.path.join(interimOutputDir, "T2_to_SRI.nii.gz"),
-        "FLAIR": os.path.join(interimOutputDir, "FL_to_SRI.nii.gz"),
+        "T1": posixpath.join(interimOutputDir, "T1_to_SRI.nii.gz"),
+        "T1GD": posixpath.join(interimOutputDir, "T1CE_to_SRI.nii.gz"),
+        "T2": posixpath.join(interimOutputDir, "T2_to_SRI.nii.gz"),
+        "FLAIR": posixpath.join(interimOutputDir, "FL_to_SRI.nii.gz"),
     }
     expected_outputs = {
         "ID": subjectID,
@@ -202,262 +231,217 @@ def copyFilesToCorrectLocation(interimOutputDir, finalSubjectOutputDir, subjectI
     return runBratsPipeline, expected_outputs
 
 
-def main():
-    copyrightMessage = (
-        "Contact: admin@fets.ai\n\n"
-        + "This program is NOT FDA/CE approved and NOT intended for clinical use.\nCopyright (c) "
-        + str(date.today().year)
-        + " University of Pennsylvania. All rights reserved."
-    )
-    parser = argparse.ArgumentParser(
-        prog="PrepareDataset",
-        formatter_class=argparse.RawTextHelpFormatter,
-        description="This application calls the BraTSPipeline for all input images and stores the final and intermediate files separately.\n\n"
-        + copyrightMessage,
-    )
-    parser.add_argument(
-        "-inputCSV",
-        type=str,
-        help="The absolute path of the input CSV file containing the list of subjects and their corresponding images",
-        required=True,
-    )
-    parser.add_argument(
-        "-outputDir",
-        type=str,
-        help="The output dir to write the results",
-        required=True,
-    )
+class Preparator:
+    def __init__(self, input_csv: str, output_dir: str):
+        self.input_csv = input_csv
+        self.input_dir = str(Path(input_csv).parent)
+        self.output_dir = os.path.normpath(output_dir)
+        self.interim_output_dir = posixpath.join(self.output_dir, "DataForQC")
+        self.final_output_dir = posixpath.join(self.output_dir, "DataForFeTS")
+        self.subjects_file = posixpath.join(self.final_output_dir, "processed_data.csv")
+        self.neg_subjects_file = posixpath.join(
+            self.final_output_dir, "QC_subjects_with_negative_intensities.csv"
+        )
+        self.failing_subjects_file = posixpath.join(
+            self.final_output_dir, "QC_subjects_with_bratspipeline_error.csv"
+        )
+        self.__init_out_dfs()
+        self.stdout_log = posixpath.join(self.output_dir, "preparedataset_stdout.txt")
+        self.stderr_log = posixpath.join(self.output_dir, "preparedataset_stderr.txt")
+        self.dicom_tag_information_to_write_collab = {}
+        self.dicom_tag_information_to_write_anon = {}
+        self.brats_pipeline_exe = "BraTSPipeline"
 
-    args = parser.parse_args()
+        if platform.system() == "Windows":
+            self.brats_pipeline_exe += ".exe"
 
-    assert os.path.exists(args.inputCSV), "Input CSV file not found"
+    def __init_out_dfs(self):
+        self.subjects = pd.DataFrame(
+            columns=["SubjectID", "Timepoint", "T1", "T1GD", "T2", "FLAIR"]
+        )
 
-    outputDir_qc = posixpath.join(args.outputDir, "DataForQC")
-    outputDir_final = posixpath.join(args.outputDir, "DataForFeTS")
+        self.neg_subjects = pd.DataFrame(
+            columns=["SubjectID", "Timepoint", "Modality", "Count"]
+        )
+        self.failing_subjects = pd.DataFrame(columns=["SubjectID", "Timepoint"])
 
-    for dir_to_create in [args.outputDir, outputDir_qc, outputDir_final]:
-        Path(dir_to_create).mkdir(parents=True, exist_ok=True)
+    def validate(self):
+        assert os.path.exists(self.input_csv), "Input CSV file not found"
 
-    bratsPipeline_exe = os.path.join(
-        Path(__file__).parent.resolve(), "BraTSPipeline"
-    )
-    if platform.system().lower() == "windows":
-        bratsPipeline_exe += ".exe"
+        assert shutil.which(
+            self.brats_pipeline_exe
+        ) is not None, "BraTS Pipeline executable not found, please contact admin@fets.ai for help."
 
-    assert os.path.exists(
-        bratsPipeline_exe
-    ), "BraTS Pipeline executable not found, please contact admin@fets.ai for help."
+    def process_data(self):
+        items = self.subjects_df.iterrows()
+        total = self.subjects_df.shape[0]
+        desc = "Preparing Dataset (1-10 min per subject)"
+        for idx, row in tqdm(items, total=total, desc=desc):
+            self.process_row(idx, row)
 
-    # only parse the headers here
-    parsed_headers = parse_csv_header(args.inputCSV)
+    def process_row(self, idx: int, row: pd.Series):
+        parsed_headers = self.parsed_headers
+        bratsPipeline_exe = self.brats_pipeline_exe
 
-    # use pandas for this
-    subjects_df = pd.read_csv(args.inputCSV)
-
-    output_df_for_csv = pd.DataFrame(
-        columns=["SubjectID", "Timepoint", "T1", "T1GD", "T2", "FLAIR"]
-    )
-
-    subjects_with_negatives = pd.DataFrame(
-        columns=["SubjectID", "Timepoint", "Modality", "Count"]
-    )
-    subjects_with_bratspipeline_error = pd.DataFrame(columns=["SubjectID", "Timepoint"])
-
-    # files to store the logs from BraTSPipeline
-    preparedataset_stdout_log = os.path.join(
-        args.outputDir, "preparedataset_stdout.txt"
-    )
-    preparedataset_stderr_log = os.path.join(
-        args.outputDir, "preparedataset_stderr.txt"
-    )
-
-    # initialize the dicom tag information to write
-    dicom_tag_information_to_write_collaborator, dicom_tag_information_to_write_anon = (
-        {},
-        {},
-    )
-
-    for idx, row in tqdm(
-        subjects_df.iterrows(),
-        total=subjects_df.shape[0],
-        desc="Preparing Dataset (1-10 min per subject)",
-    ):
         subject_id = row[parsed_headers["ID"]]
         subject_id_timepoint = subject_id
+
         # create QC and Final output dirs for each subject
-        interimOutputDir_subject = posixpath.join(outputDir_qc, subject_id_timepoint)
-        Path(interimOutputDir_subject).mkdir(parents=True, exist_ok=True)
-        finalSubjectOutputDir_subject = posixpath.join(
-            outputDir_final, subject_id_timepoint
+        interimOutputDir_actual = posixpath.join(
+            self.interim_output_dir, subject_id_timepoint
         )
-        Path(finalSubjectOutputDir_subject).mkdir(parents=True, exist_ok=True)
-        interimOutputDir_actual = interimOutputDir_subject
-        finalSubjectOutputDir_actual = finalSubjectOutputDir_subject
+        finalSubjectOutputDir_actual = posixpath.join(
+            self.final_output_dir, subject_id_timepoint
+        )
+
         # per the data ingestion step, we are creating a new folder called timepoint, can join timepoint to subjectid if needed
         if parsed_headers["Timepoint"] is not None:
             timepoint = row[parsed_headers["Timepoint"]]
             subject_id_timepoint += "_" + timepoint
-            interimOutputDir_actual = posixpath.join(
-                interimOutputDir_subject, timepoint
-            )
+            interimOutputDir_actual = posixpath.join(interimOutputDir_actual, timepoint)
             finalSubjectOutputDir_actual = posixpath.join(
-                finalSubjectOutputDir_subject, timepoint
+                finalSubjectOutputDir_actual, timepoint
             )
 
         # get the relevant dicom tags
-        dicom_tag_information_to_write_collaborator[subject_id_timepoint] = {}
-        dicom_tag_information_to_write_anon[str(idx)] = {}
+        self.dicom_tag_information_to_write_collab[subject_id_timepoint] = {}
+        self.dicom_tag_information_to_write_anon[str(idx)] = {}
         for modality in ["T1", "T1GD", "T2", "FLAIR"]:
             tags_from_modality = _get_relevant_dicom_tags(row[parsed_headers[modality]])
-            dicom_tag_information_to_write_collaborator[subject_id_timepoint][
+            self.dicom_tag_information_to_write_collab[subject_id_timepoint][
                 modality
             ] = tags_from_modality
-            dicom_tag_information_to_write_anon[str(idx)][modality] = tags_from_modality
+            self.dicom_tag_information_to_write_anon[str(idx)][modality] = tags_from_modality
 
         Path(interimOutputDir_actual).mkdir(parents=True, exist_ok=True)
         Path(finalSubjectOutputDir_actual).mkdir(parents=True, exist_ok=True)
         # if files already exist in DataForQC, then copy to DataForFeTS, and if files exist in DataForFeTS, then skip
-        runBratsPipeline, outputs = copyFilesToCorrectLocation(
+        runBratsPipeline, _ = copyFilesToCorrectLocation(
             interimOutputDir_actual, finalSubjectOutputDir_actual, subject_id_timepoint
         )
 
-        negatives_detected = False
-        # run the pipeline if needed
+        # check if the files exist already, if so, skip
+        if not runBratsPipeline:
+            return
+
+        command = (
+            bratsPipeline_exe
+            + " -t1 "
+            + row[parsed_headers["T1"]]
+            + " -t1c "
+            + row[parsed_headers["T1GD"]]
+            + " -t2 "
+            + row[parsed_headers["T2"]]
+            + " -fl "
+            + row[parsed_headers["FLAIR"]]
+            + " -o "
+            + interimOutputDir_actual
+        )
+
+        with open(self.stdout_log, "a+") as out, open(self.stderr_log, "a+") as err:
+            out.write(f"***\n{command}\n***")
+            err.write(f"***\n{command}\n***")
+            subprocess.Popen(command, stdout=out, stderr=err, shell=True).wait()
+
+        runBratsPipeline, outputs = copyFilesToCorrectLocation(
+            interimOutputDir_actual,
+            finalSubjectOutputDir_actual,
+            subject_id_timepoint,
+        )
+
         if runBratsPipeline:
-            command = (
-                bratsPipeline_exe
-                + " -t1 "
-                + row[parsed_headers["T1"]]
-                + " -t1c "
-                + row[parsed_headers["T1GD"]]
-                + " -t2 "
-                + row[parsed_headers["T2"]]
-                + " -fl "
-                + row[parsed_headers["FLAIR"]]
-                + " -s 0 -b 0 -o "
-                + interimOutputDir_actual
-            )
-            with open(preparedataset_stdout_log, "a+") as out, open(
-                preparedataset_stderr_log, "a+"
-            ) as err:
-                # save the command for debugging
-                out.write(f"***\n{command}\n***")
-                err.write(f"***\n{command}\n***")
-                subprocess.Popen(command, stdout=out, stderr=err, shell=True).wait()
+            # The BraTS command failed, and no files were found
+            # flag this subject as failing
+            failing_data = {"SubjectID": subject_id, "Timepoint": timepoint}
+            failing_subject = pd.DataFrame(failing_data, index=[0])
+            self.failing_subjects = pd.concat([self.failing_subjects, failing_subject])
+            return
 
-            runBratsPipeline, outputs = copyFilesToCorrectLocation(
-                interimOutputDir_actual,
-                finalSubjectOutputDir_actual,
-                subject_id_timepoint,
-            )
-            # if there are any errors, then store the subjectid and timepoint
-            if runBratsPipeline:
-                subjects_with_bratspipeline_error = pd.concat(
-                    [
-                        subjects_with_bratspipeline_error,
-                        pd.DataFrame(
-                            {
-                                "SubjectID": subject_id,
-                                "Timepoint": timepoint,
-                            },
-                            index=[0],
-                        ),
-                    ]
-                )
-            else:
-                for modality in ["T1", "T1GD", "T2", "FLAIR"]:
-                    count = _read_image_with_min_check(outputs[modality])
-                    # if there are any negative values, then store the subjectid, timepoint, modality and count of negative values
-                    if count > 0:
-                        subjects_with_negatives = pd.concat(
-                            [
-                                subjects_with_negatives,
-                                pd.DataFrame(
-                                    {
-                                        "SubjectID": subject_id,
-                                        "Timepoint": timepoint,
-                                        "Modality": modality,
-                                        "Count": count,
-                                    },
-                                    index=[0],
-                                ),
-                            ]
-                        )
-                        negatives_detected = True
         # store the outputs in a dictionary when there are no errors
-        if not negatives_detected:
-            output_df_for_csv = pd.concat(
-                [
-                    output_df_for_csv,
-                    pd.DataFrame(
-                        {
-                            "SubjectID": subject_id,
-                            "Timepoint": timepoint,
-                            "T1": outputs["T1"],
-                            "T1GD": outputs["T1GD"],
-                            "T2": outputs["T2"],
-                            "FLAIR": outputs["FLAIR"],
-                        },
-                        index=[0],
-                    ),
-                ]
-            )
+        negatives_detected = False
+        for modality in ["T1", "T1GD", "T2", "FLAIR"]:
+            count = _read_image_with_min_check(outputs[modality])
+            # if there are any negative values, then store the subjectid, timepoint, modality and count of negative values
+            if count == 0:
+                continue
+            neg_data = {
+                "SubjectID": subject_id,
+                "Timepoint": timepoint,
+                "Modality": modality,
+                "Count": count,
+            }
+            neg_subject = pd.DataFrame(neg_data, index=[0])
+            self.neg_subjects = pd.concat([self.neg_subjects, neg_subject])
+            negatives_detected = True
 
-            # save the screenshot
-            images = (",").join(
-                [
-                    outputs["T1"],
-                    outputs["T1GD"],
-                    outputs["T2"],
-                    outputs["FLAIR"],
-                ]
-            )
-            ylabels = (",").join(
-                [
-                    "T1",
-                    "T1GD",
-                    "T2",
-                    "FLAIR",
-                ]
-            )
-            figure_generator(
-                images,
-                ylabels,
-                os.path.join(interimOutputDir_actual, "screenshot.png"),
-                flip_sagittal=True,
-                flip_coronal=True,
-            )
+        # store the outputs in a dictionary when there are no errors
+        if negatives_detected:
+            return
 
-    # write the output file
-    if output_df_for_csv.shape[0] > 0:
-        output_df_for_csv.to_csv(
-            os.path.join(outputDir_final, "processed_data.csv"), index=False
+        subject_data = {
+            "SubjectID": subject_id,
+            "Timepoint": timepoint,
+            "T1": outputs["T1"],
+            "T1GD": outputs["T1GD"],
+            "T2": outputs["T2"],
+            "FLAIR": outputs["FLAIR"],
+        }
+        subject = pd.DataFrame(subject_data, index=[0])
+        self.subjects = pd.concat([self.subjects,subject,])
+
+        # save the screenshot
+        images = (",").join(
+            [
+                outputs["T1"],
+                outputs["T1GD"],
+                outputs["T2"],
+                outputs["FLAIR"],
+            ]
+        )
+        ylabels = (",").join(
+            [
+                "T1",
+                "T1GD",
+                "T2",
+                "FLAIR",
+            ]
+        )
+        figure_generator(
+            images,
+            ylabels,
+            posixpath.join(interimOutputDir_actual, "screenshot.png"),
+            flip_sagittal=True,
+            flip_coronal=True,
         )
 
-    # write the QC files
-    if subjects_with_negatives.shape[0] > 0:
-        subjects_with_negatives.to_csv(
-            os.path.join(outputDir_final, "QC_subjects_with_negative_intensities.csv"),
-            index=False,
-        )
-    if subjects_with_bratspipeline_error.shape[0] > 0:
-        subjects_with_bratspipeline_error.to_csv(
-            os.path.join(outputDir_final, "QC_subjects_with_bratspipeline_error.csv"),
-            index=False,
-        )
+    def write(self):
+        if self.subjects.shape[0]:
+            self.subjects.to_csv(self.subjects_file, index=False)
+        if self.neg_subjects.shape[0]:
+            self.neg_subjects.to_csv(self.neg_subjects_file, index=False)
+        if self.failing_subjects.shape[0]:
+            self.failing_subjects.to_csv(self.failing_subjects_file, index=False)
 
-    # write the dicom tag information
-    with open(
-        os.path.join(outputDir_final, "dicom_tag_information_collaborator.yaml"), "w"
-    ) as f:
-        yaml.safe_dump(
-            dicom_tag_information_to_write_collaborator, f, allow_unicode=True
-        )
+    def read(self):
+        self.parsed_headers = parse_csv_header(self.input_csv)
+        self.subjects_df = pd.read_csv(self.input_csv)
+        if os.path.exists(self.subjects_file):
+            self.subjects = pd.read_csv(self.subjects_file)
+        if os.path.exists(self.neg_subjects_file):
+            self.neg_subjects = pd.read_csv(self.neg_subjects_file)
+        if os.path.exists(self.failing_subjects_file):
+            self.failing_subjects = pd.read_csv(self.failing_subjects_file)
 
-    with open(
-        os.path.join(outputDir_final, "dicom_tag_information_anon.yaml"), "w"
-    ) as f:
-        yaml.safe_dump(dicom_tag_information_to_write_anon, f, allow_unicode=True)
+
+def main():
+    parser = setup_parser()
+    args = parser.parse_args()
+
+    prep = Preparator(args.inputCSV, args.outputDir)
+    prep.validate()
+    prep.read()
+    prep.process_data()
+    prep.write()
 
 
 if __name__ == "__main__":
