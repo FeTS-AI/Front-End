@@ -58,7 +58,7 @@ class NIfTITransform(RowStage):
         id, tp = get_id_tp(index)
         df = self.prep.subjects_df
         row = df[(df["SubjectID"] == id) & (df["Timepoint"] == tp)].iloc[0]
-        self.prep.process_row(row)
+        self.prep.process_row(index, row)
 
     def __update_prev_stage_state(self, index: Union[str, int], report: pd.DataFrame):
         prev_data_path = report.loc[index]["data_path"]
@@ -83,11 +83,11 @@ class NIfTITransform(RowStage):
             (failing["SubjectID"] == id) & (failing["Timepoint"] == tp)
         ]
         if len(failing_subject):
-            report = self.__report_failure(index, report)
             self.__undo_current_stage_changes(index)
+            report = self.__report_failure(index, report)
         else:
-            report = self.__report_success(index, report)
             self.__update_prev_stage_state(index, report)
+            report = self.__report_success(index, report)
 
         return report
 
