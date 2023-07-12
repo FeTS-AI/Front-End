@@ -445,6 +445,7 @@ def main():
 
 
 if __name__ == "__main__":
+    main()
     if platform.system() == "Darwin":
         sys.exit("macOS is not supported")
     else:
