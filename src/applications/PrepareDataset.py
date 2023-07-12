@@ -231,7 +231,7 @@ def _parse_csv_header(filename):
     return headers
 
 
-def copyFilesToCorrectLocation(interimOutputDir, finalSubjectOutputDir, subjectID):
+def _copy_files_to_correct_location(interimOutputDir, finalSubjectOutputDir, subjectID):
     """
     This function copies the intermediate files and final outputs to correct location and if these are absent, returns a bool flag stating that brats pipeline needs to run again
     """
@@ -260,6 +260,12 @@ def copyFilesToCorrectLocation(interimOutputDir, finalSubjectOutputDir, subjectI
                 runBratsPipeline = True
 
     return runBratsPipeline, expected_outputs
+
+
+def _run_brain_extraction_using_gandlf(
+    input_oriented_images: dict, models_to_infer: str, base_output_dir: str
+) -> None:
+    test = 1
 
 
 class Preparator:
@@ -372,7 +378,7 @@ class Preparator:
         )
         Path(interimOutputDir_actual_reoriented).mkdir(parents=True, exist_ok=True)
         # if files already exist in DataForQC, then copy to DataForFeTS, and if files exist in DataForFeTS, then skip
-        runBratsPipeline, _ = copyFilesToCorrectLocation(
+        runBratsPipeline, _ = _copy_files_to_correct_location(
             interimOutputDir_actual,
             interimOutputDir_actual_reoriented,
             subject_id_timepoint,
@@ -401,7 +407,7 @@ class Preparator:
             err.write(f"***\n{command}\n***")
             subprocess.Popen(command, stdout=out, stderr=err, shell=True).wait()
 
-        runBratsPipeline, outputs_reoriented = copyFilesToCorrectLocation(
+        runBratsPipeline, outputs_reoriented = _copy_files_to_correct_location(
             interimOutputDir_actual,
             interimOutputDir_actual_reoriented,
             subject_id_timepoint,
