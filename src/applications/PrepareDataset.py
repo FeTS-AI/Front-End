@@ -319,9 +319,15 @@ class Preparator:
 
         Path(interimOutputDir_actual).mkdir(parents=True, exist_ok=True)
         Path(finalSubjectOutputDir_actual).mkdir(parents=True, exist_ok=True)
+        interimOutputDir_actual_reoriented = posixpath.join(
+            interimOutputDir_actual_reoriented, "reoriented"
+        )
+        Path(interimOutputDir_actual_reoriented).mkdir(parents=True, exist_ok=True)
         # if files already exist in DataForQC, then copy to DataForFeTS, and if files exist in DataForFeTS, then skip
         runBratsPipeline, _ = copyFilesToCorrectLocation(
-            interimOutputDir_actual, finalSubjectOutputDir_actual, subject_id_timepoint
+            interimOutputDir_actual,
+            interimOutputDir_actual_reoriented,
+            subject_id_timepoint,
         )
 
         # check if the files exist already, if so, skip
