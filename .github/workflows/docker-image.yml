@@ -77,7 +77,8 @@ jobs:
       uses: docker/build-push-action@v4
       with:
         context: .
-        cache-from: type=local,src=${{ github.workspace }}
+        # cache-from: type=local,src=${{ github.workspace }}
+        build-args: -v ${{ github.workspace }}:/Front-End
         file: ./Dockerfile
         push: false
         load: true
