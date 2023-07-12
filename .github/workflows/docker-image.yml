@@ -39,17 +39,17 @@ jobs:
     - name: Docker prune to save space # If you switch to self-hosted runners, this should be removed.
       run: echo y | docker system prune -a
     
-    # - name: Check free space
-      # run: |
-        # echo "Free space:"
-        # df -h
+    - name: Check free space before
+      run: |
+        echo "Free space:"
+        df -h
     
     - name: Free Disk Space (Ubuntu)
       run: |
         sudo rm -rf /usr/local/lib/android
         sudo rm -rf /usr/share/dotnet
         
-    - name: Check free space
+    - name: Check free space after
       run: |
         echo "Free space:"
         df -h
