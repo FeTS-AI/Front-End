@@ -439,7 +439,7 @@ class Preparator:
         figure_generator(
             images,
             ylabels,
-            posixpath.join(interimOutputDir_actual_reoriented, "screenshot.png"),
+            posixpath.join(interimOutputDir_actual_reoriented, f"{subject_id_timepoint}_image_alignment_summary.png"),
             flip_sagittal=True,
             flip_coronal=True,
         )
