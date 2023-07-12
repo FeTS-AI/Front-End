@@ -51,7 +51,7 @@ jobs:
         remove-dotnet: 'true'
         remove-android: 'true'
         remove-haskell: 'true'
-        remove-codeql: 'true'
+        # remove-codeql: 'true'
         # remove-docker-images: 'true' # this causes the workflow to not find the required image
         
     - name: Check free space
