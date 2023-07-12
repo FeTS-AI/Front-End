@@ -202,8 +202,7 @@ def main(inputDir: str, outputCSV: str):
 
 if __name__ == "__main__":
     args = setup_argparser()
-    main(args.inputDir, args.outputCSV)
     if platform.system() == "Darwin":
         sys.exit("macOS is not supported")
     else:
-        main()
+        main(args.inputDir, args.outputCSV)
