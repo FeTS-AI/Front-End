@@ -353,9 +353,9 @@ class Preparator:
             err.write(f"***\n{command}\n***")
             subprocess.Popen(command, stdout=out, stderr=err, shell=True).wait()
 
-        runBratsPipeline, outputs = copyFilesToCorrectLocation(
+        runBratsPipeline, outputs_reoriented = copyFilesToCorrectLocation(
             interimOutputDir_actual,
-            finalSubjectOutputDir_actual,
+            interimOutputDir_actual_reoriented,
             subject_id_timepoint,
         )
 
@@ -391,10 +391,10 @@ class Preparator:
         subject_data = {
             "SubjectID": subject_id,
             "Timepoint": timepoint,
-            "T1": outputs["T1"],
-            "T1GD": outputs["T1GD"],
-            "T2": outputs["T2"],
-            "FLAIR": outputs["FLAIR"],
+            "T1": outputs_reoriented["T1"],
+            "T1GD": outputs_reoriented["T1GD"],
+            "T2": outputs_reoriented["T2"],
+            "FLAIR": outputs_reoriented["FLAIR"],
         }
         subject = pd.DataFrame(subject_data, index=[0])
         self.subjects = pd.concat(
@@ -407,10 +407,10 @@ class Preparator:
         # save the screenshot
         images = (",").join(
             [
-                outputs["T1"],
-                outputs["T1GD"],
-                outputs["T2"],
-                outputs["FLAIR"],
+                outputs_reoriented["T1"],
+                outputs_reoriented["T1GD"],
+                outputs_reoriented["T2"],
+                outputs_reoriented["FLAIR"],
             ]
         )
         ylabels = (",").join(
@@ -424,7 +424,7 @@ class Preparator:
         figure_generator(
             images,
             ylabels,
-            posixpath.join(interimOutputDir_actual, "screenshot.png"),
+            posixpath.join(interimOutputDir_actual, "screenshot_reoriented.png"),
             flip_sagittal=True,
             flip_coronal=True,
         )
