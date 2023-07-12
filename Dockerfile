@@ -7,9 +7,17 @@ RUN apt-get update && apt-get update --fix-missing && apt-get install -y libnss3
 ENV PATH=/CaPTk/bin/qt/5.12.1/bin:/CaPTk/bin/qt/5.12.1/libexec:$PATH
 ENV CMAKE_PREFIX_PATH=/CaPTk/bin/ITK-build:/CaPTk/bin/DCMTK-build:/CaPTk/bin/qt/5.12.1/lib/cmake/Qt5:$CMAKE_PREFIX_PATH
 
+RUN pwd && ls -l
+
 WORKDIR /Front-End
 
 COPY . .
+
+# VOLUME /Front-End
+
+RUN pwd && ls -l
+
+# COPY . .
 
 RUN mkdir bin && cd bin && cmake -DCMAKE_INSTALL_PREFIX="./install/appdir/usr" -DITK_DIR="/CaPTk/bin/ITK-build" -DDCMTK_DIR="/CaPTk/bin/DCMTK-build" -DBUILD_TESTING=OFF .. && make -j$(nproc) && make install/strip
 

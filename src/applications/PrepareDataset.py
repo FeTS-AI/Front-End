@@ -250,7 +250,9 @@ class Preparator:
         self.stderr_log = posixpath.join(self.output_dir, "preparedataset_stderr.txt")
         self.dicom_tag_information_to_write_collab = {}
         self.dicom_tag_information_to_write_anon = {}
-        self.brats_pipeline_exe = "BraTSPipeline"
+        self.brats_pipeline_exe = os.path.join(
+            Path(__file__).parent.resolve(), "BraTSPipeline"
+        )
 
         if platform.system() == "Windows":
             self.brats_pipeline_exe += ".exe"
@@ -334,7 +336,7 @@ class Preparator:
             + row[parsed_headers["T2"]]
             + " -fl "
             + row[parsed_headers["FLAIR"]]
-            + " -o "
+            + " -s 0 -o "
             + interimOutputDir_actual
         )
 
