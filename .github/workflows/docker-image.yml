@@ -78,7 +78,7 @@ jobs:
       with:
         context: .
         # cache-from: type=local,src=${{ github.workspace }}
-        build-args: --mount 'type=bind,src=${{ github.workspace }},target=/Front-End,readwrite' #-v ${{ github.workspace }}:/Front-End
+        # build-args: --mount 'type=bind,src=${{ github.workspace }},target=/Front-End,readwrite' #-v ${{ github.workspace }}:/Front-End
         file: ./Dockerfile
         push: false
         load: true
