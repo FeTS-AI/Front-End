@@ -17,6 +17,9 @@ jobs:
 
   build_test_push:
     runs-on: ubuntu-latest
+    container:
+      # image: 'ubuntu:20.04' # can also use this to test
+      image: ghcr.io/fets-ai/fetstool_docker_dependencies
     permissions:
       contents: read
       packages: write
@@ -37,8 +40,8 @@ jobs:
       #   lfs: false
       #   submodules: 'recursive'
         
-    - name: Check if the repository has changed
-      run: ls -l
+    # - name: Check if the repository has changed
+    #   run: ls -l
 
     - name: Docker prune to save space # If you switch to self-hosted runners, this should be removed.
       run: echo y | docker system prune -a
@@ -81,13 +84,23 @@ jobs:
       uses: docker/build-push-action@v4
       with:
         context: .
-        # cache-from: type=local,src=/tmp/.buildx-cache
+        cache-from: type=local,src=${{ github.workspace }}
         file: ./Dockerfile
         push: false
         load: true
         tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ steps.meta.outputs.labels }}
 
+    # - uses: addnab/docker-run-action@v3
+    #   with:
+    #     username: ${{ github.actor }}
+    #     password: ${{ secrets.GITHUB_TOKEN }}
+    #     registry: ghcr.io
+    #     image: ghcr.io/fets-ai/front-end:latest
+    #     options: -v ${{ github.workspace }}:/Front-End
+    #     run: |
+    #       echo "Running Script"
+    #       /work/run-script
     # - name: Build the Docker image
     #   run: docker build . -v /Front-End:/home/runner/work/Front-End/Front-End/ --file Dockerfile --tag ${{ steps.meta.outputs.tags }}
 
