@@ -14,7 +14,7 @@ class NIfTITransform(RowStage):
         self.out_path = out_path
         self.prev_stage_path = prev_stage_path
         os.makedirs(self.out_path, exist_ok=True)
-        self.prep = Preparator(data_csv, out_path)
+        self.prep = Preparator(data_csv, out_path, "BraTSPipeline")
 
     def should_run(self, index: Union[str, int], report: pd.DataFrame) -> bool:
         """Determine if case at given index needs to be converted to NIfTI
