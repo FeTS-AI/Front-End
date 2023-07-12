@@ -11,7 +11,7 @@ requirements = [
     "FigureGenerator==0.0.4",
     "gandlf==0.0.16",
     "labelfusion==1.0.14",
-    "numpy==1.24.0",
+    "numpy==1.22.0",
     "SimpleITK!=2.0.*",
     "SimpleITK!=2.2.1",  # https://github.com/mlcommons/GaNDLF/issues/536
     "scikit-learn>=0.23.2",
