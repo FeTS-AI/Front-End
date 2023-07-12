@@ -113,6 +113,30 @@ def _get_relevant_dicom_tags(filename: str) -> dict:
     return output_dict
 
 
+def _save_screenshot(input_images: dict, output_filename: str = None) -> None:
+    # save the screenshot
+    images = (",").join(
+        [
+            input_images["T1"],
+            input_images["T1GD"],
+            input_images["T2"],
+            input_images["FLAIR"],
+        ]
+    )
+    ylabels = ""
+    for key in input_images:
+        ylabels += f"{key},"
+    ylabels = ylabels[:-1]  # remove the last comma
+
+    figure_generator(
+        input_images=images,
+        ylabels=ylabels,
+        output=output_filename,
+        flip_sagittal=True,
+        flip_coronal=True,
+    )
+
+
 def _read_image_with_min_check(filename):
     """
     This function fixes negatives by scaling the image according to the following logic:
@@ -420,28 +444,12 @@ class Preparator:
         )
 
         # save the screenshot
-        images = (",").join(
-            [
-                outputs_reoriented["T1"],
-                outputs_reoriented["T1GD"],
-                outputs_reoriented["T2"],
-                outputs_reoriented["FLAIR"],
-            ]
-        )
-        ylabels = (",").join(
-            [
-                "T1",
-                "T1GD",
-                "T2",
-                "FLAIR",
-            ]
-        )
-        figure_generator(
-            images,
-            ylabels,
-            posixpath.join(interimOutputDir_actual_reoriented, f"{subject_id_timepoint}_image_alignment_summary.png"),
-            flip_sagittal=True,
-            flip_coronal=True,
+        _save_screenshot(
+            outputs_reoriented,
+            posixpath.join(
+                interimOutputDir_actual_reoriented,
+                f"{subject_id_timepoint}_image_alignment_summary.png",
+            ),
         )
 
     def write(self):
