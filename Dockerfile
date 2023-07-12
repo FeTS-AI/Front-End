@@ -11,7 +11,9 @@ RUN pwd && ls -l
 
 WORKDIR /Front-End
 
-VOLUME /Front-End
+COPY . .
+
+# VOLUME /Front-End
 
 RUN pwd && ls -l
 
