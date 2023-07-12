@@ -270,9 +270,9 @@ class Preparator:
     def validate(self):
         assert os.path.exists(self.input_csv), "Input CSV file not found"
 
-        assert shutil.which(
-            self.brats_pipeline_exe
-        ) is not None, "BraTS Pipeline executable not found, please contact admin@fets.ai for help."
+        assert (
+            shutil.which(self.brats_pipeline_exe) is not None
+        ), "BraTS Pipeline executable not found, please contact admin@fets.ai for help."
 
     def process_data(self):
         items = self.subjects_df.iterrows()
@@ -313,7 +313,9 @@ class Preparator:
             self.dicom_tag_information_to_write_collab[subject_id_timepoint][
                 modality
             ] = tags_from_modality
-            self.dicom_tag_information_to_write_anon[str(idx)][modality] = tags_from_modality
+            self.dicom_tag_information_to_write_anon[str(idx)][
+                modality
+            ] = tags_from_modality
 
         Path(interimOutputDir_actual).mkdir(parents=True, exist_ok=True)
         Path(finalSubjectOutputDir_actual).mkdir(parents=True, exist_ok=True)
@@ -389,7 +391,12 @@ class Preparator:
             "FLAIR": outputs["FLAIR"],
         }
         subject = pd.DataFrame(subject_data, index=[0])
-        self.subjects = pd.concat([self.subjects,subject,])
+        self.subjects = pd.concat(
+            [
+                self.subjects,
+                subject,
+            ]
+        )
 
         # save the screenshot
         images = (",").join(
