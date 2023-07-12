@@ -13,11 +13,7 @@ WORKDIR /Front-End
 
 COPY . .
 
-# VOLUME /Front-End
-
 RUN pwd && ls -l
-
-# COPY . .
 
 RUN mkdir bin && cd bin && cmake -DCMAKE_INSTALL_PREFIX="./install/appdir/usr" -DITK_DIR="/CaPTk/bin/ITK-build" -DDCMTK_DIR="/CaPTk/bin/DCMTK-build" -DBUILD_TESTING=OFF .. && make -j$(nproc) && make install/strip
 
