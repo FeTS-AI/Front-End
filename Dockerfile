@@ -21,5 +21,7 @@ RUN mkdir bin && cd bin && cmake -DCMAKE_INSTALL_PREFIX="./install/appdir/usr" -
 ENV QT_X11_NO_MITSHM=1
 ENV QT_GRAPHICSSYSTEM="native"
 
+RUN echo "Env paths\n" && echo $PATH && echo $LD_LIBRARY_PATH
+
 # define entry point
 ENTRYPOINT ["/Front-End/bin/install/appdir/usr/bin/BraTSPipeline"]
