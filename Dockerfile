@@ -25,16 +25,17 @@ ENV LD_LIBRARY_PATH=./FeTS_${VERSION}/squashfs-root/usr/lib/:$LD_LIBRARY_PATH
 
 # set up environment and install correct version of pytorch
 RUN cd ./FeTS_${VERSION}/squashfs-root/usr/bin/OpenFederatedLearning && \
-    rm -rf ./venv && python3.7 -m venv ./venv && \
+    rm -rf ./venv && python3.7 -m venv ./venv && ./venv/bin/pip install Cython && \
+    ./venv/bin/pip install --upgrade pip setuptools wheel setuptools-rust && \
     ./venv/bin/pip install torch==1.7.1+cu110 torchvision==0.8.2+cu110 torchaudio==0.7.2 -f https://download.pytorch.org/whl/torch_stable.html 
 
 RUN cd ./FeTS_${VERSION}/squashfs-root/usr/bin/OpenFederatedLearning && \
     ./venv/bin/pip install wheel && \
-    ./venv/bin/pip install scikit-build && \
+    ./venv/bin/pip install scikit-build scikit-learn && \
     ./venv/bin/pip install SimpleITK==1.2.4 && \
-    ./venv/bin/pip install protobuf==3.17.3 && \
-    ./venv/bin/pip install opencv-python==4.2.0.34 && \
-    ./venv/bin/pip install python-gdcm
+    ./venv/bin/pip install protobuf==3.17.3 grpcio==1.30.0 && \
+    ./venv/bin/pip install opencv-python==4.2.0.34
+    # ./venv/bin/pip install python-gdcm
 
 RUN cd ./FeTS_${VERSION}/squashfs-root/usr/bin/OpenFederatedLearning && \
     ./venv/bin/pip install setuptools --upgrade && \
@@ -43,11 +44,13 @@ RUN cd ./FeTS_${VERSION}/squashfs-root/usr/bin/OpenFederatedLearning && \
     ./venv/bin/pip install -e ./submodules/fets_ai/Algorithms/GANDLF && \
     cd ../LabelFusion && \
     rm -rf venv && python3.7 -m venv ./venv && \
+    ./venv/bin/pip install --upgrade pip setuptools wheel setuptools-rust && \
     ./venv/bin/pip install -e .
 
 # set up the docker for GUI
 ENV QT_X11_NO_MITSHM=1
 ENV QT_GRAPHICSSYSTEM="native"
 
+RUN ls -l ./FeTS_${VERSION}/squashfs-root/usr/bin
 # define entry point
-ENTRYPOINT ["/FeTS_\${VERSION}/bin/install/appdir/usr/bin/FeTS_CLI_Inference"]
+ENTRYPOINT ["./FeTS_\${VERSION}/squashfs-root/usr/bin/FeTS_CLI_Inference"]
