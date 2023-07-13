@@ -6,7 +6,7 @@ RUN apt-get update -y
 
 RUN apt-get install wget zip unzip software-properties-common gcc g++ make -y
 
-RUN apt-get update -y && add-apt-repository ppa:deadsnakes/ppa && apt update -y && apt install python3.7 python3.7-venv python3.7-dev python3-setuptools -y
+RUN apt-get update -y && add-apt-repository ppa:deadsnakes/ppa && apt update -y && apt install python3.7 python3.7-venv python3.7-dev python3-setuptools ffmpeg libsm6 libxext6 -y
 
 # We will do git pull on the FeTS_Front-End master, because that is the repo using which the base image is made
 # We will not do compiles on the PR because the idea is that the Xenial build will check the build status of
@@ -20,8 +20,8 @@ RUN wget https://fets.projects.nitrc.org/FeTS_${VERSION}_Installer.bin && chmod 
 # install FeTS and remove installer
 RUN yes yes | ./FeTS_${VERSION}_Installer.bin --target ./FeTS_${VERSION} -- --cudaVersion 11 && rm -rf ./FeTS_${VERSION}_Installer.bin
 
-ENV PATH=./FeTS_${VERSION}/squashfs-root/usr/bin/:$PATH
-ENV LD_LIBRARY_PATH=./FeTS_${VERSION}/squashfs-root/usr/lib/:$LD_LIBRARY_PATH
+ENV PATH=/workspace/FeTS_${VERSION}/squashfs-root/usr/bin/:$PATH
+ENV LD_LIBRARY_PATH=/workspace/FeTS_${VERSION}/squashfs-root/usr/lib/:$LD_LIBRARY_PATH
 
 # set up environment and install correct version of pytorch
 RUN cd ./FeTS_${VERSION}/squashfs-root/usr/bin/OpenFederatedLearning && \
@@ -50,6 +50,8 @@ RUN cd ./FeTS_${VERSION}/squashfs-root/usr/bin/OpenFederatedLearning && \
 # set up the docker for GUI
 ENV QT_X11_NO_MITSHM=1
 ENV QT_GRAPHICSSYSTEM="native"
+
+RUN echo "Env paths\n" && echo $PATH && echo $LD_LIBRARY_PATH
 
 # define entry point
 ENTRYPOINT ["/workspace/FeTS_0.0.9/squashfs-root/usr/bin/FeTS_CLI_Inference"]
