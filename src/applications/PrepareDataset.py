@@ -123,7 +123,9 @@ def _get_relevant_dicom_tags(filename: str) -> dict:
     return output_dict
 
 
-def _save_screenshot(input_images: dict, output_filename: str = None) -> None:
+def _save_screenshot(
+    input_images: dict, output_filename: str = None, input_mask: str = None
+) -> None:
     # save the screenshot
     images = (",").join(
         [
@@ -139,6 +141,7 @@ def _save_screenshot(input_images: dict, output_filename: str = None) -> None:
         input_images=images,
         ylabels=ylabels,
         output=output_filename,
+        input_mask=input_mask,
         flip_sagittal=True,
         flip_coronal=True,
     )
@@ -616,14 +619,21 @@ class Preparator:
 
         pbar.set_description(f"Saving screenshot")
 
-        # save the screenshot
-        _save_screenshot(
-            outputs_reoriented,
-            posixpath.join(
-                interimOutputDir_actual_reoriented,
-                f"{subject_id_timepoint}_image_alignment_summary.png",
-            ),
+        screenshot_path = posixpath.join(
+            interimOutputDir_actual_reoriented,
+            f"{subject_id_timepoint}_summary_coregistration.png",
         )
+        # save the screenshot
+        _save_screenshot(outputs_reoriented, screenshot_path)
+
+        if os.path.exists(screenshot_path):
+            shutil.copyfile(
+                screenshot_path,
+                posixpath.join(
+                    interimOutputDir_actual,
+                    f"{subject_id_timepoint}_summary_coregistration.png",
+                ),
+            )
 
         pbar.set_description(f"Brain Extraction")
 
@@ -635,10 +645,10 @@ class Preparator:
             + interimOutputDir_actual,  # todo: this needs to be changed appropriately
             interimOutputDir_actual,
         )
-        sitk.WriteImage(
-            brain_mask,
-            posixpath.join(interimOutputDir_actual, "brainMask_fused.nii.gz"),
+        brain_mask_path = posixpath.join(
+            interimOutputDir_actual, "brainMask_fused.nii.gz"
         )
+        sitk.WriteImage(brain_mask, brain_mask_path)
 
         # this is to ensure that the mask and reoriented images are in the same byte order
         brain_mask = sitk.Cast(brain_mask, sitk.sitkFloat32)
@@ -653,6 +663,16 @@ class Preparator:
             sitk.WriteImage(masked_image, file_to_save)
             input_for_tumor_models[modality] = file_to_save
 
+        # save the screenshot
+        _save_screenshot(
+            input_for_tumor_models,
+            posixpath.join(
+                interimOutputDir_actual,
+                f"{subject_id_timepoint}_summary_brain_extraction.png",
+            ),
+            brain_mask_path,
+        )
+
         pbar.set_description(f"Brain Tumor Segmentation")
 
         tumor_masks_for_qc = _run_tumor_segmentation_using_gandlf(
@@ -663,6 +683,20 @@ class Preparator:
             + interimOutputDir_actual,  # todo: this needs to be changed appropriately
             interimOutputDir_actual,
         )
+
+        tumor_mask_idx = 0
+        for tumor_mask in tumor_masks_for_qc:
+            # save the screenshot
+            _save_screenshot(
+                input_for_tumor_models,
+                posixpath.join(
+                    interimOutputDir_actual,
+                    f"{subject_id_timepoint}_summary_tumor_segmentation_{tumor_mask_idx}.png",
+                ),
+                tumor_mask,
+            )
+            tumor_mask_idx += 1
+
         with open(self.stdout_log, "a+") as f:
             f.write(f"***\nTumor Masks For QC:\n{tumor_masks_for_qc}\n***")
 
