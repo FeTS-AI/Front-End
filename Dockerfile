@@ -33,7 +33,7 @@ RUN cd ./FeTS_${VERSION}/squashfs-root/usr/bin/OpenFederatedLearning && \
     ./venv/bin/pip install wheel && \
     ./venv/bin/pip install scikit-build scikit-learn && \
     ./venv/bin/pip install SimpleITK==1.2.4 && \
-    ./venv/bin/pip install protobuf==3.17.3 && \
+    ./venv/bin/pip install protobuf==3.17.3 grpcio==1.30.0 && \
     ./venv/bin/pip install opencv-python==4.2.0.34
     # ./venv/bin/pip install python-gdcm
 
@@ -51,5 +51,6 @@ RUN cd ./FeTS_${VERSION}/squashfs-root/usr/bin/OpenFederatedLearning && \
 ENV QT_X11_NO_MITSHM=1
 ENV QT_GRAPHICSSYSTEM="native"
 
+RUN ls -l ./FeTS_${VERSION}/squashfs-root/usr/bin
 # define entry point
-ENTRYPOINT ["/FeTS_\${VERSION}/bin/install/appdir/usr/bin/FeTS_CLI_Inference"]
+ENTRYPOINT ["./FeTS_\${VERSION}/squashfs-root/usr/bin/FeTS_CLI_Inference"]
