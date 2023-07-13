@@ -359,6 +359,7 @@ def _run_tumor_segmentation_using_gandlf(
 
     model_counter = 0
     images_for_fusion = []
+    mask_output_dir = posixpath.join(base_output_dir, "TumorMasksForQC")
     for model_dir in models_to_run:
         model_output_dir = posixpath.join(
             base_output_dir, "model_" + str(model_counter)
@@ -397,14 +398,27 @@ def _run_tumor_segmentation_using_gandlf(
                     shutil.copyfile(
                         file_path,
                         posixpath.join(
-                            base_output_dir,
-                            f"tumorMask_{model_counter}.nii.gz",
+                            mask_output_dir,
+                            f"{subject_id}_tumorMask_model-{model_counter}.nii.gz",
                         ),
                     )
                     images_for_fusion.append(sitk.ReadImage(file_path, sitk.sitkInt16))
         model_counter += 1
 
-    return fuse_images(images_for_fusion, "staple", [0, 1])
+    tumor_class_list = [0, 1, 2, 3, 4]
+
+    tumor_masks_to_return = images_for_fusion
+
+    for fusion_type in ["staple", "simple", "voting"]:
+        fused_mask = fuse_images(images_for_fusion, fusion_type, tumor_class_list)
+        fused_mask_file = posixpath.join(
+            mask_output_dir,
+            f"{subject_id}_tumorMask_fused-{fusion_type}.nii.gz",
+        )
+        sitk.WriteImage(fused_mask, fused_mask_file)
+        tumor_masks_to_return.append(fused_mask_file)
+
+    return tumor_masks_to_return
 
 
 class Preparator:
@@ -651,7 +665,10 @@ class Preparator:
         )
         sitk.WriteImage(
             tumor_mask,
-            posixpath.join(interimOutputDir_actual, "tumorMask_fused.nii.gz"),
+            posixpath.join(
+                interimOutputDir_actual,
+                f"{subject_id_timepoint}_tumorMask_fused.nii.gz",
+            ),
         )
 
     def write(self):
