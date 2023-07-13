@@ -31,7 +31,7 @@ RUN cd ./FeTS_${VERSION}/squashfs-root/usr/bin/OpenFederatedLearning && \
 
 RUN cd ./FeTS_${VERSION}/squashfs-root/usr/bin/OpenFederatedLearning && \
     ./venv/bin/pip install wheel && \
-    ./venv/bin/pip install scikit-build && \
+    ./venv/bin/pip install scikit-build scikit-learn && \
     ./venv/bin/pip install SimpleITK==1.2.4 && \
     ./venv/bin/pip install protobuf==3.17.3 && \
     ./venv/bin/pip install opencv-python==4.2.0.34
