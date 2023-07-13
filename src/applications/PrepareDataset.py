@@ -297,10 +297,10 @@ class Preparator:
             self.final_output_dir, "QC_subjects_with_bratspipeline_error.csv"
         )
         self.dicom_tag_information_to_write_anon_file = posixpath.join(
-            self.final_output_dir, "dicom_tag_information_to_write_anon.csv"
+            self.final_output_dir, "dicom_tag_information_to_write_anon.yaml"
         )
         self.dicom_tag_information_to_write_collab_file = posixpath.join(
-            self.final_output_dir, "dicom_tag_information_to_write_collab.csv"
+            self.final_output_dir, "dicom_tag_information_to_write_collab.yaml"
         )
         self.__init_out_dfs()
         self.stdout_log = posixpath.join(self.output_dir, "preparedataset_stdout.txt")
@@ -314,7 +314,8 @@ class Preparator:
             )
 
         if platform.system() == "Windows":
-            self.brats_pipeline_exe += ".exe"
+            if not self.brats_pipeline_exe.endswith(".exe"):
+                self.brats_pipeline_exe += ".exe"
 
     def __init_out_dfs(self):
         self.subjects = pd.DataFrame(
@@ -481,6 +482,13 @@ class Preparator:
             ),
         )
 
+        _run_brain_extraction_using_gandlf(
+            subject_id_timepoint,
+            outputs_reoriented,
+            finalSubjectOutputDir_actual + "," + finalSubjectOutputDir_actual,
+            finalSubjectOutputDir_actual,
+        )
+
     def write(self):
         if self.subjects.shape[0]:
             self.subjects.to_csv(self.subjects_file, index=False)
@@ -506,10 +514,12 @@ class Preparator:
             self.neg_subjects = pd.read_csv(self.neg_subjects_file)
         if os.path.exists(self.failing_subjects_file):
             self.failing_subjects = pd.read_csv(self.failing_subjects_file)
-        with open(self.dicom_tag_information_to_write_collab_file, "r") as f:
-            self.dicom_tag_information_to_write_collab = yaml.safe_load(f)
-        with open(self.dicom_tag_information_to_write_anon_file, "r") as f:
-            self.dicom_tag_information_to_write_anon = yaml.safe_load(f)
+        if os.path.exists(self.dicom_tag_information_to_write_collab_file):
+            with open(self.dicom_tag_information_to_write_collab_file, "r") as f:
+                self.dicom_tag_information_to_write_collab = yaml.safe_load(f)
+        if os.path.exists(self.dicom_tag_information_to_write_anon_file):
+            with open(self.dicom_tag_information_to_write_anon_file, "r") as f:
+                self.dicom_tag_information_to_write_anon = yaml.safe_load(f)
 
 
 def main():
