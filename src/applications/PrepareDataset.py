@@ -540,7 +540,6 @@ class Preparator:
             + interimOutputDir_actual,  # todo: this needs to be changed appropriately
             interimOutputDir_actual,
         )
-        # DataForQC/<patient_prefix>/<timepoint>/<timepoint>/brainMask_fused(most likely STAPLE).nii.gz
         sitk.WriteImage(
             brain_mask,
             posixpath.join(interimOutputDir_actual, "brainMask_fused.nii.gz"),
