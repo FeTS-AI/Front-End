@@ -270,16 +270,59 @@ def _run_brain_extraction_using_gandlf(
     df_for_gandlf = pd.DataFrame(columns=["SubjectID", "Channel_0"])
     for key in input_oriented_images.keys():
         if key.lower() != "id":
-            current_modality = {"SubjectID": subject_id, "Channel_0": input_oriented_images[key]}
+            current_modality = {
+                "SubjectID": subject_id + "_" + key,
+                "Channel_0": input_oriented_images[key],
+            }
             df_for_gandlf = pd.concat(
                 [df_for_gandlf, pd.DataFrame(current_modality, index=[0])]
             )
+    data_path = posixpath.join(base_output_dir, "gandlf_brain_extraction.csv")
     df_for_gandlf.to_csv(
-        posixpath.join(base_output_dir, "gandlf_brain_extraction.csv"),
+        data_path,
         index=False,
     )
 
     models_to_run = models_to_infer.split(",")
+
+    model_counter = 0
+    files_for_fusion = []
+    for model_dir in models_to_run:
+        model_output_dir = posixpath.join(
+            base_output_dir, "model_" + str(model_counter)
+        )
+        file_list = os.listdir(model_dir)
+        for file in file_list:
+            if file.endswith(".yaml") or file.endswith(".yml"):
+                config_file = posixpath.join(model_dir, file)
+                break
+
+        # ensure the openvino version is used
+        parameters = yaml.safe_load(open(config_file, "r"))
+        parameters["model"]["type"] = "openvino"
+        yaml.safe_dump(parameters, open(config_file, "w"))
+
+        main_run(
+            data_csv=data_path,
+            config_file=config_file,
+            model_dir=model_dir,
+            train_mode=False,
+            device="cpu",
+            resume=False,
+            reset=False,
+            output_dir=model_output_dir,
+        )
+        model_counter += 1
+
+        modality_outputs = os.listdir(posixpath.join(model_output_dir, "testing"))
+        for modality in modality_outputs:
+            modality_output_dir = posixpath.join(modality_outputs, modality)
+            files_in_modality = os.listdir(modality_output_dir)
+            for file in files_in_modality:
+                if file.endswith(".nii.gz"):
+                    files_for_fusion.append(posixpath.join(modality_output_dir, file))
+
+    # once the models have finished inference, perform label fusion
 
 
 class Preparator:
