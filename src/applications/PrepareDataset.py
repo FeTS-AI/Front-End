@@ -462,11 +462,11 @@ class Preparator:
     def process_data(self):
         items = self.subjects_df.iterrows()
         total = self.subjects_df.shape[0]
-        desc = "Preparing Dataset (1-10 min per subject)"
-        for idx, row in tqdm(items, total=total, desc=desc):
-            self.process_row(idx, row)
+        pbar = tqdm(range(total), desc="Preparing Dataset (1-10 min per subject)")
+        for idx, row in items:
+            self.process_row(idx, row, pbar)
 
-    def process_row(self, idx: int, row: pd.Series):
+    def process_row(self, idx: int, row: pd.Series, pbar: tqdm):
         parsed_headers = self.parsed_headers
         bratsPipeline_exe = self.brats_pipeline_exe
 
@@ -493,6 +493,8 @@ class Preparator:
             )
         Path(interimOutputDir_actual).mkdir(parents=True, exist_ok=True)
         Path(finalSubjectOutputDir_actual).mkdir(parents=True, exist_ok=True)
+
+        pbar.set_description(f"Processing {subject_id_timepoint}")
 
         # get the relevant dicom tags
         self.dicom_tag_information_to_write_collab[subject_id_timepoint] = {}
@@ -526,6 +528,8 @@ class Preparator:
 
         # check if the files exist already, if so, skip
         if runBratsPipeline:
+            pbar.set_description(f"Running BraTSPipeline")
+
             command = (
                 bratsPipeline_exe
                 + " -t1 "
@@ -596,6 +600,8 @@ class Preparator:
             ]
         )
 
+        pbar.set_description(f"Saving screenshot")
+
         # save the screenshot
         _save_screenshot(
             outputs_reoriented,
@@ -604,6 +610,8 @@ class Preparator:
                 f"{subject_id_timepoint}_image_alignment_summary.png",
             ),
         )
+
+        pbar.set_description(f"Brain Extraction")
 
         brain_mask = _run_brain_extraction_using_gandlf(
             subject_id_timepoint,
@@ -630,6 +638,8 @@ class Preparator:
             )
             sitk.WriteImage(masked_image, file_to_save)
             input_for_tumor_models[modality] = file_to_save
+
+        pbar.set_description(f"Brain Tumor Segmentation")
 
         tumor_mask = _run_tumor_segmentation_using_gandlf(
             subject_id_timepoint,
