@@ -126,6 +126,14 @@ def _get_relevant_dicom_tags(filename: str) -> dict:
 def _save_screenshot(
     input_images: dict, output_filename: str = None, input_mask: str = None
 ) -> None:
+    """
+    This function saves the screenshot of the input images and mask.
+
+    Args:
+        input_images (dict): The input multi-modal images.
+        output_filename (str, optional): The output filename to save the screenshot. Defaults to None.
+        input_mask (str, optional): The input mask filename. Defaults to None.
+    """
     # save the screenshot
     images = (",").join(
         [
@@ -237,6 +245,14 @@ def _parse_csv_header(filename):
 def _copy_files_to_correct_location(interimOutputDir, finalSubjectOutputDir, subjectID):
     """
     This function copies the intermediate files and final outputs to correct location and if these are absent, returns a bool flag stating that brats pipeline needs to run again
+
+    Args:
+        interimOutputDir (str): The interim output directory.
+        finalSubjectOutputDir (str): The final subject output directory.
+        subjectID (str): The subject ID.
+
+    Returns:
+        bool, dict: The flag stating whether brats pipeline needs to run again and the output files in the expected location.
     """
 
     # copy files to correct location for inference and training
@@ -271,6 +287,18 @@ def _run_brain_extraction_using_gandlf(
     models_to_infer: str,
     base_output_dir: str,
 ) -> sitk.Image:
+    """
+    This function runs brain extraction using gandlf.
+
+    Args:
+        subject_id (str): The subject ID.
+        input_oriented_images (dict): The input oriented images.
+        models_to_infer (str): The models to infer, comma-separated.
+        base_output_dir (str): The base output directory.
+
+    Returns:
+        sitk.Image: The fused brain mask.
+    """
     df_for_gandlf = pd.DataFrame(columns=["SubjectID", "Channel_0"])
     for key in modalities_list:
         current_modality = {
@@ -342,6 +370,18 @@ def _run_tumor_segmentation_using_gandlf(
     models_to_infer: str,
     base_output_dir: str,
 ) -> sitk.Image:
+    """
+    This function runs tumor segmentation using gandlf.
+
+    Args:
+        subject_id (str): The subject ID.
+        input_oriented_brain_images (dict): The input oriented brain images.
+        models_to_infer (str): The models to infer, comma-separated.
+        base_output_dir (str): The base output directory.
+
+    Returns:
+        sitk.Image: The fused tumor mask.
+    """
     df_for_gandlf = pd.DataFrame(columns=["SubjectID", "Channel_0"])
     current_subject = {"SubjectID": subject_id}
     channel_idx = 0
@@ -412,14 +452,15 @@ def _run_tumor_segmentation_using_gandlf(
 
     tumor_masks_to_return = images_for_fusion
 
-    for fusion_type in ["staple", "simple", "voting"]:
-        fused_mask = fuse_images(images_for_fusion, fusion_type, tumor_class_list)
-        fused_mask_file = posixpath.join(
-            mask_output_dir,
-            f"{subject_id}_tumorMask_fused-{fusion_type}.nii.gz",
-        )
-        sitk.WriteImage(fused_mask, fused_mask_file)
-        tumor_masks_to_return.append(fused_mask_file)
+    if len(images_for_fusion) > 1:
+        for fusion_type in ["staple", "simple", "voting"]:
+            fused_mask = fuse_images(images_for_fusion, fusion_type, tumor_class_list)
+            fused_mask_file = posixpath.join(
+                mask_output_dir,
+                f"{subject_id}_tumorMask_fused-{fusion_type}.nii.gz",
+            )
+            sitk.WriteImage(fused_mask, fused_mask_file)
+            tumor_masks_to_return.append(fused_mask_file)
 
     return tumor_masks_to_return
 
