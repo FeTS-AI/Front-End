@@ -655,7 +655,7 @@ class Preparator:
 
         pbar.set_description(f"Brain Tumor Segmentation")
 
-        tumor_mask = _run_tumor_segmentation_using_gandlf(
+        tumor_masks_for_qc = _run_tumor_segmentation_using_gandlf(
             subject_id_timepoint,
             input_for_tumor_models,
             interimOutputDir_actual
@@ -663,13 +663,8 @@ class Preparator:
             + interimOutputDir_actual,  # todo: this needs to be changed appropriately
             interimOutputDir_actual,
         )
-        sitk.WriteImage(
-            tumor_mask,
-            posixpath.join(
-                interimOutputDir_actual,
-                f"{subject_id_timepoint}_tumorMask_fused.nii.gz",
-            ),
-        )
+        with open(self.stdout_log, "a+") as f:
+            f.write(f"***\nTumor Masks For QC:\n{tumor_masks_for_qc}\n***")
 
     def write(self):
         if self.subjects.shape[0]:
