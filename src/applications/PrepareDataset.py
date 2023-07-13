@@ -269,15 +269,14 @@ def _run_brain_extraction_using_gandlf(
     base_output_dir: str,
 ) -> sitk.Image:
     df_for_gandlf = pd.DataFrame(columns=["SubjectID", "Channel_0"])
-    for key in input_oriented_images.keys():
-        if key.lower() != "id":
-            current_modality = {
-                "SubjectID": subject_id + "_" + key,
-                "Channel_0": input_oriented_images[key],
-            }
-            df_for_gandlf = pd.concat(
-                [df_for_gandlf, pd.DataFrame(current_modality, index=[0])]
-            )
+    for key in modalities_list:
+        current_modality = {
+            "SubjectID": subject_id + "_" + key,
+            "Channel_0": input_oriented_images[key],
+        }
+        df_for_gandlf = pd.concat(
+            [df_for_gandlf, pd.DataFrame(current_modality, index=[0])]
+        )
     data_path = posixpath.join(base_output_dir, "gandlf_brain_extraction.csv")
     df_for_gandlf.to_csv(
         data_path,
@@ -326,6 +325,80 @@ def _run_brain_extraction_using_gandlf(
                         posixpath.join(
                             base_output_dir,
                             f"brainMask_{model_counter}_{modality}.nii.gz",
+                        ),
+                    )
+                    images_for_fusion.append(sitk.ReadImage(file_path, sitk.sitkInt16))
+        model_counter += 1
+
+    return fuse_images(images_for_fusion, "staple", [0, 1])
+
+
+def _run_tumor_segmentation_using_gandlf(
+    subject_id: str,
+    input_oriented_brain_images: dict,
+    models_to_infer: str,
+    base_output_dir: str,
+) -> sitk.Image:
+    df_for_gandlf = pd.DataFrame(columns=["SubjectID", "Channel_0"])
+    current_subject = {"SubjectID": subject_id}
+    channel_idx = 0
+    # todo: confirm the order for modalities
+    for key in modalities_list:
+        current_subject = {
+            f"Channel_{channel_idx}": input_oriented_brain_images[key],
+        }
+        channel_idx += 1
+    df_for_gandlf = pd.DataFrame(current_subject, index=[0])
+    data_path = posixpath.join(base_output_dir, "gandlf_tumor_segmentation.csv")
+    df_for_gandlf.to_csv(
+        data_path,
+        index=False,
+    )
+
+    models_to_run = models_to_infer.split(",")
+
+    model_counter = 0
+    images_for_fusion = []
+    for model_dir in models_to_run:
+        model_output_dir = posixpath.join(
+            base_output_dir, "model_" + str(model_counter)
+        )
+        file_list = os.listdir(model_dir)
+        for file in file_list:
+            if file.endswith(".yaml") or file.endswith(".yml"):
+                config_file = posixpath.join(model_dir, file)
+                break
+
+        # ensure the openvino version is used
+        parameters = yaml.safe_load(open(config_file, "r"))
+        parameters["model"]["type"] = "openvino"
+        yaml.safe_dump(parameters, open(config_file, "w"))
+
+        main_run(
+            data_csv=data_path,
+            config_file=config_file,
+            model_dir=model_dir,
+            train_mode=False,
+            device="cpu",
+            resume=False,
+            reset=False,
+            output_dir=model_output_dir,
+        )
+
+        subject_model_output_dir = os.listdir(
+            posixpath.join(model_output_dir, "testing")
+        )
+        for subject in subject_model_output_dir:
+            subject_output_dir = posixpath.join(subject_model_output_dir, subject)
+            files_in_modality = os.listdir(subject_output_dir)
+            for file in files_in_modality:
+                if file.endswith(".nii.gz"):
+                    file_path = posixpath.join(subject_output_dir, file)
+                    shutil.copyfile(
+                        file_path,
+                        posixpath.join(
+                            base_output_dir,
+                            f"tumorMask_{model_counter}.nii.gz",
                         ),
                     )
                     images_for_fusion.append(sitk.ReadImage(file_path, sitk.sitkInt16))
@@ -557,6 +630,19 @@ class Preparator:
             )
             sitk.WriteImage(masked_image, file_to_save)
             input_for_tumor_models[modality] = file_to_save
+
+        tumor_mask = _run_tumor_segmentation_using_gandlf(
+            subject_id_timepoint,
+            input_for_tumor_models,
+            interimOutputDir_actual
+            + ","
+            + interimOutputDir_actual,  # todo: this needs to be changed appropriately
+            interimOutputDir_actual,
+        )
+        sitk.WriteImage(
+            tumor_mask,
+            posixpath.join(interimOutputDir_actual, "tumorMask_fused.nii.gz"),
+        )
 
     def write(self):
         if self.subjects.shape[0]:
