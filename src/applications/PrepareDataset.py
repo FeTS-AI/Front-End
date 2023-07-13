@@ -534,11 +534,29 @@ class Preparator:
         brain_mask = _run_brain_extraction_using_gandlf(
             subject_id_timepoint,
             outputs_reoriented,
-            finalSubjectOutputDir_actual
+            interimOutputDir_actual
             + ","
-            + finalSubjectOutputDir_actual,  # todo: this needs to be changed appropriately
-            finalSubjectOutputDir_actual,
+            + interimOutputDir_actual,  # todo: this needs to be changed appropriately
+            interimOutputDir_actual,
         )
+        # DataForQC/<patient_prefix>/<timepoint>/<timepoint>/brainMask_fused(most likely STAPLE).nii.gz
+        sitk.WriteImage(
+            brain_mask,
+            posixpath.join(interimOutputDir_actual, "brainMask_fused.nii.gz"),
+        )
+
+        # this is to ensure that the mask and reoriented images are in the same byte order
+        brain_mask = sitk.Cast(brain_mask, sitk.sitkFloat32)
+        for modality in ["T1", "T1GD", "T2", "FLAIR"]:
+            image = sitk.ReadImage(outputs_reoriented[modality])
+            masked_image = sitk.Mask(image, brain_mask)
+            sitk.WriteImage(
+                masked_image,
+                posixpath.join(
+                    finalSubjectOutputDir_actual,
+                    f"{subject_id_timepoint}_brain_{modality}.nii.gz",
+                ),
+            )
 
     def write(self):
         if self.subjects.shape[0]:
