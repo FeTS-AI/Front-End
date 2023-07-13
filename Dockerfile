@@ -51,6 +51,5 @@ RUN cd ./FeTS_${VERSION}/squashfs-root/usr/bin/OpenFederatedLearning && \
 ENV QT_X11_NO_MITSHM=1
 ENV QT_GRAPHICSSYSTEM="native"
 
-RUN ls -l ./FeTS_${VERSION}/squashfs-root/usr/bin && cd ./FeTS_${VERSION}/squashfs-root/usr/bin && echo "pwd:" && pwd
 # define entry point
-ENTRYPOINT ["/FeTS_${VERSION}/squashfs-root/usr/bin/FeTS_CLI_Inference"]
+ENTRYPOINT ["/workspace/FeTS_0.0.9/squashfs-root/usr/bin/FeTS_CLI_Inference"]
