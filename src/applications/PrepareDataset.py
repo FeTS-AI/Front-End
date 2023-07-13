@@ -132,10 +132,7 @@ def _save_screenshot(input_images: dict, output_filename: str = None) -> None:
             input_images["FLAIR"],
         ]
     )
-    ylabels = ""
-    for key in input_images:
-        ylabels += f"{key},"
-    ylabels = ylabels[:-1]  # remove the last comma
+    ylabels = (",").join(["T1", "T1GD", "T2", "FLAIR"])
 
     figure_generator(
         input_images=images,
@@ -272,8 +269,11 @@ def _run_brain_extraction_using_gandlf(
 ) -> None:
     df_for_gandlf = pd.DataFrame(columns=["SubjectID", "Channel_0"])
     for key in input_oriented_images.keys():
-        df_for_gandlf.loc[0, "SubjectID"] = subject_id
-        df_for_gandlf.loc[0, "Channel_0"] = input_oriented_images[key]
+        if key.lower() != "id":
+            current_modality = {"SubjectID": subject_id, "Channel_0": input_oriented_images[key]}
+            df_for_gandlf = pd.concat(
+                [df_for_gandlf, pd.DataFrame(current_modality, index=[0])]
+            )
     df_for_gandlf.to_csv(
         posixpath.join(base_output_dir, "gandlf_brain_extraction.csv"),
         index=False,
@@ -389,10 +389,10 @@ class Preparator:
             ] = tags_from_modality
 
         interimOutputDir_actual_reoriented = posixpath.join(
-            interimOutputDir_actual_reoriented, "reoriented"
+            interimOutputDir_actual, "reoriented"
         )
         Path(interimOutputDir_actual_reoriented).mkdir(parents=True, exist_ok=True)
-        # if files already exist in DataForQC, then copy to DataForFeTS, and if files exist in DataForFeTS, then skip
+        # if files already exist in DataForQC, then copy to "reorient" folder, and if files exist in "reorient" folder, then skip
         runBratsPipeline, _ = _copy_files_to_correct_location(
             interimOutputDir_actual,
             interimOutputDir_actual_reoriented,
@@ -400,27 +400,25 @@ class Preparator:
         )
 
         # check if the files exist already, if so, skip
-        if not runBratsPipeline:
-            return
+        if runBratsPipeline:
+            command = (
+                bratsPipeline_exe
+                + " -t1 "
+                + row[parsed_headers["T1"]]
+                + " -t1c "
+                + row[parsed_headers["T1GD"]]
+                + " -t2 "
+                + row[parsed_headers["T2"]]
+                + " -fl "
+                + row[parsed_headers["FLAIR"]]
+                + " -s 0 -o "
+                + interimOutputDir_actual
+            )
 
-        command = (
-            bratsPipeline_exe
-            + " -t1 "
-            + row[parsed_headers["T1"]]
-            + " -t1c "
-            + row[parsed_headers["T1GD"]]
-            + " -t2 "
-            + row[parsed_headers["T2"]]
-            + " -fl "
-            + row[parsed_headers["FLAIR"]]
-            + " -s 0 -o "
-            + interimOutputDir_actual
-        )
-
-        with open(self.stdout_log, "a+") as out, open(self.stderr_log, "a+") as err:
-            out.write(f"***\n{command}\n***")
-            err.write(f"***\n{command}\n***")
-            subprocess.Popen(command, stdout=out, stderr=err, shell=True).wait()
+            with open(self.stdout_log, "a+") as out, open(self.stderr_log, "a+") as err:
+                out.write(f"***\n{command}\n***")
+                err.write(f"***\n{command}\n***")
+                subprocess.Popen(command, stdout=out, stderr=err, shell=True).wait()
 
         runBratsPipeline, outputs_reoriented = _copy_files_to_correct_location(
             interimOutputDir_actual,
