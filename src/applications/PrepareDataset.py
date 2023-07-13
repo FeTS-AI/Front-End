@@ -9,6 +9,8 @@ from skimage.measure import label
 from copy import deepcopy
 
 from FigureGenerator.screenshot_maker import figure_generator
+from GANDLF.cli import main_run
+from LabelFusion.wrapper import fuse_images
 
 # check against all these modality ID strings with extensions
 modality_id_dict = {
@@ -17,6 +19,7 @@ modality_id_dict = {
     "T2": ["t2"],
     "FLAIR": ["flair", "fl", "t2flair"],
 }
+modalities_list = list(modality_id_dict.keys())
 
 
 def setup_parser():
@@ -49,7 +52,7 @@ def setup_parser():
         type=str,
         help="The path to the BraTSPipeline executable. If not given, will infer from current script's location.",
         nargs="?",
-        const=None
+        const=None,
     )
 
     return parser
@@ -120,6 +123,27 @@ def _get_relevant_dicom_tags(filename: str) -> dict:
     return output_dict
 
 
+def _save_screenshot(input_images: dict, output_filename: str = None) -> None:
+    # save the screenshot
+    images = (",").join(
+        [
+            input_images["T1"],
+            input_images["T1GD"],
+            input_images["T2"],
+            input_images["FLAIR"],
+        ]
+    )
+    ylabels = (",").join(modalities_list)
+
+    figure_generator(
+        input_images=images,
+        ylabels=ylabels,
+        output=output_filename,
+        flip_sagittal=True,
+        flip_coronal=True,
+    )
+
+
 def _read_image_with_min_check(filename):
     """
     This function fixes negatives by scaling the image according to the following logic:
@@ -161,7 +185,7 @@ def _read_image_with_min_check(filename):
     return 0
 
 
-def parse_csv_header(filename):
+def _parse_csv_header(filename):
     """
     Read filename and return the parsed headers.
 
@@ -207,7 +231,7 @@ def parse_csv_header(filename):
     return headers
 
 
-def copyFilesToCorrectLocation(interimOutputDir, finalSubjectOutputDir, subjectID):
+def _copy_files_to_correct_location(interimOutputDir, finalSubjectOutputDir, subjectID):
     """
     This function copies the intermediate files and final outputs to correct location and if these are absent, returns a bool flag stating that brats pipeline needs to run again
     """
@@ -238,8 +262,167 @@ def copyFilesToCorrectLocation(interimOutputDir, finalSubjectOutputDir, subjectI
     return runBratsPipeline, expected_outputs
 
 
+def _run_brain_extraction_using_gandlf(
+    subject_id: str,
+    input_oriented_images: dict,
+    models_to_infer: str,
+    base_output_dir: str,
+) -> sitk.Image:
+    df_for_gandlf = pd.DataFrame(columns=["SubjectID", "Channel_0"])
+    for key in modalities_list:
+        current_modality = {
+            "SubjectID": subject_id + "_" + key,
+            "Channel_0": input_oriented_images[key],
+        }
+        df_for_gandlf = pd.concat(
+            [df_for_gandlf, pd.DataFrame(current_modality, index=[0])]
+        )
+    data_path = posixpath.join(base_output_dir, "gandlf_brain_extraction.csv")
+    df_for_gandlf.to_csv(
+        data_path,
+        index=False,
+    )
+
+    models_to_run = models_to_infer.split(",")
+
+    model_counter = 0
+    images_for_fusion = []
+    for model_dir in models_to_run:
+        model_output_dir = posixpath.join(
+            base_output_dir, "model_" + str(model_counter)
+        )
+        file_list = os.listdir(model_dir)
+        for file in file_list:
+            if file.endswith(".yaml") or file.endswith(".yml"):
+                config_file = posixpath.join(model_dir, file)
+                break
+
+        # ensure the openvino version is used
+        parameters = yaml.safe_load(open(config_file, "r"))
+        parameters["model"]["type"] = "openvino"
+        yaml.safe_dump(parameters, open(config_file, "w"))
+
+        main_run(
+            data_csv=data_path,
+            config_file=config_file,
+            model_dir=model_dir,
+            train_mode=False,
+            device="cpu",
+            resume=False,
+            reset=False,
+            output_dir=model_output_dir,
+        )
+
+        modality_outputs = os.listdir(posixpath.join(model_output_dir, "testing"))
+        for modality in modality_outputs:
+            modality_output_dir = posixpath.join(modality_outputs, modality)
+            files_in_modality = os.listdir(modality_output_dir)
+            for file in files_in_modality:
+                if file.endswith(".nii.gz"):
+                    file_path = posixpath.join(modality_output_dir, file)
+                    shutil.copyfile(
+                        file_path,
+                        posixpath.join(
+                            base_output_dir,
+                            f"brainMask_{model_counter}_{modality}.nii.gz",
+                        ),
+                    )
+                    images_for_fusion.append(sitk.ReadImage(file_path, sitk.sitkInt16))
+        model_counter += 1
+
+    return fuse_images(images_for_fusion, "staple", [0, 1])
+
+
+def _run_tumor_segmentation_using_gandlf(
+    subject_id: str,
+    input_oriented_brain_images: dict,
+    models_to_infer: str,
+    base_output_dir: str,
+) -> sitk.Image:
+    df_for_gandlf = pd.DataFrame(columns=["SubjectID", "Channel_0"])
+    current_subject = {"SubjectID": subject_id}
+    channel_idx = 0
+    # todo: confirm the order for modalities
+    for key in modalities_list:
+        current_subject = {
+            f"Channel_{channel_idx}": input_oriented_brain_images[key],
+        }
+        channel_idx += 1
+    df_for_gandlf = pd.DataFrame(current_subject, index=[0])
+    data_path = posixpath.join(base_output_dir, "gandlf_tumor_segmentation.csv")
+    df_for_gandlf.to_csv(
+        data_path,
+        index=False,
+    )
+
+    models_to_run = models_to_infer.split(",")
+
+    model_counter = 0
+    images_for_fusion = []
+    mask_output_dir = posixpath.join(base_output_dir, "TumorMasksForQC")
+    for model_dir in models_to_run:
+        model_output_dir = posixpath.join(
+            base_output_dir, "model_" + str(model_counter)
+        )
+        file_list = os.listdir(model_dir)
+        for file in file_list:
+            if file.endswith(".yaml") or file.endswith(".yml"):
+                config_file = posixpath.join(model_dir, file)
+                break
+
+        # ensure the openvino version is used
+        parameters = yaml.safe_load(open(config_file, "r"))
+        parameters["model"]["type"] = "openvino"
+        yaml.safe_dump(parameters, open(config_file, "w"))
+
+        main_run(
+            data_csv=data_path,
+            config_file=config_file,
+            model_dir=model_dir,
+            train_mode=False,
+            device="cpu",
+            resume=False,
+            reset=False,
+            output_dir=model_output_dir,
+        )
+
+        subject_model_output_dir = os.listdir(
+            posixpath.join(model_output_dir, "testing")
+        )
+        for subject in subject_model_output_dir:
+            subject_output_dir = posixpath.join(subject_model_output_dir, subject)
+            files_in_modality = os.listdir(subject_output_dir)
+            for file in files_in_modality:
+                if file.endswith(".nii.gz"):
+                    file_path = posixpath.join(subject_output_dir, file)
+                    shutil.copyfile(
+                        file_path,
+                        posixpath.join(
+                            mask_output_dir,
+                            f"{subject_id}_tumorMask_model-{model_counter}.nii.gz",
+                        ),
+                    )
+                    images_for_fusion.append(sitk.ReadImage(file_path, sitk.sitkInt16))
+        model_counter += 1
+
+    tumor_class_list = [0, 1, 2, 3, 4]
+
+    tumor_masks_to_return = images_for_fusion
+
+    for fusion_type in ["staple", "simple", "voting"]:
+        fused_mask = fuse_images(images_for_fusion, fusion_type, tumor_class_list)
+        fused_mask_file = posixpath.join(
+            mask_output_dir,
+            f"{subject_id}_tumorMask_fused-{fusion_type}.nii.gz",
+        )
+        sitk.WriteImage(fused_mask, fused_mask_file)
+        tumor_masks_to_return.append(fused_mask_file)
+
+    return tumor_masks_to_return
+
+
 class Preparator:
-    def __init__(self, input_csv: str, output_dir: str, executableDir):
+    def __init__(self, input_csv: str, output_dir: str, executablePath: str):
         self.input_csv = input_csv
         self.input_dir = str(Path(input_csv).parent)
         self.output_dir = os.path.normpath(output_dir)
@@ -252,18 +435,25 @@ class Preparator:
         self.failing_subjects_file = posixpath.join(
             self.final_output_dir, "QC_subjects_with_bratspipeline_error.csv"
         )
+        self.dicom_tag_information_to_write_anon_file = posixpath.join(
+            self.final_output_dir, "dicom_tag_information_to_write_anon.yaml"
+        )
+        self.dicom_tag_information_to_write_collab_file = posixpath.join(
+            self.final_output_dir, "dicom_tag_information_to_write_collab.yaml"
+        )
         self.__init_out_dfs()
         self.stdout_log = posixpath.join(self.output_dir, "preparedataset_stdout.txt")
         self.stderr_log = posixpath.join(self.output_dir, "preparedataset_stderr.txt")
         self.dicom_tag_information_to_write_collab = {}
         self.dicom_tag_information_to_write_anon = {}
-        self.brats_pipeline_exe = executableDir
+        self.brats_pipeline_exe = executablePath
         if self.brats_pipeline_exe is None:
             self.brats_pipeline_exe = os.path.join(
                 Path(__file__).parent.resolve(), "BraTSPipeline"
             )
 
-            if platform.system() == "Windows":
+        if platform.system() == "Windows":
+            if not self.brats_pipeline_exe.endswith(".exe"):
                 self.brats_pipeline_exe += ".exe"
 
     def __init_out_dfs(self):
@@ -279,18 +469,18 @@ class Preparator:
     def validate(self):
         assert os.path.exists(self.input_csv), "Input CSV file not found"
 
-        assert shutil.which(
-            self.brats_pipeline_exe
-        ) is not None, "BraTS Pipeline executable not found, please contact admin@fets.ai for help."
+        assert (
+            shutil.which(self.brats_pipeline_exe) is not None
+        ), "BraTS Pipeline executable not found, please contact admin@fets.ai for help."
 
     def process_data(self):
         items = self.subjects_df.iterrows()
         total = self.subjects_df.shape[0]
-        desc = "Preparing Dataset (1-10 min per subject)"
-        for idx, row in tqdm(items, total=total, desc=desc):
-            self.process_row(idx, row)
+        pbar = tqdm(range(total), desc="Preparing Dataset (1-10 min per subject)")
+        for idx, row in items:
+            self.process_row(idx, row, pbar)
 
-    def process_row(self, idx: int, row: pd.Series):
+    def process_row(self, idx: int, row: pd.Series, pbar: tqdm):
         parsed_headers = self.parsed_headers
         bratsPipeline_exe = self.brats_pipeline_exe
 
@@ -304,6 +494,8 @@ class Preparator:
         finalSubjectOutputDir_actual = posixpath.join(
             self.final_output_dir, subject_id_timepoint
         )
+        Path(interimOutputDir_actual).mkdir(parents=True, exist_ok=True)
+        Path(finalSubjectOutputDir_actual).mkdir(parents=True, exist_ok=True)
 
         # per the data ingestion step, we are creating a new folder called timepoint, can join timepoint to subjectid if needed
         if parsed_headers["Timepoint"] is not None:
@@ -313,50 +505,67 @@ class Preparator:
             finalSubjectOutputDir_actual = posixpath.join(
                 finalSubjectOutputDir_actual, timepoint
             )
+        Path(interimOutputDir_actual).mkdir(parents=True, exist_ok=True)
+        Path(finalSubjectOutputDir_actual).mkdir(parents=True, exist_ok=True)
+
+        pbar.set_description(f"Processing {subject_id_timepoint}")
 
         # get the relevant dicom tags
         self.dicom_tag_information_to_write_collab[subject_id_timepoint] = {}
         self.dicom_tag_information_to_write_anon[str(idx)] = {}
-        for modality in ["T1", "T1GD", "T2", "FLAIR"]:
+        for modality in modalities_list:
             tags_from_modality = _get_relevant_dicom_tags(row[parsed_headers[modality]])
             self.dicom_tag_information_to_write_collab[subject_id_timepoint][
                 modality
             ] = tags_from_modality
-            self.dicom_tag_information_to_write_anon[str(idx)][modality] = tags_from_modality
+            with open(
+                os.path.join(
+                    interimOutputDir_actual, f"dicom_tag_information_{modality}.yaml"
+                ),
+                "w",
+            ) as f:
+                yaml.safe_dump(tags_from_modality, f, allow_unicode=True)
+            self.dicom_tag_information_to_write_anon[str(idx)][
+                modality
+            ] = tags_from_modality
 
-        Path(interimOutputDir_actual).mkdir(parents=True, exist_ok=True)
-        Path(finalSubjectOutputDir_actual).mkdir(parents=True, exist_ok=True)
-        # if files already exist in DataForQC, then copy to DataForFeTS, and if files exist in DataForFeTS, then skip
-        runBratsPipeline, _ = copyFilesToCorrectLocation(
-            interimOutputDir_actual, finalSubjectOutputDir_actual, subject_id_timepoint
+        interimOutputDir_actual_reoriented = posixpath.join(
+            interimOutputDir_actual, "reoriented"
+        )
+        Path(interimOutputDir_actual_reoriented).mkdir(parents=True, exist_ok=True)
+        # if files already exist in DataForQC, then copy to "reorient" folder, and if files exist in "reorient" folder, then skip
+        runBratsPipeline, _ = _copy_files_to_correct_location(
+            interimOutputDir_actual,
+            interimOutputDir_actual_reoriented,
+            subject_id_timepoint,
         )
 
         # check if the files exist already, if so, skip
-        if not runBratsPipeline:
-            return
+        if runBratsPipeline:
+            pbar.set_description(f"Running BraTSPipeline")
 
-        command = (
-            bratsPipeline_exe
-            + " -t1 "
-            + row[parsed_headers["T1"]]
-            + " -t1c "
-            + row[parsed_headers["T1GD"]]
-            + " -t2 "
-            + row[parsed_headers["T2"]]
-            + " -fl "
-            + row[parsed_headers["FLAIR"]]
-            + " -s 0 -o "
-            + interimOutputDir_actual
-        )
+            command = (
+                bratsPipeline_exe
+                + " -t1 "
+                + row[parsed_headers["T1"]]
+                + " -t1c "
+                + row[parsed_headers["T1GD"]]
+                + " -t2 "
+                + row[parsed_headers["T2"]]
+                + " -fl "
+                + row[parsed_headers["FLAIR"]]
+                + " -s 0 -o "
+                + interimOutputDir_actual
+            )
 
-        with open(self.stdout_log, "a+") as out, open(self.stderr_log, "a+") as err:
-            out.write(f"***\n{command}\n***")
-            err.write(f"***\n{command}\n***")
-            subprocess.Popen(command, stdout=out, stderr=err, shell=True).wait()
+            with open(self.stdout_log, "a+") as out, open(self.stderr_log, "a+") as err:
+                out.write(f"***\n{command}\n***")
+                err.write(f"***\n{command}\n***")
+                subprocess.Popen(command, stdout=out, stderr=err, shell=True).wait()
 
-        runBratsPipeline, outputs = copyFilesToCorrectLocation(
+        runBratsPipeline, outputs_reoriented = _copy_files_to_correct_location(
             interimOutputDir_actual,
-            finalSubjectOutputDir_actual,
+            interimOutputDir_actual_reoriented,
             subject_id_timepoint,
         )
 
@@ -370,8 +579,8 @@ class Preparator:
 
         # store the outputs in a dictionary when there are no errors
         negatives_detected = False
-        for modality in ["T1", "T1GD", "T2", "FLAIR"]:
-            count = _read_image_with_min_check(outputs[modality])
+        for modality in modalities_list:
+            count = _read_image_with_min_check(outputs_reoriented[modality])
             # if there are any negative values, then store the subjectid, timepoint, modality and count of negative values
             if count == 0:
                 continue
@@ -392,38 +601,70 @@ class Preparator:
         subject_data = {
             "SubjectID": subject_id,
             "Timepoint": timepoint,
-            "T1": outputs["T1"],
-            "T1GD": outputs["T1GD"],
-            "T2": outputs["T2"],
-            "FLAIR": outputs["FLAIR"],
+            "T1": outputs_reoriented["T1"],
+            "T1GD": outputs_reoriented["T1GD"],
+            "T2": outputs_reoriented["T2"],
+            "FLAIR": outputs_reoriented["FLAIR"],
         }
         subject = pd.DataFrame(subject_data, index=[0])
-        self.subjects = pd.concat([self.subjects,subject,])
+        self.subjects = pd.concat(
+            [
+                self.subjects,
+                subject,
+            ]
+        )
+
+        pbar.set_description(f"Saving screenshot")
 
         # save the screenshot
-        images = (",").join(
-            [
-                outputs["T1"],
-                outputs["T1GD"],
-                outputs["T2"],
-                outputs["FLAIR"],
-            ]
+        _save_screenshot(
+            outputs_reoriented,
+            posixpath.join(
+                interimOutputDir_actual_reoriented,
+                f"{subject_id_timepoint}_image_alignment_summary.png",
+            ),
         )
-        ylabels = (",").join(
-            [
-                "T1",
-                "T1GD",
-                "T2",
-                "FLAIR",
-            ]
+
+        pbar.set_description(f"Brain Extraction")
+
+        brain_mask = _run_brain_extraction_using_gandlf(
+            subject_id_timepoint,
+            outputs_reoriented,
+            interimOutputDir_actual
+            + ","
+            + interimOutputDir_actual,  # todo: this needs to be changed appropriately
+            interimOutputDir_actual,
         )
-        figure_generator(
-            images,
-            ylabels,
-            posixpath.join(interimOutputDir_actual, "screenshot.png"),
-            flip_sagittal=True,
-            flip_coronal=True,
+        sitk.WriteImage(
+            brain_mask,
+            posixpath.join(interimOutputDir_actual, "brainMask_fused.nii.gz"),
         )
+
+        # this is to ensure that the mask and reoriented images are in the same byte order
+        brain_mask = sitk.Cast(brain_mask, sitk.sitkFloat32)
+        input_for_tumor_models = {}
+        for modality in modalities_list:
+            image = sitk.ReadImage(outputs_reoriented[modality])
+            masked_image = sitk.Mask(image, brain_mask)
+            file_to_save = posixpath.join(
+                finalSubjectOutputDir_actual,
+                f"{subject_id_timepoint}_brain_{modality}.nii.gz",
+            )
+            sitk.WriteImage(masked_image, file_to_save)
+            input_for_tumor_models[modality] = file_to_save
+
+        pbar.set_description(f"Brain Tumor Segmentation")
+
+        tumor_masks_for_qc = _run_tumor_segmentation_using_gandlf(
+            subject_id_timepoint,
+            input_for_tumor_models,
+            interimOutputDir_actual
+            + ","
+            + interimOutputDir_actual,  # todo: this needs to be changed appropriately
+            interimOutputDir_actual,
+        )
+        with open(self.stdout_log, "a+") as f:
+            f.write(f"***\nTumor Masks For QC:\n{tumor_masks_for_qc}\n***")
 
     def write(self):
         if self.subjects.shape[0]:
@@ -432,9 +673,17 @@ class Preparator:
             self.neg_subjects.to_csv(self.neg_subjects_file, index=False)
         if self.failing_subjects.shape[0]:
             self.failing_subjects.to_csv(self.failing_subjects_file, index=False)
+        with open(self.dicom_tag_information_to_write_collab_file, "w") as f:
+            yaml.safe_dump(
+                self.dicom_tag_information_to_write_collab, f, allow_unicode=True
+            )
+        with open(self.dicom_tag_information_to_write_anon_file, "w") as f:
+            yaml.safe_dump(
+                self.dicom_tag_information_to_write_anon, f, allow_unicode=True
+            )
 
     def read(self):
-        self.parsed_headers = parse_csv_header(self.input_csv)
+        self.parsed_headers = _parse_csv_header(self.input_csv)
         self.subjects_df = pd.read_csv(self.input_csv)
         if os.path.exists(self.subjects_file):
             self.subjects = pd.read_csv(self.subjects_file)
@@ -442,13 +691,19 @@ class Preparator:
             self.neg_subjects = pd.read_csv(self.neg_subjects_file)
         if os.path.exists(self.failing_subjects_file):
             self.failing_subjects = pd.read_csv(self.failing_subjects_file)
+        if os.path.exists(self.dicom_tag_information_to_write_collab_file):
+            with open(self.dicom_tag_information_to_write_collab_file, "r") as f:
+                self.dicom_tag_information_to_write_collab = yaml.safe_load(f)
+        if os.path.exists(self.dicom_tag_information_to_write_anon_file):
+            with open(self.dicom_tag_information_to_write_anon_file, "r") as f:
+                self.dicom_tag_information_to_write_anon = yaml.safe_load(f)
 
 
 def main():
     parser = setup_parser()
     args = parser.parse_args()
 
-    prep = Preparator(args.inputCSV, args.outputDir, args.executableDir)
+    prep = Preparator(args.inputCSV, args.outputDir, args.executablePath)
     prep.validate()
     prep.read()
     prep.process_data()
@@ -456,7 +711,7 @@ def main():
 
 
 if __name__ == "__main__":
-    if platform.system() == "Darwin":
+    if platform.system().lower() == "darwin":
         sys.exit("macOS is not supported")
     else:
         main()
