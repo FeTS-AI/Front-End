@@ -9,8 +9,8 @@ from skimage.measure import label
 from copy import deepcopy
 
 from FigureGenerator.screenshot_maker import figure_generator
-
 from GANDLF.cli import main_run
+from LabelFusion.wrapper import fuse_images
 
 # check against all these modality ID strings with extensions
 modality_id_dict = {
@@ -266,7 +266,7 @@ def _run_brain_extraction_using_gandlf(
     input_oriented_images: dict,
     models_to_infer: str,
     base_output_dir: str,
-) -> None:
+) -> sitk.Image:
     df_for_gandlf = pd.DataFrame(columns=["SubjectID", "Channel_0"])
     for key in input_oriented_images.keys():
         if key.lower() != "id":
@@ -286,7 +286,7 @@ def _run_brain_extraction_using_gandlf(
     models_to_run = models_to_infer.split(",")
 
     model_counter = 0
-    files_for_fusion = []
+    images_for_fusion = []
     for model_dir in models_to_run:
         model_output_dir = posixpath.join(
             base_output_dir, "model_" + str(model_counter)
@@ -312,7 +312,6 @@ def _run_brain_extraction_using_gandlf(
             reset=False,
             output_dir=model_output_dir,
         )
-        model_counter += 1
 
         modality_outputs = os.listdir(posixpath.join(model_output_dir, "testing"))
         for modality in modality_outputs:
@@ -320,9 +319,18 @@ def _run_brain_extraction_using_gandlf(
             files_in_modality = os.listdir(modality_output_dir)
             for file in files_in_modality:
                 if file.endswith(".nii.gz"):
-                    files_for_fusion.append(posixpath.join(modality_output_dir, file))
+                    file_path = posixpath.join(modality_output_dir, file)
+                    shutil.copyfile(
+                        file_path,
+                        posixpath.join(
+                            base_output_dir,
+                            f"brainMask_{model_counter}_{modality}.nii.gz",
+                        ),
+                    )
+                    images_for_fusion.append(sitk.ReadImage(file_path, sitk.sitkInt16))
+        model_counter += 1
 
-    # once the models have finished inference, perform label fusion
+    return fuse_images(images_for_fusion, "staple", [0, 1])
 
 
 class Preparator:
@@ -523,10 +531,12 @@ class Preparator:
             ),
         )
 
-        _run_brain_extraction_using_gandlf(
+        brain_mask = _run_brain_extraction_using_gandlf(
             subject_id_timepoint,
             outputs_reoriented,
-            finalSubjectOutputDir_actual + "," + finalSubjectOutputDir_actual,
+            finalSubjectOutputDir_actual
+            + ","
+            + finalSubjectOutputDir_actual,  # todo: this needs to be changed appropriately
             finalSubjectOutputDir_actual,
         )
 
