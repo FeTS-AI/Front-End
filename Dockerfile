@@ -44,6 +44,7 @@ RUN cd ./FeTS_${VERSION}/squashfs-root/usr/bin/OpenFederatedLearning && \
     ./venv/bin/pip install -e ./submodules/fets_ai/Algorithms/GANDLF && \
     cd ../LabelFusion && \
     rm -rf venv && python3.7 -m venv ./venv && \
+    ./venv/bin/pip install --upgrade pip setuptools wheel setuptools-rust && \
     ./venv/bin/pip install -e .
 
 # set up the docker for GUI
