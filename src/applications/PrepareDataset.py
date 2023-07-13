@@ -19,6 +19,7 @@ modality_id_dict = {
     "T2": ["t2"],
     "FLAIR": ["flair", "fl", "t2flair"],
 }
+modalities_list = list(modality_id_dict.keys())
 
 
 def setup_parser():
@@ -132,7 +133,7 @@ def _save_screenshot(input_images: dict, output_filename: str = None) -> None:
             input_images["FLAIR"],
         ]
     )
-    ylabels = (",").join(["T1", "T1GD", "T2", "FLAIR"])
+    ylabels = (",").join(modalities_list)
 
     figure_generator(
         input_images=images,
@@ -423,7 +424,7 @@ class Preparator:
         # get the relevant dicom tags
         self.dicom_tag_information_to_write_collab[subject_id_timepoint] = {}
         self.dicom_tag_information_to_write_anon[str(idx)] = {}
-        for modality in ["T1", "T1GD", "T2", "FLAIR"]:
+        for modality in modalities_list:
             tags_from_modality = _get_relevant_dicom_tags(row[parsed_headers[modality]])
             self.dicom_tag_information_to_write_collab[subject_id_timepoint][
                 modality
@@ -487,7 +488,7 @@ class Preparator:
 
         # store the outputs in a dictionary when there are no errors
         negatives_detected = False
-        for modality in ["T1", "T1GD", "T2", "FLAIR"]:
+        for modality in modalities_list:
             count = _read_image_with_min_check(outputs_reoriented[modality])
             # if there are any negative values, then store the subjectid, timepoint, modality and count of negative values
             if count == 0:
@@ -547,16 +548,16 @@ class Preparator:
 
         # this is to ensure that the mask and reoriented images are in the same byte order
         brain_mask = sitk.Cast(brain_mask, sitk.sitkFloat32)
-        for modality in ["T1", "T1GD", "T2", "FLAIR"]:
+        input_for_tumor_models = {}
+        for modality in modalities_list:
             image = sitk.ReadImage(outputs_reoriented[modality])
             masked_image = sitk.Mask(image, brain_mask)
-            sitk.WriteImage(
-                masked_image,
-                posixpath.join(
-                    finalSubjectOutputDir_actual,
-                    f"{subject_id_timepoint}_brain_{modality}.nii.gz",
-                ),
+            file_to_save = posixpath.join(
+                finalSubjectOutputDir_actual,
+                f"{subject_id_timepoint}_brain_{modality}.nii.gz",
             )
+            sitk.WriteImage(masked_image, file_to_save)
+            input_for_tumor_models[modality] = file_to_save
 
     def write(self):
         if self.subjects.shape[0]:
