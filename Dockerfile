@@ -22,6 +22,7 @@ RUN yes yes | ./FeTS_${VERSION}_Installer.bin --target ./FeTS_${VERSION} -- --cu
 
 ENV PATH=/workspace/FeTS_${VERSION}/squashfs-root/usr/bin/:$PATH
 ENV LD_LIBRARY_PATH=/workspace/FeTS_${VERSION}/squashfs-root/usr/lib/:$LD_LIBRARY_PATH
+ENV SKLEARN_ALLOW_DEPRECATED_SKLEARN_PACKAGE_INSTALL="True"
 
 # set up environment and install correct version of pytorch
 RUN cd ./FeTS_${VERSION}/squashfs-root/usr/bin/OpenFederatedLearning && \
