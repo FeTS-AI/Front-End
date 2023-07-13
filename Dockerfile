@@ -53,4 +53,4 @@ ENV QT_GRAPHICSSYSTEM="native"
 
 RUN ls -l ./FeTS_${VERSION}/squashfs-root/usr/bin
 # define entry point
-ENTRYPOINT ["./FeTS_\${VERSION}/squashfs-root/usr/bin/FeTS_CLI_Inference"]
+ENTRYPOINT ["./FeTS_${VERSION}/squashfs-root/usr/bin/FeTS_CLI_Inference"]
