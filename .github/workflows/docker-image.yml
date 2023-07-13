@@ -1,0 +1,151 @@
+name: Docker Image CI
+
+on:
+  push:
+    branches: [ master ]
+    tags: [ '*.*.*' ]
+  pull_request:
+    branches: [ master ]
+  workflow_dispatch:
+    inputs:
+      versionTag:
+        description: 'Version tag to push to Docker Hub (lowercase, alphanumeric)'
+        required: true
+        type: string
+        
+jobs:
+
+  build_test_push:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false # So that remaining jobs don't instantly quit if one fails (e.g, CPU/ROCm don't upload if CUDA just fails to push to ghcr...)
+      # matrix:
+        # include: # Platform locates Dockerfile ("Dockerfile-{PLATFORM}"), docker tag has to be all lowercase alphanumeric for mysterious docker reasons
+          # - platform: CPU
+          #   dockertag: cpu
+          # - platform: ROCm
+          #   dockertag: rocm
+
+    steps:
+    - name: Check out the repository
+      uses: actions/checkout@v3
+      # with:
+      #   lfs: false
+      #   submodules: 'recursive'
+        
+    # - name: Check if the repository has changed
+    #   run: ls -l
+
+    - name: Docker prune to save space # If you switch to self-hosted runners, this should be removed.
+      run: echo y | docker system prune -a
+    
+    - name: Check free space before
+      run: |
+        echo "Free space:"
+        df -h
+    
+    - name: Free Disk Space (Ubuntu)
+      run: |
+        sudo rm -rf /usr/local/lib/android
+        sudo rm -rf /usr/share/dotnet
+        
+    - name: Check free space after
+      run: |
+        echo "Free space:"
+        df -h
+         
+    # Install the cosign tool except on PR
+    # https://github.com/sigstore/cosign-installer
+    - name: Install cosign
+      if: github.event_name != 'pull_request'
+      uses: sigstore/cosign-installer@1e95c1de343b5b0c23352d6417ee3e48d5bcd422
+      with:
+        cosign-release: 'v1.4.0'
+        
+    - name: Log into GitHub Packages registry (ghcr.io)
+      if: github.event_name != 'pull_request'
+      uses: docker/login-action@v2
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+        
+    # Extract metadata (tags, labels) for Docker
+    # https://github.com/docker/metadata-action
+    - name: Extract Docker metadata
+      id: meta
+      uses: docker/metadata-action@v4
+      with:
+        images: ghcr.io/fets-ai/front-end
+        flavor: | # Handle prefixing and "latest" generation -- use "tags" property to specify events/tags further
+          latest=true
+        tags: |
+          type=semver,pattern={{version}}
+          type=ref,event=branch
+          type=ref,event=pr
+          type=ref,event=tag
+
+    # Build Docker Image (but don't push yet -- wait for the test step first).
+    # https://github.com/docker/build-push-action
+    - name: Build Docker images
+      id: build
+      uses: docker/build-push-action@v4
+      with:
+        context: .
+        # cache-from: type=local,src=${{ github.workspace }}
+        # build-args: --mount 'type=bind,src=${{ github.workspace }},target=/Front-End,readwrite' #-v ${{ github.workspace }}:/Front-End
+        file: ./Dockerfile
+        push: false
+        load: true
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+
+    # - uses: addnab/docker-run-action@v3
+    #   with:
+    #     username: ${{ github.actor }}
+    #     password: ${{ secrets.GITHUB_TOKEN }}
+    #     registry: ghcr.io
+    #     image: ghcr.io/fets-ai/front-end:latest
+    #     options: -v ${{ github.workspace }}:/Front-End
+    #     run: |
+    #       echo "Running Script"
+    #       /work/run-script
+    # - name: Build the Docker image
+    #   run: docker build . -v /Front-End:/home/runner/work/Front-End/Front-End/ --file Dockerfile --tag ${{ steps.meta.outputs.tags }}
+
+    
+    # Run the image from the base entrypoint as a test
+    - name: Test container with entrypoint
+      # Run a tag we generated from the metadata extraction above -- they're all the same image, but echo it regardless just so we know.
+      run: docker run --rm ghcr.io/fets-ai/front-end:latest -h
+
+    # Push Docker image with Buildx (but don't push on PR)
+    # https://github.com/docker/build-push-action
+    # This won't re-build the images fully or anything, they should already exist from the build step and use the cache.
+    - name: Upload to Docker Hub (docker.io) and GitHub Packages (ghcr.io)
+      id: upload
+      if: github.event_name != 'pull_request'
+      uses: docker/build-push-action@v4
+      with:
+        context: .
+        file: ./Dockerfile
+        push: true
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+    
+    # Below is for signing images (keyless) with cosign. But this adds confusing sha256-digest.sig tags to the container registry.
+    # Leave this commented if container signing is not required.
+    # # Sign the resulting Docker image digest except on PRs.
+    # # Uses cosign keyless signing: https://github.com/sigstore/cosign/blob/main/KEYLESS.md
+    # # This will only write to the public Rekor transparency log when the Docker
+    # # repository is public to avoid leaking data.  If you would like to publish
+    # # transparency data even for private images, pass --force to cosign below.
+    # # https://github.com/sigstore/cosign
+    #- name: Sign published Docker image (ghcr.io)
+    #  if: ${{ github.event_name != 'pull_request' }}
+    #  env:
+    #    COSIGN_EXPERIMENTAL: "true"
+    #  # This step uses the identity token to provision an ephemeral certificate
+    #  # against the sigstore community Fulcio instance.
+    #  run: cosign sign ghcr.io/fets-ai/front-end@${{ steps.upload.outputs.digest }}
+
