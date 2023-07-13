@@ -668,7 +668,7 @@ class Preparator:
             input_for_tumor_models,
             posixpath.join(
                 interimOutputDir_actual,
-                f"{subject_id_timepoint}_summary_brain_extraction.png",
+                f"{subject_id_timepoint}_summary_brain-extraction.png",
             ),
             brain_mask_path,
         )
@@ -691,7 +691,7 @@ class Preparator:
                 input_for_tumor_models,
                 posixpath.join(
                     interimOutputDir_actual,
-                    f"{subject_id_timepoint}_summary_tumor_segmentation_{tumor_mask_idx}.png",
+                    f"{subject_id_timepoint}_summary_tumor-segmentation_model-{tumor_mask_idx}.png",
                 ),
                 tumor_mask,
             )
