@@ -115,10 +115,11 @@ if __name__ == "__main__":
     # RUN COLUMN-WISE PROCESSING
     csv_data_out = os.path.join(args.data_out, "validated")
     nifti_data_out = os.path.join(args.data_out, "prepared")
-    csv_proc = AddToCSV(out_raw, out_data_csv, csv_data_out, out_raw)
-    nifti_proc = NIfTITransform(out_data_csv, nifti_data_out, csv_data_out)
     subjects = list(report.index)
     loop = tqdm(subjects)
+
+    csv_proc = AddToCSV(out_raw, out_data_csv, csv_data_out, out_raw)
+    nifti_proc = NIfTITransform(out_data_csv, nifti_data_out, csv_data_out, loop)
 
     for subject in loop:
         # Processing steps go here

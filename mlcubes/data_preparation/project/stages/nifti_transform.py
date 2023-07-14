@@ -1,20 +1,22 @@
 from typing import Union
+from tqdm import tqdm
 import pandas as pd
 import os
 import shutil
 
 from .row_stage import RowStage
 from .PrepareDataset import Preparator
-from .utils import update_row_with_dict, get_id_tp
+from .utils import update_row_with_dict, get_id_tp, MockTqdm
 
 
 class NIfTITransform(RowStage):
-    def __init__(self, data_csv: str, out_path: str, prev_stage_path: str):
+    def __init__(self, data_csv: str, out_path: str, prev_stage_path: str, pbar: tqdm):
         self.data_csv = data_csv
         self.out_path = out_path
         self.prev_stage_path = prev_stage_path
         os.makedirs(self.out_path, exist_ok=True)
         self.prep = Preparator(data_csv, out_path, "BraTSPipeline")
+        self.pbar = pbar
 
     def should_run(self, index: Union[str, int], report: pd.DataFrame) -> bool:
         """Determine if case at given index needs to be converted to NIfTI
@@ -58,7 +60,7 @@ class NIfTITransform(RowStage):
         id, tp = get_id_tp(index)
         df = self.prep.subjects_df
         row = df[(df["SubjectID"] == id) & (df["Timepoint"] == tp)].iloc[0]
-        self.prep.process_row(index, row)
+        self.prep.process_row(index, row, self.pbar)
 
     def __update_prev_stage_state(self, index: Union[str, int], report: pd.DataFrame):
         prev_data_path = report.loc[index]["data_path"]
