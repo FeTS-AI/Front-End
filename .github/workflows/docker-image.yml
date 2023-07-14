@@ -117,7 +117,9 @@ jobs:
     # Run the image from the base entrypoint as a test
     - name: Test container with entrypoint
       # Run a tag we generated from the metadata extraction above -- they're all the same image, but echo it regardless just so we know.
-      run: docker run --rm ghcr.io/fets-ai/front-end:latest -h
+      run: |
+        docker run --rm ghcr.io/fets-ai/front-end:latest -h
+        docker run --entrypoint /Front-End/bin/install/appdir/usr/bin/venv/bin/python ghcr.io/fets-ai/front-end:latest /Front-End/bin/install/appdir/usr/bin/PrepareDataset.py -h 
 
     # Push Docker image with Buildx (but don't push on PR)
     # https://github.com/docker/build-push-action
