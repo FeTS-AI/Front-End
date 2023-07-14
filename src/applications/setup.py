@@ -31,7 +31,7 @@ if __name__ == "__main__":
         author="FeTS-AI",
         author_email="admin@fets.ai",
         python_requires=">=3.8",
-        packages=find_packages(),
+        packages=["SanityCheck", "CreateCSVForDICOMs", "PrepareDataset"],
         entry_points={
             "console_scripts": [
                 "sanitycheck=SanityCheck:main",
