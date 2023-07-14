@@ -6,3 +6,5 @@ SimpleITK
 tqdm
 scikit-image
 FigureGenerator==0.0.4
+gandlf==0.0.16
+labelfusion==1.0.14

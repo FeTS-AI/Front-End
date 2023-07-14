@@ -1,4 +1,5 @@
 import os
+from tqdm import tqdm
 
 
 def update_row_with_dict(df, d, idx):
@@ -8,3 +9,7 @@ def update_row_with_dict(df, d, idx):
 
 def get_id_tp(index: str):
     return index.split("|")
+
+class MockTqdm(tqdm):
+    def __getattr__(self, attr):
+        return lambda *args, **kwargs: None

@@ -31,21 +31,31 @@ RUN find /Front-End/bin/install/appdir/usr/bin -type f \( -perm -u=x -o -type l 
 
 WORKDIR /
 
+RUN apt-get install software-properties-common curl -y
+
 RUN add-apt-repository ppa:deadsnakes/ppa -y && apt-get update
 
-RUN apt-get install python3 -y
+RUN apt-get install python3.8 python3.8-distutils -y
 
-RUN curl -fSsL -O https://bootstrap.pypa.io/pip/3.6/get-pip.py && \
-	python3 get-pip.py && \
+RUN curl -fSsL -O https://bootstrap.pypa.io/get-pip.py -o get-pip.py && \
+	python3.8 get-pip.py && \
 	rm get-pip.py
 
-COPY ./requirements.txt /project/requirements.txt 
+RUN apt-get remove --purge python3.6 -y && apt autoremove -y
 
-RUN pip3 install --upgrade pip
+RUN apt-get install python3.8-distutils -y
 
-RUN pip3 install -r /project/requirements.txt
+RUN rm -fr /usr/bin/python3 /usr/bin/pip3
+
+RUN ln -s /usr/bin/python3.8 /usr/bin/python && ln -s /usr/bin/python3.8 /usr/bin/python3
+
+RUN ln -s /usr/bin/pip3.8 /usr/bin/pip && ln -s /usr/bin/pip3.8 /usr/bin/pip3
 
 ENV LANG C.UTF-8
+
+COPY ./requirements.txt /project/requirements.txt
+
+RUN pip install -r /project/requirements.txt
 
 COPY . /project
 
