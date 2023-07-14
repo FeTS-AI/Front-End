@@ -31,7 +31,7 @@ if __name__ == "__main__":
         author="FeTS-AI",
         author_email="admin@fets.ai",
         python_requires=">=3.8",
-        packages=["FeTS_Tool_Helper"],
+        packages=find_packages(),
         entry_points={
             "console_scripts": [
                 "sanitycheck=SanityCheck:main",
