@@ -2,7 +2,7 @@ FROM ghcr.io/fets-ai/fetstool_docker_dependencies
 
 LABEL authors="FeTS_Admin <admin@fets.ai>"
 
-RUN apt-get update && apt-get update --fix-missing && apt-get install -y libnss3 libnspr4 libxcursor1 libxcursor-dev libasound2 libdbus-1-dev libglfw3-dev libgles2-mesa-dev
+RUN apt-get update && apt-get update --fix-missing && apt-get install -y libnss3 libnspr4 libxcursor1 libxcursor-dev libasound2 libdbus-1-dev libglfw3-dev libgles2-mesa-dev ffmpeg libsm6 libxext6 python3.8 python3.8-venv python3.8-dev python3-setuptools
 
 ENV PATH=/CaPTk/bin/qt/5.12.1/bin:/CaPTk/bin/qt/5.12.1/libexec:$PATH
 ENV CMAKE_PREFIX_PATH=/CaPTk/bin/ITK-build:/CaPTk/bin/DCMTK-build:/CaPTk/bin/qt/5.12.1/lib/cmake/Qt5:$CMAKE_PREFIX_PATH
@@ -53,6 +53,8 @@ COPY ./mlcubes/data_preparation/project/requirements.txt /project/requirements.t
 
 RUN pip install --upgrade pip
 
+RUN cd /Front-End/bin/install/appdir/usr/bin/ && pip install --upgrade pip wheel && pip install torch==1.13.1+cpu torchvision==0.14.1+cpu torchaudio==0.13.1 --extra-index-url https://download.pytorch.org/whl/cpu && pip install -e . && pip install setuptools-rust Cython scikit-build scikit-learn openvino-dev==2022.1.0 && pip install -e .
+
 RUN pip install -r /project/requirements.txt
 
 ENV LANG C.UTF-8
@@ -63,9 +65,9 @@ RUN cp /Front-End/src/applications/PrepareDataset.py /project/stages/PrepareData
 
 RUN cp /Front-End/src/applications/CreateCSVForDICOMs.py /project/stages/CreateCSVForDICOMs.py
 
+ENV LD_LIBRARY_PATH=/CaPTk/bin/qt/5.12.1/lib:$LD_LIBRARY_PATH
+ENV PATH=/Front-End/bin/install/appdir/usr/bin/:$PATH
 ENV QT_X11_NO_MITSHM=1
 ENV QT_GRAPHICSSYSTEM="native"
-
-RUN rm -rf /Front-End
 
 ENTRYPOINT ["python", "/project/mlcube.py"]
