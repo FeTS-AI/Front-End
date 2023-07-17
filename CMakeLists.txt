@@ -157,7 +157,7 @@ IF(${PROJECT_NAME}_Variant MATCHES "Full" )
 ELSE()
   SET( PROJECT_NAME_EXTENDED "Federated Tumor Segmentation (${PROJECT_NAME}_${${PROJECT_NAME}_Variant})" )
 ENDIF()
-SET( PROJECT_VENDOR "CBICA - UPenn" )
+SET( PROJECT_VENDOR "The FeTS-AI Group" )
 SET( LICENSE_FILE "${PROJECT_SOURCE_DIR}/LICENSE" )
 SET( README_FILE  "${PROJECT_SOURCE_DIR}/README.txt" )
 SET( PROJECT_DOMAIN "https://www.fets.ai" )
@@ -630,9 +630,9 @@ IF( NOT BUILD_DOCUMENTATION_ONLY )
   # )
 
 
-  FILE( GLOB_RECURSE ALL_PY_FILES "${PROJECT_SOURCE_DIR}/src/applications/*.py" )
+  FILE( GLOB ALL_PY_FILES "${PROJECT_SOURCE_DIR}/src/applications/*.py" )
   FOREACH( pyFile ${ALL_PY_FILES} )
-    INSTALL( FILES "${pyFile}" DESTINATION bin )
+    INSTALL( FILES "${pyFile}" DESTINATION bin PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
   ENDFOREACH()
 
   # find stand-alone CMD applications
@@ -1046,9 +1046,9 @@ IF( NOT BUILD_DOCUMENTATION_ONLY )
       SET(CPACK_NSIS_ENABLE_UNINSTALL_BEFORE_INSTALL ON)
       SET(CPACK_NSIS_MUI_ICON "${DATA_DIR}/icons/application/windows/FeTS.ico")
       SET(CPACK_NSIS_MUI_FINISHPAGE_RUN "${EXE_NAME}.exe")
-      SET(CPACK_NSIS_HELP_LINK "https:\\\\\\\\www.med.upenn.edu\\\\cbica\\\\captk\\\\")
+      SET(CPACK_NSIS_HELP_LINK "https:\\\\\\\\www.fets.ai\\\\")
       SET(CPACK_NSIS_CONTACT "${PROJECT_CONTACT}")
-      SET(CPACK_NSIS_URL_INFO_ABOUT "https:\\\\\\\\www.med.upenn.edu\\\\cbica\\\\captk\\\\")
+      SET(CPACK_NSIS_URL_INFO_ABOUT "https:\\\\\\\\www.fets.ai\\\\")
       #SET(CPACK_NSIS_MODIFY_PATH "ON") # desktop shortcut doesn't work, for some reason
       # create extra shortcuts and respective uninstall targets
       SET(CPACK_NSIS_CREATE_ICONS_EXTRA "CreateShortCut '\$SMPROGRAMS\\\\$STARTMENU_FOLDER\\\\${EXE_NAME}.lnk' '\$INSTDIR\\\\bin\\\\${EXE_NAME}.exe'")
