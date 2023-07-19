@@ -1,4 +1,4 @@
-FROM ghcr.io/fets-ai/fetstool_docker_dependencies
+FROM ghcr.io/fets-ai/fetstool_docker_dependencies AS brats_base
 
 LABEL authors="FeTS_Admin <admin@fets.ai>"
 
@@ -31,3 +31,39 @@ RUN echo "Env paths\n" && echo $PATH && echo $LD_LIBRARY_PATH
 
 # define entry point
 ENTRYPOINT ["/Front-End/bin/install/appdir/usr/bin/venv/bin/python", "/Front-End/bin/install/appdir/usr/bin/PrepareDataset.py"]
+
+FROM brats_base AS data_prep
+
+RUN find /Front-End/bin/install/appdir/usr/bin -type f \( -perm -u=x -o -type l \) -exec cp -P {} /usr/bin \;
+
+WORKDIR /
+
+RUN apt-get install software-properties-common curl -y && \
+    add-apt-repository ppa:deadsnakes/ppa -y && apt-get update && \
+    apt-get install python3.8 python3.8-distutils -y && \
+    apt-get remove --purge python3.6 -y && \
+    apt autoremove -y && \
+    apt-get install python3.8-distutils -y && \
+    rm -fr /usr/bin/python /usr/bin/python3 /usr/bin/pip /usr/bin/pip3 && \
+    ln -s /usr/bin/python3.8 /usr/bin/python && ln -s /usr/bin/python3.8 /usr/bin/python3 && \
+    ln -s /usr/bin/pip3.8 /usr/bin/pip && ln -s /usr/bin/pip3.8 /usr/bin/pip3
+
+RUN curl -fSsL -O https://bootstrap.pypa.io/get-pip.py -o get-pip.py && \
+    python3.8 get-pip.py && \
+    rm get-pip.py
+
+COPY ./mlcubes/data_preparation/project/requirements.txt /project/requirements.txt 
+
+RUN pip install --upgrade pip
+
+RUN cd /Front-End/bin/install/appdir/usr/bin/ && pip install --upgrade pip wheel && pip install torch==1.13.1+cpu torchvision==0.14.1+cpu torchaudio==0.13.1 --extra-index-url https://download.pytorch.org/whl/cpu && pip install -e . && pip install setuptools-rust Cython scikit-build scikit-learn openvino-dev==2022.1.0 && pip install -e .
+
+RUN pip install -r /project/requirements.txt
+
+ENV LANG C.UTF-8
+
+COPY ./mlcubes/data_preparation/project /project
+
+RUN cp /Front-End/src/applications/*.py /project/stages/
+
+ENTRYPOINT ["python", "/project/mlcube.py"]
