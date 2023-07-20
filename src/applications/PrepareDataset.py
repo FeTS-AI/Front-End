@@ -492,7 +492,7 @@ class Preparator:
         self.dicom_tag_information_to_write_anon = {}
         self.brats_pipeline_exe = executablePath
         if self.brats_pipeline_exe is None:
-            self.brats_pipeline_exe = os.path.join(
+            self.brats_pipeline_exe = posixpath.join(
                 Path(__file__).parent.resolve(), "BraTSPipeline"
             )
 
@@ -563,7 +563,7 @@ class Preparator:
                 modality
             ] = tags_from_modality
             with open(
-                os.path.join(
+                posixpath.join(
                     interimOutputDir_actual, f"dicom_tag_information_{modality}.yaml"
                 ),
                 "w",
