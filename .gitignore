@@ -63,3 +63,4 @@ venv/*
 src/applications/FeTS_Tool_Helper.egg-info/*
 src/applications/__pycache__/*
 data/*.zip
+src/applications/data_prep_models/*
