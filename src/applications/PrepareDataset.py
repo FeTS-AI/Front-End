@@ -1,4 +1,5 @@
 import os, argparse, sys, csv, platform, subprocess, shutil, posixpath, yaml
+from typing import Union
 from pathlib import Path
 from datetime import date
 import pandas as pd
@@ -284,7 +285,7 @@ def _copy_files_to_correct_location(interimOutputDir, finalSubjectOutputDir, sub
 def _run_brain_extraction_using_gandlf(
     subject_id: str,
     input_oriented_images: dict,
-    models_to_infer: str,
+    models_to_infer: Union[str, list],
     base_output_dir: str,
 ) -> sitk.Image:
     """
@@ -293,7 +294,7 @@ def _run_brain_extraction_using_gandlf(
     Args:
         subject_id (str): The subject ID.
         input_oriented_images (dict): The input oriented images.
-        models_to_infer (str): The models to infer, comma-separated.
+        models_to_infer (Union[str, list]): The models to infer as list or as comma-separated string.
         base_output_dir (str): The base output directory.
 
     Returns:
@@ -314,7 +315,11 @@ def _run_brain_extraction_using_gandlf(
         index=False,
     )
 
-    models_to_run = models_to_infer.split(",")
+    models_to_run = (
+        models_to_infer
+        if isinstance(models_to_infer, list)
+        else models_to_infer.split(",")
+    )
 
     model_counter = 0
     images_for_fusion = []
@@ -327,11 +332,6 @@ def _run_brain_extraction_using_gandlf(
             if file.endswith(".yaml") or file.endswith(".yml"):
                 config_file = posixpath.join(model_dir, file)
                 break
-
-        # ensure the openvino version is used
-        parameters = yaml.safe_load(open(config_file, "r"))
-        parameters["model"]["type"] = "openvino"
-        yaml.safe_dump(parameters, open(config_file, "w"))
 
         main_run(
             data_csv=data_path,
@@ -367,7 +367,7 @@ def _run_brain_extraction_using_gandlf(
 def _run_tumor_segmentation_using_gandlf(
     subject_id: str,
     input_oriented_brain_images: dict,
-    models_to_infer: str,
+    models_to_infer: Union[str, list],
     base_output_dir: str,
 ) -> sitk.Image:
     """
@@ -376,7 +376,7 @@ def _run_tumor_segmentation_using_gandlf(
     Args:
         subject_id (str): The subject ID.
         input_oriented_brain_images (dict): The input oriented brain images.
-        models_to_infer (str): The models to infer, comma-separated.
+        models_to_infer (Union[str, list]): The models to infer as list or as comma-separated string.
         base_output_dir (str): The base output directory.
 
     Returns:
@@ -398,7 +398,11 @@ def _run_tumor_segmentation_using_gandlf(
         index=False,
     )
 
-    models_to_run = models_to_infer.split(",")
+    models_to_run = (
+        models_to_infer
+        if isinstance(models_to_infer, list)
+        else models_to_infer.split(",")
+    )
 
     model_counter = 0
     images_for_fusion = []
@@ -678,12 +682,18 @@ class Preparator:
 
         pbar.set_description(f"Brain Extraction")
 
+        models_dir = posixpath.join(Path(__file__).parent.resolve(), "data_prep_models")
+
+        brain_extraction_models_dir = posixpath.join(models_dir, "brain_extraction")
+        brain_extraction_models = [
+            posixpath.join(brain_extraction_models_dir, model_dir)
+            for model_dir in os.listdir(brain_extraction_models_dir)
+        ]
+
         brain_mask = _run_brain_extraction_using_gandlf(
             subject_id_timepoint,
             outputs_reoriented,
-            interimOutputDir_actual
-            + ","
-            + interimOutputDir_actual,  # todo: this needs to be changed appropriately
+            brain_extraction_models,
             interimOutputDir_actual,
         )
         brain_mask_path = posixpath.join(
