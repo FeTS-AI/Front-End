@@ -13,13 +13,41 @@ from GANDLF.cli import main_run
 from LabelFusion.wrapper import fuse_images
 
 # check against all these modality ID strings with extensions
-modality_id_dict = {
+MODALITY_ID_DICT = {
     "T1": ["t1", "t1pre", "t1precontrast"],
     "T1GD": ["t1ce", "t1gd", "t1post", "t1postcontrast", "t1gallodinium", "t1c"],
     "T2": ["t2"],
     "FLAIR": ["flair", "fl", "t2flair"],
 }
-modalities_list = list(modality_id_dict.keys())
+MODALITIES_LIST = list(MODALITY_ID_DICT.keys())
+SUBJECT_NAMES = set("patientid", "subjectid", "subject", "subid")
+TIMEPOINT_NAMES = set("timepoint", "tp", "time", "series", "subseries")
+INPUT_FILENAMES = {
+    "T1": "T1_to_SRI.nii.gz",
+    "T1GD": "T1CE_to_SRI.nii.gz",
+    "T2": "T2_to_SRI.nii.gz",
+    "FLAIR": "FL_to_SRI.nii.gz",
+}
+
+GANDLF_DF_COLUMNS = ["SubjectID", "Channel_0"]
+
+INTERIM_FOLDER = "DataForQC"
+FINAL_FOLDER = "DataForFeTS"
+TUMOR_MASK_FOLDER = "TumorMasksForQC"
+TESTING_FOLDER = "testing"
+REORIENTED_FOLDER = "reoriented"
+
+BRAIN_FILENAME = "gandlf_brain_extraction.csv"
+TUMOR_FILENAME = "gandlf_tumor_segmentation.csv"
+SUBJECTS_FILENAME = "processed_data.csv"
+NEG_SUBJECTS_FILENAME = "QC_subjects_with_negative_intensities.csv"
+FAIL_SUBJECTS_FILENAME = "QC_subjects_with_bratspipeline_error.csv"
+DICOM_ANON_FILENAME = "dicom_tag_information_to_write_anon.yaml"
+DICOM_COLLAB_FILENAME = "dicom_tag_information_to_write_collab.yaml"
+STDOUT_FILENAME = "preparedataset_stdout.txt"
+STDERR_FILENAME = "preparedataset_stderr.txt"
+
+EXEC_NAME = "BraTSPipeline"
 
 
 def setup_parser():
@@ -143,7 +171,7 @@ def _save_screenshot(
             input_images["FLAIR"],
         ]
     )
-    ylabels = (",").join(modalities_list)
+    ylabels = (",").join(MODALITIES_LIST)
 
     figure_generator(
         input_images=images,
@@ -216,24 +244,13 @@ def _parse_csv_header(filename):
                 temp = temp.replace(" ", "")  # remove spaces
                 temp = temp.replace("_", "")  # remove underscores
                 temp = temp.replace("-", "")  # remove dashes
-                if (
-                    (temp == "patientid")
-                    or (temp == "subjectid")
-                    or (temp == "subject")
-                    or (temp == "subid")
-                ):
+                if temp in SUBJECT_NAMES:
                     headers["ID"] = col
-                elif (
-                    (temp == "timepoint")
-                    or (temp == "tp")
-                    or (temp == "time")
-                    or (temp == "series")
-                    or (temp == "subseries")
-                ):
+                elif temp in TIMEPOINT_NAMES:
                     headers["Timepoint"] = col
                 else:
-                    for key in modality_id_dict.keys():
-                        if temp in modality_id_dict[key]:
+                    for key in MODALITY_ID_DICT.keys():
+                        if temp in MODALITY_ID_DICT[key]:
                             headers[key] = col
                             break
 
@@ -258,18 +275,9 @@ def _copy_files_to_correct_location(interimOutputDir, finalSubjectOutputDir, sub
     # copy files to correct location for inference and training
     runBratsPipeline = False
     input_files = {
-        "T1": posixpath.join(interimOutputDir, "T1_to_SRI.nii.gz"),
-        "T1GD": posixpath.join(interimOutputDir, "T1CE_to_SRI.nii.gz"),
-        "T2": posixpath.join(interimOutputDir, "T2_to_SRI.nii.gz"),
-        "FLAIR": posixpath.join(interimOutputDir, "FL_to_SRI.nii.gz"),
+        k: posixpath.join(interimOutputDir, v) for k, v in INPUT_FILENAMES.items()
     }
-    expected_outputs = {
-        "ID": subjectID,
-        "T1": posixpath.join(finalSubjectOutputDir, subjectID + "_t1.nii.gz"),
-        "T1GD": posixpath.join(finalSubjectOutputDir, subjectID + "_t1ce.nii.gz"),
-        "T2": posixpath.join(finalSubjectOutputDir, subjectID + "_t2.nii.gz"),
-        "FLAIR": posixpath.join(finalSubjectOutputDir, subjectID + "_flair.nii.gz"),
-    }
+    expected_outputs = get_expected_outputs(subjectID, finalSubjectOutputDir)
 
     for key in input_files.keys():
         if not os.path.exists(expected_outputs[key]):
@@ -279,6 +287,27 @@ def _copy_files_to_correct_location(interimOutputDir, finalSubjectOutputDir, sub
                 runBratsPipeline = True
 
     return runBratsPipeline, expected_outputs
+
+
+def get_expected_outputs(subjectID: str, output_dir: str) -> dict:
+    expected_outputs = {
+        "ID": subjectID,
+        "T1": posixpath.join(output_dir, subjectID + "_t1.nii.gz"),
+        "T1GD": posixpath.join(output_dir, subjectID + "_t1ce.nii.gz"),
+        "T2": posixpath.join(output_dir, subjectID + "_t2.nii.gz"),
+        "FLAIR": posixpath.join(output_dir, subjectID + "_flair.nii.gz"),
+    }
+    return expected_outputs
+
+
+def get_brain_mask_files(subject_id, output_dir) -> dict:
+    files = {}
+    for modality in MODALITIES_LIST:
+        files[modality] = posixpath.join(
+            output_dir,
+            f"{subject_id}_brain_{modality}.nii.gz",
+        )
+    return files
 
 
 def _run_brain_extraction_using_gandlf(
@@ -299,8 +328,8 @@ def _run_brain_extraction_using_gandlf(
     Returns:
         sitk.Image: The fused brain mask.
     """
-    df_for_gandlf = pd.DataFrame(columns=["SubjectID", "Channel_0"])
-    for key in modalities_list:
+    df_for_gandlf = pd.DataFrame(columns=GANDLF_DF_COLUMNS)
+    for key in MODALITIES_LIST:
         current_modality = {
             "SubjectID": subject_id + "_" + key,
             "Channel_0": input_oriented_images[key],
@@ -308,7 +337,7 @@ def _run_brain_extraction_using_gandlf(
         df_for_gandlf = pd.concat(
             [df_for_gandlf, pd.DataFrame(current_modality, index=[0])]
         )
-    data_path = posixpath.join(base_output_dir, "gandlf_brain_extraction.csv")
+    data_path = posixpath.join(base_output_dir, BRAIN_FILENAME)
     df_for_gandlf.to_csv(
         data_path,
         index=False,
@@ -344,7 +373,7 @@ def _run_brain_extraction_using_gandlf(
             output_dir=model_output_dir,
         )
 
-        modality_outputs = os.listdir(posixpath.join(model_output_dir, "testing"))
+        modality_outputs = os.listdir(posixpath.join(model_output_dir, TESTING_FOLDER))
         for modality in modality_outputs:
             modality_output_dir = posixpath.join(modality_outputs, modality)
             files_in_modality = os.listdir(modality_output_dir)
@@ -382,17 +411,17 @@ def _run_tumor_segmentation_using_gandlf(
     Returns:
         sitk.Image: The fused tumor mask.
     """
-    df_for_gandlf = pd.DataFrame(columns=["SubjectID", "Channel_0"])
+    df_for_gandlf = pd.DataFrame(columns=GANDLF_DF_COLUMNS)
     current_subject = {"SubjectID": subject_id}
     channel_idx = 0
     # todo: confirm the order for modalities
-    for key in modalities_list:
+    for key in MODALITIES_LIST:
         current_subject = {
             f"Channel_{channel_idx}": input_oriented_brain_images[key],
         }
         channel_idx += 1
     df_for_gandlf = pd.DataFrame(current_subject, index=[0])
-    data_path = posixpath.join(base_output_dir, "gandlf_tumor_segmentation.csv")
+    data_path = posixpath.join(base_output_dir, TUMOR_FILENAME)
     df_for_gandlf.to_csv(
         data_path,
         index=False,
@@ -402,7 +431,7 @@ def _run_tumor_segmentation_using_gandlf(
 
     model_counter = 0
     images_for_fusion = []
-    mask_output_dir = posixpath.join(base_output_dir, "TumorMasksForQC")
+    mask_output_dir = posixpath.join(base_output_dir, TUMOR_MASK_FOLDER)
     for model_dir in models_to_run:
         model_output_dir = posixpath.join(
             base_output_dir, "model_" + str(model_counter)
@@ -430,7 +459,7 @@ def _run_tumor_segmentation_using_gandlf(
         )
 
         subject_model_output_dir = os.listdir(
-            posixpath.join(model_output_dir, "testing")
+            posixpath.join(model_output_dir, TESTING_FOLDER)
         )
         for subject in subject_model_output_dir:
             subject_output_dir = posixpath.join(subject_model_output_dir, subject)
@@ -470,30 +499,30 @@ class Preparator:
         self.input_csv = input_csv
         self.input_dir = str(Path(input_csv).parent)
         self.output_dir = os.path.normpath(output_dir)
-        self.interim_output_dir = posixpath.join(self.output_dir, "DataForQC")
-        self.final_output_dir = posixpath.join(self.output_dir, "DataForFeTS")
-        self.subjects_file = posixpath.join(self.final_output_dir, "processed_data.csv")
+        self.interim_output_dir = posixpath.join(self.output_dir, INTERIM_FOLDER)
+        self.final_output_dir = posixpath.join(self.output_dir, FINAL_FOLDER)
+        self.subjects_file = posixpath.join(self.final_output_dir, SUBJECTS_FILENAME)
         self.neg_subjects_file = posixpath.join(
-            self.final_output_dir, "QC_subjects_with_negative_intensities.csv"
+            self.final_output_dir, NEG_SUBJECTS_FILENAME
         )
         self.failing_subjects_file = posixpath.join(
-            self.final_output_dir, "QC_subjects_with_bratspipeline_error.csv"
+            self.final_output_dir, FAIL_SUBJECTS_FILENAME
         )
         self.dicom_tag_information_to_write_anon_file = posixpath.join(
-            self.final_output_dir, "dicom_tag_information_to_write_anon.yaml"
+            self.final_output_dir, DICOM_ANON_FILENAME
         )
         self.dicom_tag_information_to_write_collab_file = posixpath.join(
-            self.final_output_dir, "dicom_tag_information_to_write_collab.yaml"
+            self.final_output_dir, DICOM_COLLAB_FILENAME
         )
         self.__init_out_dfs()
-        self.stdout_log = posixpath.join(self.output_dir, "preparedataset_stdout.txt")
-        self.stderr_log = posixpath.join(self.output_dir, "preparedataset_stderr.txt")
+        self.stdout_log = posixpath.join(self.output_dir, STDOUT_FILENAME)
+        self.stderr_log = posixpath.join(self.output_dir, STDERR_FILENAME)
         self.dicom_tag_information_to_write_collab = {}
         self.dicom_tag_information_to_write_anon = {}
         self.brats_pipeline_exe = executablePath
         if self.brats_pipeline_exe is None:
             self.brats_pipeline_exe = os.path.join(
-                Path(__file__).parent.resolve(), "BraTSPipeline"
+                Path(__file__).parent.resolve(), EXEC_NAME
             )
 
         if platform.system() == "Windows":
@@ -525,10 +554,12 @@ class Preparator:
             self.process_row(idx, row, pbar)
 
     def process_row(self, idx: int, row: pd.Series, pbar: tqdm):
-        parsed_headers = self.parsed_headers
-        bratsPipeline_exe = self.brats_pipeline_exe
+        self.convert_to_dicom(idx, row, pbar)
+        self.extract_brain(row, pbar)
+        self.extract_tumor(row, pbar)
 
-        subject_id = row[parsed_headers["ID"]]
+    def __get_row_information(self, row: pd.Series):
+        subject_id = row[self.parsed_headers["ID"]]
         subject_id_timepoint = subject_id
 
         # create QC and Final output dirs for each subject
@@ -538,6 +569,21 @@ class Preparator:
         finalSubjectOutputDir_actual = posixpath.join(
             self.final_output_dir, subject_id_timepoint
         )
+
+        return subject_id, interimOutputDir_actual, finalSubjectOutputDir_actual
+
+    def convert_to_dicom(self, idx: int, row: pd.Series, pbar: tqdm):
+        parsed_headers = self.parsed_headers
+        bratsPipeline_exe = self.brats_pipeline_exe
+
+        (
+            subject_id,
+            interimOutputDir_actual,
+            finalSubjectOutputDir_actual,
+        ) = self.__get_row_information(row)
+        subject_id_timepoint = subject_id
+
+        # create QC and Final output dirs for each subject
         Path(interimOutputDir_actual).mkdir(parents=True, exist_ok=True)
         Path(finalSubjectOutputDir_actual).mkdir(parents=True, exist_ok=True)
 
@@ -549,15 +595,13 @@ class Preparator:
             finalSubjectOutputDir_actual = posixpath.join(
                 finalSubjectOutputDir_actual, timepoint
             )
-        Path(interimOutputDir_actual).mkdir(parents=True, exist_ok=True)
-        Path(finalSubjectOutputDir_actual).mkdir(parents=True, exist_ok=True)
 
         pbar.set_description(f"Processing {subject_id_timepoint}")
 
         # get the relevant dicom tags
         self.dicom_tag_information_to_write_collab[subject_id_timepoint] = {}
         self.dicom_tag_information_to_write_anon[str(idx)] = {}
-        for modality in modalities_list:
+        for modality in MODALITIES_LIST:
             tags_from_modality = _get_relevant_dicom_tags(row[parsed_headers[modality]])
             self.dicom_tag_information_to_write_collab[subject_id_timepoint][
                 modality
@@ -574,7 +618,7 @@ class Preparator:
             ] = tags_from_modality
 
         interimOutputDir_actual_reoriented = posixpath.join(
-            interimOutputDir_actual, "reoriented"
+            interimOutputDir_actual, REORIENTED_FOLDER
         )
         Path(interimOutputDir_actual_reoriented).mkdir(parents=True, exist_ok=True)
         # if files already exist in DataForQC, then copy to "reorient" folder, and if files exist in "reorient" folder, then skip
@@ -623,7 +667,7 @@ class Preparator:
 
         # store the outputs in a dictionary when there are no errors
         negatives_detected = False
-        for modality in modalities_list:
+        for modality in MODALITIES_LIST:
             count = _read_image_with_min_check(outputs_reoriented[modality])
             # if there are any negative values, then store the subjectid, timepoint, modality and count of negative values
             if count == 0:
@@ -676,6 +720,19 @@ class Preparator:
                 ),
             )
 
+    def extract_brain(self, row: pd.Series, pbar: tqdm):
+        (
+            subject_id_timepoint,
+            interimOutputDir_actual,
+            finalSubjectOutputDir_actual,
+        ) = self.__get_row_information(row)
+        interimOutputDir_actual_reoriented = posixpath.join(
+            interimOutputDir_actual, REORIENTED_FOLDER
+        )
+        outputs_reoriented = get_expected_outputs(
+            subject_id_timepoint, interimOutputDir_actual_reoriented
+        )
+
         pbar.set_description(f"Brain Extraction")
 
         brain_mask = _run_brain_extraction_using_gandlf(
@@ -693,16 +750,14 @@ class Preparator:
 
         # this is to ensure that the mask and reoriented images are in the same byte order
         brain_mask = sitk.Cast(brain_mask, sitk.sitkFloat32)
-        input_for_tumor_models = {}
-        for modality in modalities_list:
+        input_for_tumor_models = get_brain_mask_files(
+            subject_id_timepoint, finalSubjectOutputDir_actual
+        )
+        for modality in MODALITIES_LIST:
             image = sitk.ReadImage(outputs_reoriented[modality])
             masked_image = sitk.Mask(image, brain_mask)
-            file_to_save = posixpath.join(
-                finalSubjectOutputDir_actual,
-                f"{subject_id_timepoint}_brain_{modality}.nii.gz",
-            )
+            file_to_save = input_for_tumor_models[modality]
             sitk.WriteImage(masked_image, file_to_save)
-            input_for_tumor_models[modality] = file_to_save
 
         # save the screenshot
         _save_screenshot(
@@ -712,6 +767,16 @@ class Preparator:
                 f"{subject_id_timepoint}_summary_brain-extraction.png",
             ),
             brain_mask_path,
+        )
+
+    def extract_tumor(self, row: pd.Series, pbar: tqdm):
+        (
+            subject_id_timepoint,
+            interimOutputDir_actual,
+            finalSubjectOutputDir_actual,
+        ) = self.__get_row_information(row)
+        input_for_tumor_models = get_brain_mask_files(
+            subject_id_timepoint, finalSubjectOutputDir_actual
         )
 
         pbar.set_description(f"Brain Tumor Segmentation")
