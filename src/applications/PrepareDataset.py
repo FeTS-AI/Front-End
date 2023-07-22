@@ -359,7 +359,7 @@ def _run_brain_extraction_using_gandlf(
                             f"brainMask_{model_counter}_{modality}.nii.gz",
                         ),
                     )
-                    images_for_fusion.append(sitk.ReadImage(file_path, sitk.sitkInt16))
+                    images_for_fusion.append(sitk.ReadImage(file_path, sitk.sitkUInt8))
         model_counter += 1
 
     return fuse_images(images_for_fusion, "staple", [0, 1])
@@ -450,7 +450,7 @@ def _run_tumor_segmentation_using_gandlf(
                             f"{subject_id}_tumorMask_model-{model_counter}.nii.gz",
                         ),
                     )
-                    images_for_fusion.append(sitk.ReadImage(file_path, sitk.sitkInt16))
+                    images_for_fusion.append(sitk.ReadImage(file_path, sitk.sitkUInt8))
         model_counter += 1
 
     tumor_class_list = [0, 1, 2, 3, 4]
