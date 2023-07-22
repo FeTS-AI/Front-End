@@ -344,9 +344,10 @@ def _run_brain_extraction_using_gandlf(
             output_dir=model_output_dir,
         )
 
-        modality_outputs = os.listdir(posixpath.join(model_output_dir, "testing"))
+        model_output_dir_testing = posixpath.join(model_output_dir, "testing")
+        modality_outputs = os.listdir(model_output_dir_testing)
         for modality in modality_outputs:
-            modality_output_dir = posixpath.join(modality_outputs, modality)
+            modality_output_dir = posixpath.join(model_output_dir_testing, modality)
             files_in_modality = os.listdir(modality_output_dir)
             for file in files_in_modality:
                 if file.endswith(".nii.gz"):
