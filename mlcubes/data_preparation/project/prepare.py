@@ -8,6 +8,7 @@ from tqdm import tqdm
 from stages.generate_report import GenerateReport
 from stages.get_csv import AddToCSV
 from stages.nifti_transform import NIfTITransform
+from stages.extract_brain import ExtractBrain
 
 
 def find_csv_filenames(path_to_dir, suffix=".csv"):
@@ -115,24 +116,26 @@ if __name__ == "__main__":
     # RUN COLUMN-WISE PROCESSING
     csv_data_out = os.path.join(args.data_out, "validated")
     nifti_data_out = os.path.join(args.data_out, "prepared")
+    brain_data_out = os.path.join(args.data_out, "brain_extracted")
     subjects = list(report.index)
     loop = tqdm(subjects)
 
     csv_proc = AddToCSV(out_raw, out_data_csv, csv_data_out, out_raw)
     nifti_proc = NIfTITransform(out_data_csv, nifti_data_out, csv_data_out, loop)
+    brain_extract_proc = ExtractBrain(
+        out_data_csv, brain_data_out, nifti_data_out, loop
+    )
+
+    stages = [csv_proc, nifti_proc, brain_extract_proc]
 
     for subject in loop:
-        # Processing steps go here
-        loop.set_description(f"{subject} | Validating")
-        if csv_proc.should_run(subject, report):
-            report = csv_proc.execute(subject, report)
-            write_report(report, args.report)
+        for stage in stages:
+            if stage.should_run(subject, report):
+                loop.set_description(f"{subject} | {stage.get_name()}")
+                report = stage.execute(subject, report)
+                write_report(report, args.report)
 
-        loop.set_description(f"{subject} | Converting to NIfTI")
-        if nifti_proc.should_run(subject, report):
-            report = nifti_proc.execute(subject, report)
-            write_report(report, args.report)
-
-        cleanup(out_raw)
-        cleanup(csv_data_out)
-        cleanup(nifti_data_out)
+    cleanup(out_raw)
+    cleanup(csv_data_out)
+    cleanup(nifti_data_out)
+    cleanup(brain_data_out)

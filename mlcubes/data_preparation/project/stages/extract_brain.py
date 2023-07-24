@@ -9,7 +9,7 @@ from .PrepareDataset import Preparator, INTERIM_FOLDER, FINAL_FOLDER
 from .utils import update_row_with_dict, get_id_tp, MockTqdm
 
 
-class NIfTITransform(RowStage):
+class ExtractBrain(RowStage):
     def __init__(self, data_csv: str, out_path: str, prev_stage_path: str, pbar: tqdm):
         self.data_csv = data_csv
         self.out_path = out_path
@@ -17,6 +17,8 @@ class NIfTITransform(RowStage):
         os.makedirs(self.out_path, exist_ok=True)
         self.prep = Preparator(data_csv, out_path, "BraTSPipeline")
         self.pbar = pbar
+        self.failed = False
+        self.exception = None
 
     def get_name(self) -> str:
         return "NiFTI Conversion"
@@ -31,9 +33,8 @@ class NIfTITransform(RowStage):
         Returns:
             bool: Wether this stage should be executed for the given case
         """
-        id, tp = get_id_tp(index)
-        prev_case_path = os.path.join(self.prev_stage_path, id, tp)
-        return os.path.exists(prev_case_path)
+        prev_fets_path, prev_qc_path = self.__get_prev_output_paths(index)
+        return os.path.exists(prev_fets_path) and os.path.exists(prev_qc_path)
 
     def execute(self, index: Union[str, int], report: pd.DataFrame) -> pd.DataFrame:
         """Executes the NIfTI transformation stage on the given case
@@ -46,11 +47,25 @@ class NIfTITransform(RowStage):
             pd.DataFrame: Updated report dataframe
         """
         self.__prepare_exec()
+        self.__copy_case(index)
         self.__process_case(index)
         report = self.__update_report(index, report)
         self.prep.write()
 
         return report
+
+    def __prepare_exec(self):
+        # Reset the file contents for errors
+        open(self.prep.stderr_log, "w").close()
+
+        # Update the out dataframes to current state
+        self.prep.read()
+
+    def __get_prev_output_paths(self, index: Union[str, int]):
+        id, tp = get_id_tp(index)
+        prev_fets_path = os.path.join(self.prev_stage_path, FINAL_FOLDER, id, tp)
+        prev_qc_path = os.path.join(self.prev_stage_path, INTERIM_FOLDER, id, tp)
+        return prev_fets_path, prev_qc_path
 
     def __get_output_paths(self, index: Union[str, int]):
         id, tp = get_id_tp(index)
@@ -59,39 +74,37 @@ class NIfTITransform(RowStage):
 
         return fets_path, qc_path
 
-    def __prepare_exec(self):
-        # Reset the file contents for errors
-        open(self.prep.stderr_log, "w").close()
-
-        self.prep.read()
+    def __copy_case(self, index: Union[str, int]):
+        prev_fets_path, prev_qc_path = self.__get_prev_output_paths(index)
+        fets_path, qc_path = self.__get_output_paths(index)
+        shutil.copytree(prev_fets_path, fets_path, dirs_exist_ok=True)
+        shutil.copytree(prev_qc_path, qc_path, dirs_exist_ok=True)
 
     def __process_case(self, index: Union[str, int]):
         id, tp = get_id_tp(index)
         df = self.prep.subjects_df
         row = df[(df["SubjectID"] == id) & (df["Timepoint"] == tp)].iloc[0]
-        self.prep.convert_to_dicom(index, row, self.pbar)
+        try:
+            self.prep.extract_brain(row, self.pbar)
+        except Exception as e:
+            self.failed = True
+            self.exception = e
 
     def __update_prev_stage_state(self, index: Union[str, int], report: pd.DataFrame):
         prev_data_path = report.loc[index]["data_path"]
         shutil.rmtree(prev_data_path)
 
     def __undo_current_stage_changes(self, index: Union[str, int]):
-        fets_path, qc_path = self.__get_output_paths(index)
+        id, tp = get_id_tp(index)
+        fets_path = os.path.join(self.out_path, FINAL_FOLDER, id, tp)
+        qc_path = os.path.join(self.out_path, INTERIM_FOLDER, id, tp)
         shutil.rmtree(fets_path, ignore_errors=True)
         shutil.rmtree(qc_path, ignore_errors=True)
 
     def __update_report(
         self, index: Union[str, int], report: pd.DataFrame
     ) -> pd.DataFrame:
-        # TODO: What should be reported? We have the processed data,
-        # QC subjects with negative intensities and
-        # QC subjects with bratspipeline error
-        id, tp = get_id_tp(index)
-        failing = self.prep.failing_subjects
-        failing_subject = failing[
-            (failing["SubjectID"] == id) & (failing["Timepoint"] == tp)
-        ]
-        if len(failing_subject):
+        if self.failed:
             self.__undo_current_stage_changes(index)
             report = self.__report_failure(index, report)
         else:
@@ -103,12 +116,10 @@ class NIfTITransform(RowStage):
     def __report_success(
         self, index: Union[str, int], report: pd.DataFrame
     ) -> pd.DataFrame:
-        # At the moment we're reporting both paths joined by a comma
-        # TODO: Determine if this is a correct way of doing things
         paths = self.__get_output_paths(index)
         report_data = {
-            "status": 2,
-            "status_name": "CONVERTED_TO_NIfTI",
+            "status": 3,
+            "status_name": "BRAIN_EXTRACTED",
             "comment": "",
             "data_path": ",".join(paths),
             "labels_path": "",
@@ -119,17 +130,14 @@ class NIfTITransform(RowStage):
     def __report_failure(
         self, index: Union[str, int], report: pd.DataFrame
     ) -> pd.DataFrame:
-        id, tp = get_id_tp(index)
-        prev_data_path = report.loc[index]["data_path"]
-
-        with open(self.prep.stderr_log, "r") as f:
-            msg = f.read()
+        prev_paths = self.__get_prev_output_paths(index)
+        msg = str(self.exception)
 
         report_data = {
-            "status": -2,
-            "status_name": "NIfTI_CONVERSION_FAILED",
+            "status": -3,
+            "status_name": "BRAIN_EXTRACTION_FAILED",
             "comment": msg,
-            "data_path": prev_data_path,
+            "data_path": ",".join(prev_paths),
             "labels_path": "",
         }
         update_row_with_dict(report, report_data, index)
