@@ -1,4 +1,4 @@
-FROM ghcr.io/fets-ai/fetstool_docker_dependencies AS brats_base
+FROM ghcr.io/fets-ai/fetstool_docker_dependencies AS fets_base
 
 LABEL authors="FeTS_Admin <admin@fets.ai>"
 
@@ -11,7 +11,15 @@ RUN pwd && ls -l
 
 WORKDIR /Front-End
 
-COPY . .
+COPY src src
+
+COPY CMakeLists.txt README.txt LICENSE .
+
+COPY cmake_modules cmake_modules
+
+COPY data data
+
+COPY docs_sources docs_sources
 
 RUN pwd && ls -l
 
@@ -32,7 +40,7 @@ RUN echo "Env paths\n" && echo $PATH && echo $LD_LIBRARY_PATH
 # define entry point
 ENTRYPOINT ["/Front-End/bin/install/appdir/usr/bin/venv/bin/python", "/Front-End/bin/install/appdir/usr/bin/PrepareDataset.py"]
 
-FROM brats_base AS data_prep
+FROM fets_base AS data_prep
 
 RUN find /Front-End/bin/install/appdir/usr/bin -type f \( -perm -u=x -o -type l \) -exec cp -P {} /usr/bin \;
 
