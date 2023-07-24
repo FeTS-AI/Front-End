@@ -59,3 +59,33 @@ if __name__ == "__main__":
         keywords="brain, mri, neuroimaging, machine learning, federated learning",
         zip_safe=False,
     )
+
+
+## download various models
+import os, posixpath
+from pathlib import Path
+from zipfile import ZipFile
+from urllib.request import urlretrieve
+
+models_dir = posixpath.join(Path(__file__).parent.resolve(), "data_prep_models")
+Path(models_dir).mkdir(parents=True, exist_ok=True)
+
+urls_for_download = {
+    "brain_extraction": "https://upenn.box.com/shared/static/cp5xz726mtb6gwwym8ydcxmw52zfngun",
+    "tumor_segmentation": None,
+}
+
+for model in urls_for_download.keys():
+    if urls_for_download[model] is not None:
+        zip_file = posixpath.join(models_dir, f"{model}.zip")
+        if not Path(
+            posixpath.join(models_dir, model, "model_0", "config.yaml")
+        ).exists():
+            if not Path(zip_file).exists():
+                print("Downloading brain extraction models")
+                url = "https://upenn.box.com/shared/static/cp5xz726mtb6gwwym8ydcxmw52zfngun"
+                urlretrieve(urls_for_download[model], zip_file)
+            z = ZipFile(zip_file)
+            z.extractall(models_dir)
+            z.close()
+            os.remove(zip_file)
