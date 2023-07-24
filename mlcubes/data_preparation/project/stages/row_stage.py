@@ -27,3 +27,12 @@ class RowStage(ABC):
         Returns:
             pd.DataFrame: Updated report dataframe
         """
+
+    @abstractmethod
+    def get_name(self) -> str:
+        """Returns a human readable short name for what the stage does
+        Used for printing to the user current status
+
+        Returns:
+            str: Stage name
+        """

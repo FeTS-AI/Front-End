@@ -27,6 +27,9 @@ class AddToCSV(RowStage):
             # Use the default, empty version
             self.contents = self.csv_processor.output_df_for_csv
 
+    def get_name(self) -> str:
+        return "Initial Validation"
+
     def should_run(self, index: Union[str, int], report: pd.DataFrame) -> bool:
         """Determines if getting a new CSV is necessary.
         This is done by checking the existence of the expected file
