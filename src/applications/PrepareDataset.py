@@ -20,8 +20,8 @@ MODALITY_ID_DICT = {
     "FLAIR": ["flair", "fl", "t2flair"],
 }
 MODALITIES_LIST = list(MODALITY_ID_DICT.keys())
-SUBJECT_NAMES = set("patientid", "subjectid", "subject", "subid")
-TIMEPOINT_NAMES = set("timepoint", "tp", "time", "series", "subseries")
+SUBJECT_NAMES = {"patientid", "subjectid", "subject", "subid"}
+TIMEPOINT_NAMES = {"timepoint", "tp", "time", "series", "subseries"}
 INPUT_FILENAMES = {
     "T1": "T1_to_SRI.nii.gz",
     "T1GD": "T1CE_to_SRI.nii.gz",
@@ -583,10 +583,6 @@ class Preparator:
         ) = self.__get_row_information(row)
         subject_id_timepoint = subject_id
 
-        # create QC and Final output dirs for each subject
-        Path(interimOutputDir_actual).mkdir(parents=True, exist_ok=True)
-        Path(finalSubjectOutputDir_actual).mkdir(parents=True, exist_ok=True)
-
         # per the data ingestion step, we are creating a new folder called timepoint, can join timepoint to subjectid if needed
         if parsed_headers["Timepoint"] is not None:
             timepoint = row[parsed_headers["Timepoint"]]
@@ -595,6 +591,10 @@ class Preparator:
             finalSubjectOutputDir_actual = posixpath.join(
                 finalSubjectOutputDir_actual, timepoint
             )
+
+        # create QC and Final output dirs for each subject
+        Path(interimOutputDir_actual).mkdir(parents=True, exist_ok=True)
+        Path(finalSubjectOutputDir_actual).mkdir(parents=True, exist_ok=True)
 
         pbar.set_description(f"Processing {subject_id_timepoint}")
 
