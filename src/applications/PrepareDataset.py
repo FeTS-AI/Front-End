@@ -15,10 +15,17 @@ from LabelFusion.wrapper import fuse_images
 
 # check against all these modality ID strings with extensions
 modality_id_dict = {
-    "T1": ["t1", "t1pre", "t1precontrast"],
+    "T1": ["t1", "t1pre", "t1precontrast", "t1n"],
     "T1GD": ["t1ce", "t1gd", "t1post", "t1postcontrast", "t1gallodinium", "t1c"],
-    "T2": ["t2"],
-    "FLAIR": ["flair", "fl", "t2flair"],
+    "T2": ["t2", "t2w"],
+    "FLAIR": ["flair", "fl", "t2flair", "t2f"],
+}
+# this is used to keep a mapping between the fets1 nomenclature
+modality_id_mapping = {
+    "T1": "t1n",
+    "T1GD": "t1c",
+    "T2": "t2w",
+    "FLAIR": "t2f",
 }
 modalities_list = list(modality_id_dict.keys())
 
@@ -266,10 +273,10 @@ def _copy_files_to_correct_location(interimOutputDir, finalSubjectOutputDir, sub
     }
     expected_outputs = {
         "ID": subjectID,
-        "T1": posixpath.join(finalSubjectOutputDir, subjectID + "_t1.nii.gz"),
-        "T1GD": posixpath.join(finalSubjectOutputDir, subjectID + "_t1ce.nii.gz"),
-        "T2": posixpath.join(finalSubjectOutputDir, subjectID + "_t2.nii.gz"),
-        "FLAIR": posixpath.join(finalSubjectOutputDir, subjectID + "_flair.nii.gz"),
+        "T1": posixpath.join(finalSubjectOutputDir, subjectID + "_t1n.nii.gz"),
+        "T1GD": posixpath.join(finalSubjectOutputDir, subjectID + "_t1c.nii.gz"),
+        "T2": posixpath.join(finalSubjectOutputDir, subjectID + "_t2w.nii.gz"),
+        "FLAIR": posixpath.join(finalSubjectOutputDir, subjectID + "_t2f.nii.gz"),
     }
 
     for key in input_files.keys():
@@ -710,7 +717,7 @@ class Preparator:
             masked_image = sitk.Mask(image, brain_mask)
             file_to_save = posixpath.join(
                 finalSubjectOutputDir_actual,
-                f"{subject_id_timepoint}_brain_{modality}.nii.gz",
+                f"{subject_id_timepoint}_brain_{modality_id_mapping[modality]}.nii.gz",
             )
             sitk.WriteImage(masked_image, file_to_save)
             input_for_tumor_models[modality] = file_to_save
