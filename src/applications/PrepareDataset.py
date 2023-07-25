@@ -727,12 +727,16 @@ class Preparator:
 
         pbar.set_description(f"Brain Tumor Segmentation")
 
+        tumor_segmentation_models_dir = posixpath.join(models_dir, "tumor_segmentation")
+        tumor_segmentation_models = [
+            posixpath.join(tumor_segmentation_models_dir, model_dir)
+            for model_dir in os.listdir(tumor_segmentation_models_dir)
+        ]
+
         tumor_masks_for_qc = _run_tumor_segmentation_using_gandlf(
             subject_id_timepoint,
             input_for_tumor_models,
-            interimOutputDir_actual
-            + ","
-            + interimOutputDir_actual,  # todo: this needs to be changed appropriately
+            tumor_segmentation_models,
             interimOutputDir_actual,
         )
 
