@@ -434,11 +434,10 @@ def _run_tumor_segmentation_using_gandlf(
             output_dir=model_output_dir,
         )
 
-        subject_model_output_dir = os.listdir(
-            posixpath.join(model_output_dir, "testing")
-        )
+        model_output_dir_testing = posixpath.join(model_output_dir, "testing")
+        subject_model_output_dir = os.listdir(model_output_dir_testing)
         for subject in subject_model_output_dir:
-            subject_output_dir = posixpath.join(subject_model_output_dir, subject)
+            subject_output_dir = posixpath.join(model_output_dir_testing, subject)
             files_in_modality = os.listdir(subject_output_dir)
             for file in files_in_modality:
                 if file.endswith(".nii.gz"):
