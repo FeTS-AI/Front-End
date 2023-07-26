@@ -74,4 +74,6 @@ COPY ./mlcubes/data_preparation/project /project
 
 RUN cp /Front-End/src/applications/*.py /project/stages/
 
+RUN cp -R /Front-End/src/applications/data_prep_models /project/stages/data_prep_models
+
 ENTRYPOINT ["python", "/project/mlcube.py"]
