@@ -15,10 +15,17 @@ from LabelFusion.wrapper import fuse_images
 
 # check against all these modality ID strings with extensions
 MODALITY_ID_DICT = {
-    "T1": ["t1", "t1pre", "t1precontrast"],
+    "T1": ["t1", "t1pre", "t1precontrast", "t1n"],
     "T1GD": ["t1ce", "t1gd", "t1post", "t1postcontrast", "t1gallodinium", "t1c"],
-    "T2": ["t2"],
-    "FLAIR": ["flair", "fl", "t2flair"],
+    "T2": ["t2", "t2w"],
+    "FLAIR": ["flair", "fl", "t2flair", "t2f"],
+}
+# this is used to keep a mapping between the fets1 nomenclature
+MODALITY_ID_MAPPING = {
+    "T1": "t1n",
+    "T1GD": "t1c",
+    "T2": "t2w",
+    "FLAIR": "t2f",
 }
 MODALITIES_LIST = list(MODALITY_ID_DICT.keys())
 SUBJECT_NAMES = {"patientid", "subjectid", "subject", "subid"}
@@ -294,9 +301,9 @@ def get_expected_outputs(subjectID: str, output_dir: str) -> dict:
     expected_outputs = {
         "ID": subjectID,
         "T1": posixpath.join(output_dir, subjectID + "_t1.nii.gz"),
-        "T1GD": posixpath.join(output_dir, subjectID + "_t1ce.nii.gz"),
-        "T2": posixpath.join(output_dir, subjectID + "_t2.nii.gz"),
-        "FLAIR": posixpath.join(output_dir, subjectID + "_flair.nii.gz"),
+        "T1GD": posixpath.join(output_dir, subjectID + "_t1c.nii.gz"),
+        "T2": posixpath.join(output_dir, subjectID + "_t2w.nii.gz"),
+        "FLAIR": posixpath.join(output_dir, subjectID + "_t2f.nii.gz"),
     }
     return expected_outputs
 
@@ -373,9 +380,10 @@ def _run_brain_extraction_using_gandlf(
             output_dir=model_output_dir,
         )
 
-        modality_outputs = os.listdir(posixpath.join(model_output_dir, TESTING_FOLDER))
+        model_output_dir_testing = posixpath.join(model_output_dir, TESTING_FOLDER)
+        modality_outputs = os.listdir(model_output_dir_testing)
         for modality in modality_outputs:
-            modality_output_dir = posixpath.join(modality_outputs, modality)
+            modality_output_dir = posixpath.join(model_output_dir_testing, modality)
             files_in_modality = os.listdir(modality_output_dir)
             for file in files_in_modality:
                 if file.endswith(".nii.gz"):
@@ -387,7 +395,7 @@ def _run_brain_extraction_using_gandlf(
                             f"brainMask_{model_counter}_{modality}.nii.gz",
                         ),
                     )
-                    images_for_fusion.append(sitk.ReadImage(file_path, sitk.sitkInt16))
+                    images_for_fusion.append(sitk.ReadImage(file_path, sitk.sitkUInt8))
         model_counter += 1
 
     return fuse_images(images_for_fusion, "staple", [0, 1])
@@ -462,11 +470,10 @@ def _run_tumor_segmentation_using_gandlf(
             output_dir=model_output_dir,
         )
 
-        subject_model_output_dir = os.listdir(
-            posixpath.join(model_output_dir, TESTING_FOLDER)
-        )
+        model_output_dir_testing = posixpath.join(model_output_dir, TESTING_FOLDER)
+        subject_model_output_dir = os.listdir(model_output_dir_testing)
         for subject in subject_model_output_dir:
-            subject_output_dir = posixpath.join(subject_model_output_dir, subject)
+            subject_output_dir = posixpath.join(model_output_dir_testing, subject)
             files_in_modality = os.listdir(subject_output_dir)
             for file in files_in_modality:
                 if file.endswith(".nii.gz"):
@@ -478,7 +485,7 @@ def _run_tumor_segmentation_using_gandlf(
                             f"{subject_id}_tumorMask_model-{model_counter}.nii.gz",
                         ),
                     )
-                    images_for_fusion.append(sitk.ReadImage(file_path, sitk.sitkInt16))
+                    images_for_fusion.append(sitk.ReadImage(file_path, sitk.sitkUInt8))
         model_counter += 1
 
     tumor_class_list = [0, 1, 2, 3, 4]
@@ -775,7 +782,10 @@ class Preparator:
         for modality in MODALITIES_LIST:
             image = sitk.ReadImage(outputs_reoriented[modality])
             masked_image = sitk.Mask(image, brain_mask)
-            file_to_save = input_for_tumor_models[modality]
+            file_to_save = posixpath.join(
+                finalSubjectOutputDir_actual,
+                f"{subject_id_timepoint}_brain_{MODALITY_ID_MAPPING[modality]}.nii.gz",
+            )
             sitk.WriteImage(masked_image, file_to_save)
 
         # save the screenshot
@@ -801,12 +811,16 @@ class Preparator:
 
         pbar.set_description(f"Brain Tumor Segmentation")
 
+        tumor_segmentation_models_dir = posixpath.join(models_dir, "tumor_segmentation")
+        tumor_segmentation_models = [
+            posixpath.join(tumor_segmentation_models_dir, model_dir)
+            for model_dir in os.listdir(tumor_segmentation_models_dir)
+        ]
+
         tumor_masks_for_qc = _run_tumor_segmentation_using_gandlf(
             subject_id_timepoint,
             input_for_tumor_models,
-            interimOutputDir_actual
-            + ","
-            + interimOutputDir_actual,  # todo: this needs to be changed appropriately
+            tumor_segmentation_models,
             interimOutputDir_actual,
         )
 
