@@ -563,6 +563,7 @@ class Preparator:
         self.extract_tumor(row, pbar)
 
     def __get_row_information(self, row: pd.Series):
+        parsed_headers = self.parsed_headers
         subject_id = row[self.parsed_headers["ID"]]
         subject_id_timepoint = subject_id
 
@@ -574,19 +575,6 @@ class Preparator:
             self.final_output_dir, subject_id_timepoint
         )
 
-        return subject_id, interimOutputDir_actual, finalSubjectOutputDir_actual
-
-    def convert_to_dicom(self, idx: int, row: pd.Series, pbar: tqdm):
-        parsed_headers = self.parsed_headers
-        bratsPipeline_exe = self.brats_pipeline_exe
-
-        (
-            subject_id,
-            interimOutputDir_actual,
-            finalSubjectOutputDir_actual,
-        ) = self.__get_row_information(row)
-        subject_id_timepoint = subject_id
-
         # per the data ingestion step, we are creating a new folder called timepoint, can join timepoint to subjectid if needed
         if parsed_headers["Timepoint"] is not None:
             timepoint = row[parsed_headers["Timepoint"]]
@@ -595,6 +583,26 @@ class Preparator:
             finalSubjectOutputDir_actual = posixpath.join(
                 finalSubjectOutputDir_actual, timepoint
             )
+
+        return (
+            subject_id,
+            timepoint,
+            subject_id_timepoint,
+            interimOutputDir_actual,
+            finalSubjectOutputDir_actual,
+        )
+
+    def convert_to_dicom(self, idx: int, row: pd.Series, pbar: tqdm):
+        parsed_headers = self.parsed_headers
+        bratsPipeline_exe = self.brats_pipeline_exe
+
+        (
+            subject_id,
+            timepoint,
+            subject_id_timepoint,
+            interimOutputDir_actual,
+            finalSubjectOutputDir_actual,
+        ) = self.__get_row_information(row)
 
         # create QC and Final output dirs for each subject
         Path(interimOutputDir_actual).mkdir(parents=True, exist_ok=True)
@@ -726,6 +734,7 @@ class Preparator:
 
     def extract_brain(self, row: pd.Series, pbar: tqdm):
         (
+            *_,
             subject_id_timepoint,
             interimOutputDir_actual,
             finalSubjectOutputDir_actual,
@@ -781,6 +790,7 @@ class Preparator:
 
     def extract_tumor(self, row: pd.Series, pbar: tqdm):
         (
+            *_,
             subject_id_timepoint,
             interimOutputDir_actual,
             finalSubjectOutputDir_actual,
