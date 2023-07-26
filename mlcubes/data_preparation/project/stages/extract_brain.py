@@ -91,8 +91,9 @@ class ExtractBrain(RowStage):
             self.exception = e
 
     def __update_prev_stage_state(self, index: Union[str, int], report: pd.DataFrame):
-        prev_data_path = report.loc[index]["data_path"]
-        shutil.rmtree(prev_data_path)
+        prev_fets_path, prev_qc_path = self.__get_prev_output_paths(index)
+        shutil.rmtree(prev_fets_path)
+        shutil.rmtree(prev_qc_path)
 
     def __undo_current_stage_changes(self, index: Union[str, int]):
         id, tp = get_id_tp(index)
