@@ -82,8 +82,8 @@ for model in urls_for_download.keys():
             posixpath.join(models_dir, model, "model_0", "config.yaml")
         ).exists():
             if not Path(zip_file).exists():
-                print("Downloading brain extraction models")
-                url = "https://upenn.box.com/shared/static/cp5xz726mtb6gwwym8ydcxmw52zfngun"
+                print(f"Downloading {model} models")
+                url = urls_for_download[model]
                 urlretrieve(urls_for_download[model], zip_file)
             z = ZipFile(zip_file)
             z.extractall(models_dir)

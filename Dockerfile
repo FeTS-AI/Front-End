@@ -42,6 +42,8 @@ RUN curl -fSsL -O https://bootstrap.pypa.io/get-pip.py -o get-pip.py && \
 
 RUN cd bin/install/appdir/usr/bin/ && pip install --upgrade pip wheel && pip install torch==1.13.1+cpu torchvision==0.14.1+cpu torchaudio==0.13.1 --extra-index-url https://download.pytorch.org/whl/cpu && pip install -e . && pip install setuptools-rust Cython scikit-build scikit-learn openvino==2023.0.1 openvino-dev==2023.0.1 && pip install -e .
 
+### put together a data example that is already aligned and ready to invoke the brain extraction and tumor segmentation
+
 # set up the docker for GUI
 ENV LD_LIBRARY_PATH=/CaPTk/bin/qt/5.12.1/lib:$LD_LIBRARY_PATH
 ENV PATH=/Front-End/bin/install/appdir/usr/bin/:$PATH
