@@ -709,7 +709,6 @@ class Preparator:
         sitk.WriteImage(brain_mask, brain_mask_path)
 
         # this is to ensure that the mask and reoriented images are in the same byte order
-        brain_mask = sitk.Cast(brain_mask, sitk.sitkFloat32)
         input_for_tumor_models = {}
         for modality in modalities_list:
             image = sitk.ReadImage(outputs_reoriented[modality])
