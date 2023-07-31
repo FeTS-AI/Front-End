@@ -313,7 +313,7 @@ def get_brain_mask_files(subject_id, output_dir) -> dict:
     for modality in MODALITIES_LIST:
         files[modality] = posixpath.join(
             output_dir,
-            f"{subject_id}_brain_{modality}.nii.gz",
+            f"{subject_id}_brain_{MODALITY_ID_MAPPING[modality]}.nii.gz",
         )
     return files
 
@@ -775,7 +775,7 @@ class Preparator:
         sitk.WriteImage(brain_mask, brain_mask_path)
 
         # this is to ensure that the mask and reoriented images are in the same byte order
-        brain_mask = sitk.Cast(brain_mask, sitk.sitkFloat32)
+        # brain_mask = sitk.Cast(brain_mask, sitk.sitkFloat32)
         input_for_tumor_models = get_brain_mask_files(
             subject_id_timepoint, finalSubjectOutputDir_actual
         )
