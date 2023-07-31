@@ -29,6 +29,7 @@ class Extract(RowStage):
         self.pbar = pbar
         self.failed = False
         self.exception = None
+        self.status_code = status_code
 
     def get_name(self) -> str:
         return self.func_name.replace("_", " ").capitalize()
@@ -129,7 +130,7 @@ class Extract(RowStage):
     ) -> pd.DataFrame:
         paths = self.__get_output_paths(index)
         report_data = {
-            "status": 3,
+            "status": self.status_code,
             "status_name": f"{self.func_name.upper()}_FINISHED",
             "comment": "",
             "data_path": ",".join(paths),
@@ -145,7 +146,7 @@ class Extract(RowStage):
         msg = str(self.exception)
 
         report_data = {
-            "status": -3,
+            "status": -self.status_code,
             "status_name": f"{self.func_name.upper()}_FAILED",
             "comment": msg,
             "data_path": ",".join(prev_paths),
