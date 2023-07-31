@@ -9,19 +9,29 @@ from .PrepareDataset import Preparator, INTERIM_FOLDER, FINAL_FOLDER
 from .utils import update_row_with_dict, get_id_tp, MockTqdm
 
 
-class ExtractBrain(RowStage):
-    def __init__(self, data_csv: str, out_path: str, prev_stage_path: str, pbar: tqdm):
+class Extract(RowStage):
+    def __init__(
+        self,
+        data_csv: str,
+        out_path: str,
+        prev_stage_path: str,
+        pbar: tqdm,
+        func_name: str,
+        status_code: int,
+    ):
         self.data_csv = data_csv
         self.out_path = out_path
         self.prev_stage_path = prev_stage_path
         os.makedirs(self.out_path, exist_ok=True)
         self.prep = Preparator(data_csv, out_path, "BraTSPipeline")
+        self.func_name = func_name
+        self.func = getattr(self.prep, func_name)
         self.pbar = pbar
         self.failed = False
         self.exception = None
 
     def get_name(self) -> str:
-        return "NiFTI Conversion"
+        return self.func_name.replace("_", " ").capitalize()
 
     def should_run(self, index: Union[str, int], report: pd.DataFrame) -> bool:
         """Determine if case at given index needs to be converted to NIfTI
@@ -85,7 +95,7 @@ class ExtractBrain(RowStage):
         df = self.prep.subjects_df
         row = df[(df["SubjectID"] == id) & (df["Timepoint"] == tp)].iloc[0]
         try:
-            self.prep.extract_brain(row, self.pbar)
+            self.func(row, self.pbar)
         except Exception as e:
             self.failed = True
             self.exception = e
@@ -120,7 +130,7 @@ class ExtractBrain(RowStage):
         paths = self.__get_output_paths(index)
         report_data = {
             "status": 3,
-            "status_name": "BRAIN_EXTRACTED",
+            "status_name": f"{self.func_name.upper()}_FINISHED",
             "comment": "",
             "data_path": ",".join(paths),
             "labels_path": "",
@@ -136,7 +146,7 @@ class ExtractBrain(RowStage):
 
         report_data = {
             "status": -3,
-            "status_name": "BRAIN_EXTRACTION_FAILED",
+            "status_name": f"{self.func_name.upper()}_FAILED",
             "comment": msg,
             "data_path": ",".join(prev_paths),
             "labels_path": "",
