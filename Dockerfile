@@ -23,6 +23,11 @@ COPY docs_sources docs_sources
 
 RUN pwd && ls -l
 
+# Download model checkpoints to torch checkpoint location
+RUN mkdir -p /root/.cache/torch/hub/checkpoints && \
+    wget -O /root/.cache/torch/hub/checkpoints/dpn98-722954780.pth http://data.lip6.fr/cadene/pretrainedmodels/dpn98-722954780.pth --no-check-certificate && \
+    wget -O /root/.cache/torch/hub/checkpoints/resnet50-19c8e357.pth https://download.pytorch.org/models/resnet50-19c8e357.pth
+
 ## C++ build
 RUN mkdir bin && cd bin && cmake -DCMAKE_INSTALL_PREFIX="./install/appdir/usr" -DITK_DIR="/CaPTk/bin/ITK-build" -DDCMTK_DIR="/CaPTk/bin/DCMTK-build" -DBUILD_TESTING=OFF .. && make -j$(nproc) && make install/strip 
 
