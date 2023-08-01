@@ -811,6 +811,9 @@ class Preparator:
 
         pbar.set_description(f"Brain Tumor Segmentation")
 
+        # TODO: replace path with the correct one
+        models_dir = posixpath.join(Path(__file__).parent.resolve(), "data_prep_models")
+
         tumor_segmentation_models_dir = posixpath.join(models_dir, "tumor_segmentation")
         tumor_segmentation_models = [
             posixpath.join(tumor_segmentation_models_dir, model_dir)
