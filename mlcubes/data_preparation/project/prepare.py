@@ -9,6 +9,8 @@ from stages.generate_report import GenerateReport
 from stages.get_csv import AddToCSV
 from stages.nifti_transform import NIfTITransform
 from stages.extract import Extract
+from stages.manual import ManualStage
+from stages.constants import INTERIM_FOLDER, FINAL_FOLDER, TUMOR_MASK_FOLDER
 
 
 def find_csv_filenames(path_to_dir, suffix=".csv"):
@@ -118,19 +120,38 @@ if __name__ == "__main__":
     nifti_data_out = os.path.join(args.data_out, "prepared")
     brain_data_out = os.path.join(args.data_out, "brain_extracted")
     tumor_data_out = os.path.join(args.data_out, "tumor_extracted")
+    review_data_out = os.path.join(args.data_out, "reviewed")
+    backup_out = os.path.join(args.labels_out, ".tumor_segmentation_backup")
     subjects = list(report.index)
     loop = tqdm(subjects)
+    brain_subpaths = [INTERIM_FOLDER, FINAL_FOLDER]
+    tumor_subpaths = [TUMOR_MASK_FOLDER]
 
     csv_proc = AddToCSV(out_raw, out_data_csv, csv_data_out, out_raw)
     nifti_proc = NIfTITransform(out_data_csv, nifti_data_out, csv_data_out, loop)
     brain_extract_proc = Extract(
-        out_data_csv, brain_data_out, nifti_data_out, loop, "extract_brain", 3
+        out_data_csv,
+        brain_data_out,
+        brain_subpaths,
+        nifti_data_out,
+        brain_subpaths,
+        loop,
+        "extract_brain",
+        3,
     )
     tumor_extract_proc = Extract(
-        out_data_csv, tumor_data_out, brain_data_out, loop, "extract_tumor", 4
+        out_data_csv,
+        tumor_data_out,
+        tumor_subpaths,
+        brain_data_out,
+        brain_subpaths,
+        loop,
+        "extract_tumor",
+        4,
     )
+    manual_proc = ManualStage(out_data_csv, , tumor_data_out, backup_out)
 
-    stages = [csv_proc, nifti_proc, brain_extract_proc, tumor_extract_proc]
+    stages = [csv_proc, nifti_proc, brain_extract_proc, tumor_extract_proc, manual_proc]
 
     for subject in loop:
         for stage in stages:
