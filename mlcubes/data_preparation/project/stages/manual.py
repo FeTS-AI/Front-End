@@ -1,0 +1,77 @@
+from typing import Union
+import pandas as pd
+import os
+import shutil
+
+from .row_stage import RowStage
+from .constants import TUMOR_MASK_FOLDER, INTERIM_FOLDER
+from .utils import get_id_tp, update_row_with_dict
+
+
+class ManualStage(RowStage):
+    def __init__(
+        self, data_csv: str, out_path: str, prev_stage_path: str, backup_path: str
+    ):
+        self.data_csv = data_csv
+        self.out_path = out_path
+        self.prev_stage_path = prev_stage_path
+        self.backup_path = backup_path
+
+    def get_name(self):
+        return "Manual review"
+
+    def __get_input_path(self, index: Union[str, int]):
+        id, tp = get_id_tp(index)
+        path = os.path.join(
+            self.prev_stage_path, INTERIM_FOLDER, id, tp, TUMOR_MASK_FOLDER
+        )
+        return path
+
+    def __get_output_path(self, index: Union[str, int]):
+        id, tp = get_id_tp(index)
+        path = os.path.join(self.out_path, INTERIM_FOLDER, id, tp)
+        return path
+
+    def __get_backup_path(self, index: Union[str, int]):
+        id, tp = get_id_tp(index)
+        path = os.path.join(self.backup_path, id, tp, TUMOR_MASK_FOLDER)
+        return path
+
+    def should_run(self, index: Union[str, int], report: pd.DataFrame) -> bool:
+        return os.path.exists(self.__get_input_path(index))
+
+    def execute(self, index: Union[str, int], report: pd.DataFrame) -> pd.DataFrame:
+        """Manual steps are by definition not doable by an algorithm. Therefore,
+        execution of this step leads to a failed stage message, indicating that
+        the manual step has not been done.
+
+        Args:
+            index (Union[str, int]): _description_
+            report (pd.DataFrame): _description_
+
+        Returns:
+            pd.DataFrame: _description_
+        """
+
+        # Generate a hidden copy of the baseline segmentations
+        in_path = self.__get_input_path(index)
+        out_path = self.__get_output_path(index)
+        bak_path = self.__get_backup_path(index)
+        shutil.copytree(in_path, bak_path, dirs_exist_ok=True)
+        os.makedirs(out_path)
+
+        msg = (
+            "Please review and, if necessary, correct the generated "
+            + "tumor segmentations. Once reviewed, move the patient/id folder "
+            + f"to {out_path}"
+        )
+
+        report_data = {
+            "status": -5,
+            "status_name": "MANUAL_REVIEW_REQUIRED",
+            "comment": msg,
+            "data_path": in_path,
+            "labels_path": "",
+        }
+        update_row_with_dict(report, report_data, index)
+        return report
