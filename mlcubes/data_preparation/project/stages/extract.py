@@ -1,8 +1,9 @@
-from typing import Union
+from typing import Union, List
 from tqdm import tqdm
 import pandas as pd
 import os
 import shutil
+import traceback
 
 from .row_stage import RowStage
 from .PrepareDataset import Preparator, INTERIM_FOLDER, FINAL_FOLDER
@@ -14,14 +15,18 @@ class Extract(RowStage):
         self,
         data_csv: str,
         out_path: str,
+        subpaths: List[str],
         prev_stage_path: str,
+        prev_subpaths: List[str],
         pbar: tqdm,
         func_name: str,
         status_code: int,
     ):
         self.data_csv = data_csv
         self.out_path = out_path
-        self.prev_stage_path = prev_stage_path
+        self.subpaths = subpaths
+        self.prev_path = prev_stage_path
+        self.prev_subpaths = prev_subpaths
         os.makedirs(self.out_path, exist_ok=True)
         self.prep = Preparator(data_csv, out_path, "BraTSPipeline")
         self.func_name = func_name
@@ -44,8 +49,8 @@ class Extract(RowStage):
         Returns:
             bool: Wether this stage should be executed for the given case
         """
-        prev_fets_path, prev_qc_path = self.__get_prev_output_paths(index)
-        return os.path.exists(prev_fets_path) and os.path.exists(prev_qc_path)
+        prev_paths = self.__get_paths(index, self.prev_path, self.prev_subpaths)
+        return all([os.path.exists(path) for path in prev_paths])
 
     def execute(self, index: Union[str, int], report: pd.DataFrame) -> pd.DataFrame:
         """Executes the NIfTI transformation stage on the given case
@@ -60,7 +65,7 @@ class Extract(RowStage):
         self.__prepare_exec()
         self.__copy_case(index)
         self.__process_case(index)
-        report = self.__update_report(index, report)
+        report = self.__update_state(index, report)
         self.prep.write()
 
         return report
@@ -72,24 +77,18 @@ class Extract(RowStage):
         # Update the out dataframes to current state
         self.prep.read()
 
-    def __get_prev_output_paths(self, index: Union[str, int]):
+    def __get_paths(self, index: Union[str, int], path: str, subpaths: List[str]):
         id, tp = get_id_tp(index)
-        prev_fets_path = os.path.join(self.prev_stage_path, FINAL_FOLDER, id, tp)
-        prev_qc_path = os.path.join(self.prev_stage_path, INTERIM_FOLDER, id, tp)
-        return prev_fets_path, prev_qc_path
-
-    def __get_output_paths(self, index: Union[str, int]):
-        id, tp = get_id_tp(index)
-        fets_path = os.path.join(self.prep.final_output_dir, id, tp)
-        qc_path = os.path.join(self.prep.interim_output_dir, id, tp)
-
-        return fets_path, qc_path
+        out_paths = []
+        for subpath in subpaths:
+            out_paths.append(os.path.join(path, subpath, id, tp))
+        return out_paths
 
     def __copy_case(self, index: Union[str, int]):
-        prev_fets_path, prev_qc_path = self.__get_prev_output_paths(index)
-        fets_path, qc_path = self.__get_output_paths(index)
-        shutil.copytree(prev_fets_path, fets_path, dirs_exist_ok=True)
-        shutil.copytree(prev_qc_path, qc_path, dirs_exist_ok=True)
+        prev_paths = self.__get_paths(index, self.prev_path, self.prev_subpaths)
+        copy_paths = self.__get_paths(index, self.out_path, self.prev_subpaths)
+        for prev, copy in zip(prev_paths, copy_paths):
+            shutil.copytree(prev, copy, dirs_exist_ok=True)
 
     def __process_case(self, index: Union[str, int]):
         id, tp = get_id_tp(index)
@@ -100,35 +99,27 @@ class Extract(RowStage):
         except Exception as e:
             self.failed = True
             self.exception = e
+            self.traceback = traceback.format_exc()
 
-    def __update_prev_stage_state(self, index: Union[str, int], report: pd.DataFrame):
-        prev_fets_path, prev_qc_path = self.__get_prev_output_paths(index)
-        shutil.rmtree(prev_fets_path)
-        shutil.rmtree(prev_qc_path)
-
-    def __undo_current_stage_changes(self, index: Union[str, int]):
-        id, tp = get_id_tp(index)
-        fets_path = os.path.join(self.out_path, FINAL_FOLDER, id, tp)
-        qc_path = os.path.join(self.out_path, INTERIM_FOLDER, id, tp)
-        shutil.rmtree(fets_path, ignore_errors=True)
-        shutil.rmtree(qc_path, ignore_errors=True)
-
-    def __update_report(
+    def __update_state(
         self, index: Union[str, int], report: pd.DataFrame
     ) -> pd.DataFrame:
         if self.failed:
-            self.__undo_current_stage_changes(index)
+            del_paths = self.__get_paths(index, self.out_path, self.subpaths)
             report = self.__report_failure(index, report)
         else:
-            self.__update_prev_stage_state(index, report)
+            del_paths = self.__get_paths(index, self.prev_path, self.prev_subpaths)
             report = self.__report_success(index, report)
+
+        for path in del_paths:
+            shutil.rmtree(path, ignore_errors=True)
 
         return report
 
     def __report_success(
         self, index: Union[str, int], report: pd.DataFrame
     ) -> pd.DataFrame:
-        paths = self.__get_output_paths(index)
+        paths = self.__get_paths(index, self.out_path, self.subpaths)
         report_data = {
             "status": self.status_code,
             "status_name": f"{self.func_name.upper()}_FINISHED",
@@ -142,8 +133,8 @@ class Extract(RowStage):
     def __report_failure(
         self, index: Union[str, int], report: pd.DataFrame
     ) -> pd.DataFrame:
-        prev_paths = self.__get_prev_output_paths(index)
-        msg = str(self.exception)
+        prev_paths = self.__get_paths(index, self.prev_path, self.prev_subpaths)
+        msg = f"{str(self.exception)}: {self.traceback}"
 
         report_data = {
             "status": -self.status_code,
