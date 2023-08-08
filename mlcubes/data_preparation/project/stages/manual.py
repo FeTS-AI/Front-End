@@ -5,7 +5,7 @@ import shutil
 
 from .row_stage import RowStage
 from .constants import TUMOR_MASK_FOLDER, INTERIM_FOLDER
-from .utils import get_id_tp, update_row_with_dict
+from .utils import get_id_tp, update_row_with_dict, set_files_read_only
 
 
 class ManualStage(RowStage):
@@ -57,8 +57,10 @@ class ManualStage(RowStage):
         in_path = self.__get_input_path(index)
         out_path = self.__get_output_path(index)
         bak_path = self.__get_backup_path(index)
+        shutil.rmtree(bak_path, ignore_errors=True)
         shutil.copytree(in_path, bak_path, dirs_exist_ok=True)
-        os.makedirs(out_path)
+        set_files_read_only(bak_path)
+        os.makedirs(out_path, exist_ok=True)
 
         msg = (
             "Please review and, if necessary, correct the generated "

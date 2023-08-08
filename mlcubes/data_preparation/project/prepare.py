@@ -149,7 +149,7 @@ if __name__ == "__main__":
         "extract_tumor",
         4,
     )
-    manual_proc = ManualStage(out_data_csv, , tumor_data_out, backup_out)
+    manual_proc = ManualStage(out_data_csv, review_data_out, tumor_data_out, backup_out)
 
     stages = [csv_proc, nifti_proc, brain_extract_proc, tumor_extract_proc, manual_proc]
 
