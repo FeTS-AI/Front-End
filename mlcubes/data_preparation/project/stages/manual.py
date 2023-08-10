@@ -27,9 +27,14 @@ class ManualStage(RowStage):
         )
         return path
 
+    def __get_under_review_path(self, index: Union[str, int]):
+        id, tp = get_id_tp(index)
+        path = os.path.join(self.out_path, INTERIM_FOLDER, id, tp, "under_review")
+        return path
+
     def __get_output_path(self, index: Union[str, int]):
         id, tp = get_id_tp(index)
-        path = os.path.join(self.out_path, INTERIM_FOLDER, id, tp)
+        path = os.path.join(self.out_path, INTERIM_FOLDER, id, tp, "reviewed")
         return path
 
     def __get_backup_path(self, index: Union[str, int]):
@@ -56,16 +61,19 @@ class ManualStage(RowStage):
         # Generate a hidden copy of the baseline segmentations
         in_path = self.__get_input_path(index)
         out_path = self.__get_output_path(index)
+        under_review_path = self.__get_under_review_path(index)
         bak_path = self.__get_backup_path(index)
-        shutil.rmtree(bak_path, ignore_errors=True)
-        shutil.copytree(in_path, bak_path, dirs_exist_ok=True)
-        set_files_read_only(bak_path)
+        if not os.path.exists(bak_path):
+            shutil.copytree(in_path, bak_path)
+            set_files_read_only(bak_path)
+        os.makedirs(under_review_path, exist_ok=True)
         os.makedirs(out_path, exist_ok=True)
 
         msg = (
-            "Please review and, if necessary, correct the generated "
-            + "tumor segmentations. Once reviewed, move the patient/id folder "
-            + f"to {out_path}"
+            f"You may find baseline segmentations inside {in_path}. "
+            + f"Please inspect those segmentations and move the best one to {under_review_path}. "
+            + "Make the necessary corrections to the generated segmentations with your desired tool, "
+            + f"and once you're done, move the finalized file to {out_path}"
         )
 
         report_data = {
