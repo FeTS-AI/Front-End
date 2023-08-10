@@ -10,6 +10,7 @@ from stages.get_csv import AddToCSV
 from stages.nifti_transform import NIfTITransform
 from stages.extract import Extract
 from stages.manual import ManualStage
+from stages.match import MatchStage
 from stages.constants import INTERIM_FOLDER, FINAL_FOLDER, TUMOR_MASK_FOLDER
 
 
@@ -120,7 +121,7 @@ if __name__ == "__main__":
     nifti_data_out = os.path.join(args.data_out, "prepared")
     brain_data_out = os.path.join(args.data_out, "brain_extracted")
     tumor_data_out = os.path.join(args.data_out, "tumor_extracted")
-    review_data_out = os.path.join(args.data_out, "reviewed")
+    match_data_out = args.labels_out
     backup_out = os.path.join(args.labels_out, ".tumor_segmentation_backup")
     subjects = list(report.index)
     loop = tqdm(subjects)
@@ -149,7 +150,7 @@ if __name__ == "__main__":
         "extract_tumor",
         4,
     )
-    manual_proc = ManualStage(out_data_csv, review_data_out, tumor_data_out, backup_out)
+    manual_proc = ManualStage(out_data_csv, tumor_data_out, tumor_data_out, backup_out)
 
     stages = [csv_proc, nifti_proc, brain_extract_proc, tumor_extract_proc, manual_proc]
 
@@ -164,3 +165,14 @@ if __name__ == "__main__":
     cleanup(csv_data_out)
     cleanup(nifti_data_out)
     cleanup(brain_data_out)
+
+    match_proc = MatchStage(
+        out_data_csv,
+        match_data_out,
+        tumor_data_out,
+        backup_out,
+    )
+
+    if match_proc.should_run(report):
+        loop.set_description(stage.get_name())
+        report = stage.execute(0, report)
