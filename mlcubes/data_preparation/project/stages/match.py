@@ -8,7 +8,7 @@ from pandas import DataFrame
 
 from .dset_stage import DatasetStage
 from .utils import get_id_tp
-from .constants import TUMOR_MASK_FOLDER
+from .constants import TUMOR_MASK_FOLDER, INTERIM_FOLDER
 import GANDLF
 from GANDLF.cli import generate_metrics
 
@@ -28,22 +28,41 @@ class MatchStage(DatasetStage):
         path = os.path.join(self.prev_stage_path, id, tp)
         return path
 
-    def __get_backup_path(self, index: str | int):
+    def __get_backup_path(self, index: Union[str, int]):
         id, tp = get_id_tp(index)
         path = os.path.join(self.backup_path, id, tp)
         return path
 
-    def __get_output_path(self, index: str | int):
+    def __get_output_path(self, index: Union[str, int]):
         id, tp = get_id_tp(index)
         path = os.path.join(self.out_path, id, tp)
         return path
 
     def should_run(self, report: DataFrame) -> bool:
+        # Should run once all cases have a selected and corrected segmentation
         data = pd.read_csv(self.data_csv)
-        print(data)
-        return False
 
-    def execute(self, index: str | int, report: DataFrame) -> DataFrame:
+        def get_row_path(row: pd.Series):
+            return os.path.join(
+                self.prev_stage_path,
+                INTERIM_FOLDER,
+                row["SubjectID"],
+                row["Timepoint"],
+                "reviewed",
+            )
+
+        def valid_case(path):
+            path_exists = os.path.exists(path)
+            contains_case = False
+            if path_exists:
+                contains_case = len(os.listdir(path)) == 1
+            return path_exists and contains_case
+
+        data["expected_path"] = data.apply(get_row_path, axis="columns")
+        valid_data = data["expected_path"].apply(valid_case)
+        return all(valid_data)
+
+    def execute(self, index: Union[str, int], report: DataFrame) -> DataFrame:
         # TODO: Create a CSV with the expected structure
         # TODO: Run the generate metrics command
         # TODO: Read the generated metrics and extract the necessary ones
