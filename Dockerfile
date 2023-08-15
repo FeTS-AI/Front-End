@@ -76,9 +76,9 @@ ENV LANG C.UTF-8
 
 RUN mkdir /project/stages
 
-RUN cp /Front-End/src/applications/*.py /project/stages/
+RUN cp /Front-End/bin/install/appdir/usr/bin/*.py /project/stages/
 
-RUN cp -R /Front-End/src/applications/data_prep_models /project/stages/data_prep_models
+RUN cp -R /Front-End/bin/install/appdir/usr/bin/data_prep_models /project/stages/data_prep_models
 
 # Hotfix: install more recent version of GaNDLF for metrics generation
 RUN pip install git+https://github.com/mlcommons/GaNDLF@616b37bafad8f89d5c816a88f44fa30470601311
