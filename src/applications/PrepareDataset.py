@@ -381,9 +381,7 @@ def _run_tumor_segmentation_using_gandlf(
     channel_idx = 0
     # todo: confirm the order for modalities
     for key in MODALITIES_LIST:
-        current_subject = {
-            f"Channel_{channel_idx}": input_oriented_brain_images[key],
-        }
+        current_subject[f"Channel_{channel_idx}"] = input_oriented_brain_images[key]
         channel_idx += 1
     df_for_gandlf = pd.DataFrame(current_subject, index=[0])
     data_path = posixpath.join(base_output_dir, TUMOR_FILENAME)
@@ -401,6 +399,7 @@ def _run_tumor_segmentation_using_gandlf(
     model_counter = 0
     images_for_fusion = []
     mask_output_dir = posixpath.join(base_output_dir, TUMOR_MASK_FOLDER)
+    os.makedirs(mask_output_dir, exist_ok=True)
     for model_dir in models_to_run:
         model_output_dir = posixpath.join(
             base_output_dir, "model_" + str(model_counter)
@@ -447,7 +446,7 @@ def _run_tumor_segmentation_using_gandlf(
 
     tumor_class_list = [0, 1, 2, 3, 4]
 
-    tumor_masks_to_return = images_for_fusion
+    tumor_masks_to_return = []
 
     if len(images_for_fusion) > 1:
         for fusion_type in ["staple", "simple", "voting"]:
