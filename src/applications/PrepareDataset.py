@@ -428,6 +428,7 @@ def _run_tumor_segmentation_using_gandlf(
 
         model_output_dir_testing = posixpath.join(model_output_dir, TESTING_FOLDER)
         subject_model_output_dir = os.listdir(model_output_dir_testing)
+        tumor_masks_to_return = []
         for subject in subject_model_output_dir:
             subject_output_dir = posixpath.join(model_output_dir_testing, subject)
             files_in_modality = os.listdir(subject_output_dir)
@@ -441,12 +442,11 @@ def _run_tumor_segmentation_using_gandlf(
                             f"{subject_id}_tumorMask_model-{model_counter}.nii.gz",
                         ),
                     )
+                    tumor_masks_to_return.append(file_path)
                     images_for_fusion.append(sitk.ReadImage(file_path, sitk.sitkUInt8))
         model_counter += 1
 
     tumor_class_list = [0, 1, 2, 3, 4]
-
-    tumor_masks_to_return = []
 
     if len(images_for_fusion) > 1:
         for fusion_type in ["staple", "simple", "voting"]:
