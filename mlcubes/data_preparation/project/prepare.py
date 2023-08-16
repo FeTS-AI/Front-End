@@ -174,5 +174,5 @@ if __name__ == "__main__":
     )
 
     if match_proc.should_run(report):
-        loop.set_description(stage.get_name())
-        report = stage.execute(0, report)
+        loop.set_description(match_proc.get_name())
+        report = match_proc.execute("AAAC_0|2008.03.30", report)
