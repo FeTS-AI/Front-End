@@ -72,7 +72,7 @@ Path(models_dir).mkdir(parents=True, exist_ok=True)
 
 urls_for_download = {
     "brain_extraction": "https://upenn.box.com/shared/static/cp5xz726mtb6gwwym8ydcxmw52zfngun",
-    "tumor_segmentation": "https://upenn.box.com/shared/static/hdcb0xqj4z528v3uc9xmfu60p0xtsv62",  # should be changed
+    "tumor_segmentation": "https://upenn.box.com/shared/static/woiqk6x9ygazst5ofrnfnezuy0aw0tn6",  # should be changed
 }
 
 for model in urls_for_download.keys():
