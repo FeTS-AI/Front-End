@@ -1,4 +1,4 @@
-FROM ghcr.io/fets-ai/fetstool_docker_dependencies:0.0.2.gpu
+FROM pytorch/pytorch:1.11.0-cuda11.3-cudnn8-runtime
 
 LABEL authors="FeTS_Admin <admin@fets.ai>"
 
@@ -50,6 +50,15 @@ ARG PKG_COPY_QT_LIBS=1
 ENV GIT_LFS_SKIP_SMUDGE=$GIT_LFS_SKIP_SMUDGE
 ENV PKG_FAST_MODE=$PKG_FAST_MODE
 ENV PKG_COPY_QT_LIBS=$PKG_COPY_QT_LIBS
+
+# cloning CaPTk
+RUN if [ ! -d "`pwd`/CaPTk" ] ; then git clone "https://github.com/CBICA/CaPTk.git" CaPTk; fi 
+RUN cd CaPTk &&  git pull; \
+    git submodule update --init && mkdir bin
+
+RUN cd CaPTk/bin && echo "=== Starting CaPTk Superbuild ===" && \
+    if [ ! -d "`pwd`/qt" ] ; then wget https://github.com/CBICA/CaPTk/raw/master/binaries/qt_5.12.1/linux.zip -O qt.zip; fi ; \
+    cmake -DCMAKE_INSTALL_PREFIX=./install_libs -DQT_DOWNLOAD_FORCE=OFF -Wno-dev .. && make -j$(nproc) && rm -rf qt.zip && cd .. && mkdir Front-End
 
 RUN pwd && ls -l
 
