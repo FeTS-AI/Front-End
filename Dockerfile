@@ -2,57 +2,85 @@ FROM pytorch/pytorch:1.11.0-cuda11.3-cudnn8-runtime
 
 LABEL authors="FeTS_Admin <admin@fets.ai>"
 
-RUN apt-get update -y
+RUN apt-get update && apt-get update --fix-missing
 
-RUN apt-get install wget zip unzip software-properties-common gcc g++ make -y
 
-RUN apt-get update -y && add-apt-repository ppa:deadsnakes/ppa && apt update -y && apt install python3.7 python3.7-venv python3.7-dev python3-setuptools ffmpeg libsm6 libxext6 -y
+#general dependencies
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    apt-utils \
+    sudo \
+    libssl-dev \
+    make \
+    gcc-5 \
+    g++-5 
+RUN apt-get update && apt-get install -y \
+    wget \
+    git \
+    liblapack-dev \
+    unzip \
+    tcl \
+    tcl-dev 
+RUN apt-get update && apt-get install -y \
+    tk \
+    tk-dev \
+    libgl1-mesa-dev \
+    libxt-dev \
+    libmpc-dev \
+    libmpfr-dev 
+RUN apt-get update && apt-get install -y \
+    libgmp-dev \
+    dos2unix \
+    doxygen \
+    libubsan0 \
+    libcilkrts5 
 
-# We will do git pull on the FeTS_Front-End master, because that is the repo using which the base image is made
-# We will not do compiles on the PR because the idea is that the Xenial build will check the build status of
-# the PR in any case.
+# installing CMake
+RUN rm -rf /usr/bin/cmake; \
+    wget https://cmake.org/files/v3.12/cmake-3.12.4-Linux-x86_64.sh; \
+    mkdir /opt/cmake; \
+    sh cmake-3.12.4-Linux-x86_64.sh --prefix=/opt/cmake --skip-license; \
+    ln -s /opt/cmake/bin/cmake /usr/bin/cmake; \
+    rm -rf cmake-3.12.4-Linux-x86_64.sh
 
-ARG VERSION=0.0.9
+# setting up the build environment
+ARG GIT_LFS_SKIP_SMUDGE=1
+ARG PKG_FAST_MODE=1
+ARG PKG_COPY_QT_LIBS=1
+ENV GIT_LFS_SKIP_SMUDGE=$GIT_LFS_SKIP_SMUDGE
+ENV PKG_FAST_MODE=$PKG_FAST_MODE
+ENV PKG_COPY_QT_LIBS=$PKG_COPY_QT_LIBS
 
-# download installer
-RUN wget https://fets.projects.nitrc.org/FeTS_${VERSION}_Installer.bin && chmod +x FeTS_${VERSION}_Installer.bin
+# cloning CaPTk
+RUN if [ ! -d "`pwd`/CaPTk" ] ; then git clone "https://github.com/CBICA/CaPTk.git" CaPTk; fi 
+RUN cd CaPTk &&  git pull; \
+    git submodule update --init && mkdir bin
 
-# install FeTS and remove installer
-RUN yes yes | ./FeTS_${VERSION}_Installer.bin --target ./FeTS_${VERSION} -- --cudaVersion 11 && rm -rf ./FeTS_${VERSION}_Installer.bin
+RUN cd CaPTk/bin && echo "=== Starting CaPTk Superbuild ===" && \
+    if [ ! -d "`pwd`/qt" ] ; then wget https://github.com/CBICA/CaPTk/raw/master/binaries/qt_5.12.1/linux.zip -O qt.zip; fi ; \
+    cmake -DCMAKE_INSTALL_PREFIX=./install_libs -DQT_DOWNLOAD_FORCE=OFF -Wno-dev .. && make -j$(nproc) && rm -rf qt.zip && cd .. && mkdir Front-End
 
-ENV PATH=/workspace/FeTS_${VERSION}/squashfs-root/usr/bin/:$PATH
-ENV LD_LIBRARY_PATH=/workspace/FeTS_${VERSION}/squashfs-root/usr/lib/:$LD_LIBRARY_PATH
-ENV SKLEARN_ALLOW_DEPRECATED_SKLEARN_PACKAGE_INSTALL="True"
+RUN pwd && ls -l
 
-# set up environment and install correct version of pytorch
-RUN cd ./FeTS_${VERSION}/squashfs-root/usr/bin/OpenFederatedLearning && \
-    rm -rf ./venv && python3.7 -m venv ./venv && ./venv/bin/pip install Cython && \
-    ./venv/bin/pip install --upgrade pip setuptools wheel setuptools-rust && \
-    ./venv/bin/pip install torch==1.7.1+cu110 torchvision==0.8.2+cu110 torchaudio==0.7.2 -f https://download.pytorch.org/whl/torch_stable.html 
+WORKDIR /Front-End
 
-RUN cd ./FeTS_${VERSION}/squashfs-root/usr/bin/OpenFederatedLearning && \
-    ./venv/bin/pip install wheel && \
-    ./venv/bin/pip install scikit-build scikit-learn && \
-    ./venv/bin/pip install SimpleITK==1.2.4 && \
-    ./venv/bin/pip install protobuf==3.17.3 grpcio==1.30.0 && \
-    ./venv/bin/pip install opencv-python==4.2.0.34
-    # ./venv/bin/pip install python-gdcm
+COPY . .
 
-RUN cd ./FeTS_${VERSION}/squashfs-root/usr/bin/OpenFederatedLearning && \
-    ./venv/bin/pip install setuptools --upgrade && \
-    make install_openfl && \
-    make install_fets && \
-    ./venv/bin/pip install -e ./submodules/fets_ai/Algorithms/GANDLF && \
-    cd ../LabelFusion && \
-    rm -rf venv && python3.7 -m venv ./venv && \
-    ./venv/bin/pip install --upgrade pip setuptools wheel setuptools-rust && \
-    ./venv/bin/pip install -e .
+RUN pwd && ls -l
+
+## C++ build
+RUN mkdir bin && cd bin && cmake -DCMAKE_INSTALL_PREFIX="./install/appdir/usr" -DITK_DIR="/CaPTk/bin/ITK-build" -DDCMTK_DIR="/CaPTk/bin/DCMTK-build" -DBUILD_TESTING=OFF .. && make -j$(nproc) && make install/strip 
+
+## Python package installation
+RUN cd bin/install/appdir/usr/bin/ && python3.8 -m venv ./venv && ./venv/bin/pip install --upgrade pip wheel && ./venv/bin/pip install torch==1.13.1+cpu torchvision==0.14.1+cpu torchaudio==0.13.1 --extra-index-url https://download.pytorch.org/whl/cpu && ./venv/bin/pip install -e . && ./venv/bin/pip install setuptools-rust Cython scikit-build scikit-learn openvino-dev==2023.0.1 && ./venv/bin/pip install -e .
 
 # set up the docker for GUI
+ENV LD_LIBRARY_PATH=/CaPTk/bin/qt/5.12.1/lib:$LD_LIBRARY_PATH
+ENV PATH=/Front-End/bin/install/appdir/usr/bin/:$PATH
 ENV QT_X11_NO_MITSHM=1
 ENV QT_GRAPHICSSYSTEM="native"
 
 RUN echo "Env paths\n" && echo $PATH && echo $LD_LIBRARY_PATH
 
 # define entry point
-ENTRYPOINT ["/workspace/FeTS_0.0.9/squashfs-root/usr/bin/FeTS_CLI_Inference"]
+ENTRYPOINT ["/Front-End/bin/install/appdir/usr/bin/FeTS_CLI_Segment"]
