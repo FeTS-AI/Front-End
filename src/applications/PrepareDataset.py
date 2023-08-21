@@ -379,8 +379,10 @@ def _run_tumor_segmentation_using_gandlf(
     df_for_gandlf = pd.DataFrame(columns=GANDLF_DF_COLUMNS)
     current_subject = {"SubjectID": subject_id}
     channel_idx = 0
+    # modality order (trained according to EC): t1,t2,flair,t1c
+    modality_order = ["T1", "T2", "FLAIR", "T1GD"]
     # todo: confirm the order for modalities
-    for key in MODALITIES_LIST:
+    for key in modality_order:
         current_subject[f"Channel_{channel_idx}"] = input_oriented_brain_images[key]
         channel_idx += 1
     df_for_gandlf = pd.DataFrame(current_subject, index=[0])
