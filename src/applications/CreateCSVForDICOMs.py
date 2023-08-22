@@ -113,7 +113,7 @@ class CSVCreator:
                     continue
 
                 for modality_id in MODALITY_ID_DICT[modality_to_check]:
-                    if modality_id not in modality_lower:
+                    if modality_id != modality_lower:
                         continue
 
                     valid_dicom, first_dicom_file = verify_dicom_folder(modality_path)
