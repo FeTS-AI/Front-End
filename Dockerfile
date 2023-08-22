@@ -7,7 +7,7 @@ RUN apt-get update && apt-get update --fix-missing && apt-get install -y libnss3
 ENV PATH=/workspace/CaPTk/bin/qt/5.12.1/bin:/workspace/CaPTk/bin/qt/5.12.1/libexec:$PATH
 ENV CMAKE_PREFIX_PATH=/workspace/CaPTk/bin/ITK-build:/workspace/CaPTk/bin/DCMTK-build:/workspace/CaPTk/bin/qt/5.12.1/lib/cmake/Qt5:$CMAKE_PREFIX_PATH
 
-RUN pwd && ls -l && ls -l workspace/
+RUN pwd && ls -l
 
 WORKDIR /Front-End
 
