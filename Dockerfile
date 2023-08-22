@@ -4,8 +4,8 @@ LABEL authors="FeTS_Admin <admin@fets.ai>"
 
 RUN apt-get update && apt-get update --fix-missing && apt-get install -y libnss3 libnspr4 libxcursor1 libxcursor-dev libasound2 libdbus-1-dev libglfw3-dev libgles2-mesa-dev ffmpeg libsm6 libxext6 python3.8 python3.8-venv python3.8-dev python3-setuptools
 
-ENV PATH=/CaPTk/bin/qt/5.12.1/bin:/CaPTk/bin/qt/5.12.1/libexec:$PATH
-ENV CMAKE_PREFIX_PATH=/CaPTk/bin/ITK-build:/CaPTk/bin/DCMTK-build:/CaPTk/bin/qt/5.12.1/lib/cmake/Qt5:$CMAKE_PREFIX_PATH
+ENV PATH=/workspace/CaPTk/bin/qt/5.12.1/bin:/workspace/CaPTk/bin/qt/5.12.1/libexec:$PATH
+ENV CMAKE_PREFIX_PATH=/workspace/CaPTk/bin/ITK-build:/workspace/CaPTk/bin/DCMTK-build:/workspace/CaPTk/bin/qt/5.12.1/lib/cmake/Qt5:$CMAKE_PREFIX_PATH
 
 RUN pwd && ls -l && ls -l workspace/
 
@@ -16,7 +16,7 @@ COPY . .
 RUN pwd && ls -l
 
 ## C++ build
-RUN mkdir bin && cd bin && cmake -DCMAKE_INSTALL_PREFIX="./install/appdir/usr" -DITK_DIR="/CaPTk/bin/ITK-build" -DDCMTK_DIR="/CaPTk/bin/DCMTK-build" -DBUILD_TESTING=OFF .. && make -j$(nproc) && make install/strip 
+RUN mkdir bin && cd bin && cmake -DCMAKE_INSTALL_PREFIX="./install/appdir/usr" -DITK_DIR="/workspace/CaPTk/bin/ITK-build" -DDCMTK_DIR="/workspace/CaPTk/bin/DCMTK-build" -DBUILD_TESTING=OFF .. && make -j$(nproc) && make install/strip 
 
 ## Python package installation
 RUN cd bin/install/appdir/usr/bin/ && python3.8 -m venv ./venv && ./venv/bin/pip install --upgrade pip wheel && ./venv/bin/pip install torch==1.13.1+cpu torchvision==0.14.1+cpu torchaudio==0.13.1 --extra-index-url https://download.pytorch.org/whl/cpu && ./venv/bin/pip install -e . && ./venv/bin/pip install setuptools-rust Cython scikit-build scikit-learn openvino-dev==2023.0.1 && ./venv/bin/pip install -e .
