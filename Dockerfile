@@ -31,5 +31,5 @@ ENV QT_GRAPHICSSYSTEM="native"
 
 RUN echo "Env paths\n" && echo $PATH && echo $LD_LIBRARY_PATH
 
-# define entry point
+# define entry point as the preparedataset script
 ENTRYPOINT ["/Front-End/bin/install/appdir/usr/bin/venv/bin/python", "/Front-End/bin/install/appdir/usr/bin/PrepareDataset.py"]
