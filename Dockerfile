@@ -52,13 +52,13 @@ ENV PKG_FAST_MODE=$PKG_FAST_MODE
 ENV PKG_COPY_QT_LIBS=$PKG_COPY_QT_LIBS
 
 # cloning CaPTk
-RUN if [ ! -d "`pwd`/CaPTk" ] ; then git clone "https://github.com/CBICA/CaPTk.git" CaPTk; fi 
-RUN cd CaPTk &&  git pull; \
-    git submodule update --init && mkdir bin
+# RUN if [ ! -d "`pwd`/CaPTk" ] ; then git clone "https://github.com/CBICA/CaPTk.git" CaPTk; fi 
+# RUN cd CaPTk &&  git pull; \
+#     git submodule update --init && mkdir bin
 
-RUN cd CaPTk/bin && echo "=== Starting CaPTk Superbuild ===" && \
-    if [ ! -d "`pwd`/qt" ] ; then wget https://github.com/CBICA/CaPTk/raw/master/binaries/qt_5.12.1/linux.zip -O qt.zip; fi ; \
-    cmake -DCMAKE_INSTALL_PREFIX=./install_libs -DQT_DOWNLOAD_FORCE=OFF -Wno-dev .. && make -j$(nproc) && rm -rf qt.zip && cd .. && mkdir Front-End
+# RUN cd CaPTk/bin && echo "=== Starting CaPTk Superbuild ===" && \
+#     if [ ! -d "`pwd`/qt" ] ; then wget https://github.com/CBICA/CaPTk/raw/master/binaries/qt_5.12.1/linux.zip -O qt.zip; fi ; \
+#     cmake -DCMAKE_INSTALL_PREFIX=./install_libs -DQT_DOWNLOAD_FORCE=OFF -Wno-dev .. && make -j$(nproc) && rm -rf qt.zip && cd .. && mkdir Front-End
 
 RUN pwd && ls -l
 
