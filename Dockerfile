@@ -1,4 +1,4 @@
-FROM pytorch/pytorch:1.11.0-cuda11.3-cudnn8-runtime
+FROM ghcr.io/fets-ai/fetstool_docker_dependencies:0.0.2.gpu
 
 LABEL authors="FeTS_Admin <admin@fets.ai>"
 
