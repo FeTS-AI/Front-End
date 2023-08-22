@@ -60,7 +60,10 @@ ENV PKG_COPY_QT_LIBS=$PKG_COPY_QT_LIBS
 #     if [ ! -d "`pwd`/qt" ] ; then wget https://github.com/CBICA/CaPTk/raw/master/binaries/qt_5.12.1/linux.zip -O qt.zip; fi ; \
 #     cmake -DCMAKE_INSTALL_PREFIX=./install_libs -DQT_DOWNLOAD_FORCE=OFF -Wno-dev .. && make -j$(nproc) && rm -rf qt.zip && cd .. && mkdir Front-End
 
-RUN pwd && ls -l
+ENV PATH=/CaPTk/bin/qt/5.12.1/bin:/CaPTk/bin/qt/5.12.1/libexec:$PATH
+ENV CMAKE_PREFIX_PATH=/CaPTk/bin/ITK-build:/CaPTk/bin/DCMTK-build:/CaPTk/bin/qt/5.12.1/lib/cmake/Qt5:$CMAKE_PREFIX_PATH
+
+# RUN pwd && ls -l
 
 WORKDIR /Front-End
 
