@@ -4,7 +4,6 @@ LABEL authors="FeTS_Admin <admin@fets.ai>"
 
 RUN apt-get update && apt-get update --fix-missing
 
-
 #general dependencies
 RUN apt-get update && apt-get install -y \
     build-essential \
@@ -35,13 +34,13 @@ RUN apt-get update && apt-get install -y \
     libubsan0 \
     libcilkrts5 
 
-# installing CMake
-RUN rm -rf /usr/bin/cmake; \
-    wget https://cmake.org/files/v3.12/cmake-3.12.4-Linux-x86_64.sh; \
-    mkdir /opt/cmake; \
-    sh cmake-3.12.4-Linux-x86_64.sh --prefix=/opt/cmake --skip-license; \
-    ln -s /opt/cmake/bin/cmake /usr/bin/cmake; \
-    rm -rf cmake-3.12.4-Linux-x86_64.sh
+# # installing CMake
+# RUN rm -rf /usr/bin/cmake; \
+#     wget https://cmake.org/files/v3.12/cmake-3.12.4-Linux-x86_64.sh; \
+#     mkdir /opt/cmake; \
+#     sh cmake-3.12.4-Linux-x86_64.sh --prefix=/opt/cmake --skip-license; \
+#     ln -s /opt/cmake/bin/cmake /usr/bin/cmake; \
+#     rm -rf cmake-3.12.4-Linux-x86_64.sh
 
 # setting up the build environment
 ARG GIT_LFS_SKIP_SMUDGE=1
@@ -63,7 +62,9 @@ ENV PKG_COPY_QT_LIBS=$PKG_COPY_QT_LIBS
 ENV PATH=/CaPTk/bin/qt/5.12.1/bin:/CaPTk/bin/qt/5.12.1/libexec:$PATH
 ENV CMAKE_PREFIX_PATH=/CaPTk/bin/ITK-build:/CaPTk/bin/DCMTK-build:/CaPTk/bin/qt/5.12.1/lib/cmake/Qt5:$CMAKE_PREFIX_PATH
 
-# RUN pwd && ls -l
+RUN pwd && ls -l
+
+RUN pwd ls -l workspace
 
 WORKDIR /Front-End
 
