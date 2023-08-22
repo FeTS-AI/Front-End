@@ -104,24 +104,23 @@ SET( FILE_TO_EXTRACT ${PROJECT_BINARY_DIR}/${FILENAME_TO_EXTRACT}.zip)
 
 SET( DOWNLOADED_APPS_DIR ${PROJECT_BINARY_DIR}/hausdorff95 )
 
-IF( NOT EXISTS "${DOWNLOADED_APPS_DIR}" )
+#IF( NOT EXISTS "${DOWNLOADED_APPS_DIR}" )
 
-  IF( NOT EXISTS "${FILE_TO_EXTRACT}" )
-
-    # do not re-download if the LFS fetch worked
-    IF(NOT EXISTS ${FILE_TO_EXTRACT})
-      # download exe from url
-      MESSAGE( STATUS "Downloading pre-compiled hausdorff" )
-      FILE(DOWNLOAD "${DOWNLOAD_LINK}" "${FILE_TO_EXTRACT}" TIMEOUT 1000000 STATUS STATUS_CODE SHOW_PROGRESS)
-      IF(NOT STATUS_CODE EQUAL 0)
-        SET( DOWNLOAD_LINK "https://github.com/CBICA/precompiledBinaries/raw/master/${PLATFORM_STRING}/Hausdorff95_${PLATFORM_STRING}.zip" )
-        FILE(DOWNLOAD "${DOWNLOAD_LINK}" "${FILE_TO_EXTRACT}" TIMEOUT 1000000 STATUS STATUS_CODE SHOW_PROGRESS)
-        IF(NOT STATUS_CODE EQUAL 0)
-          MESSAGE(FATAL_ERROR "Failed to download Precompiled hausdorff. Status=${STATUS_CODE}")
-        ENDIF()
-      ENDIF()
-    ENDIF()
-  ENDIF()
+#  IF( NOT EXISTS "${FILE_TO_EXTRACT}" )
+#    # do not re-download if the LFS fetch worked
+#    IF(NOT EXISTS ${FILE_TO_EXTRACT})
+#      # download exe from url
+#      MESSAGE( STATUS "Downloading pre-compiled hausdorff" )
+#      FILE(DOWNLOAD "${DOWNLOAD_LINK}" "${FILE_TO_EXTRACT}" TIMEOUT 1000000 STATUS STATUS_CODE SHOW_PROGRESS)
+#      IF(NOT STATUS_CODE EQUAL 0)
+#        SET( DOWNLOAD_LINK "https://github.com/CBICA/precompiledBinaries/raw/master/${PLATFORM_STRING}/Hausdorff95_${PLATFORM_STRING}.zip" )
+#        FILE(DOWNLOAD "${DOWNLOAD_LINK}" "${FILE_TO_EXTRACT}" TIMEOUT 1000000 STATUS STATUS_CODE SHOW_PROGRESS)
+#        IF(NOT STATUS_CODE EQUAL 0)
+#          MESSAGE(FATAL_ERROR "Failed to download Precompiled hausdorff. Status=${STATUS_CODE}")
+#        ENDIF()
+#      ENDIF()
+#    ENDIF()
+#  ENDIF()
 
   FILE(MAKE_DIRECTORY ${DOWNLOADED_APPS_DIR})
 
