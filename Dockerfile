@@ -16,7 +16,9 @@ WORKDIR /Front-End
 
 COPY . .
 
-RUN pwd && ls -l && mv ./data/GANDLF_for_fetsTool1.0.zip OpenFederatedLearning/submodules/fets_ai/Algorithms && cd OpenFederatedLearning/submodules/fets_ai/Algorithms && unzip GANDLF_for_fetsTool1.0.zip && ls -l GANDLF && rm -rf GANDLF_for_fetsTool1.0.zip
+RUN pwd && ls -l && mv ./data/GANDLF_for_fetsTool1.0.zip OpenFederatedLearning/submodules/fets_ai/Algorithms && cd OpenFederatedLearning/submodules/fets_ai/Algorithms && unzip -qq GANDLF_for_fetsTool1.0.zip
+
+RUN ls OpenFederatedLearning/submodules/fets_ai/Algorithms
 
 ## C++ build
 RUN mkdir bin && cd bin && cmake -DCMAKE_INSTALL_PREFIX="./install/appdir/usr" -DITK_DIR="/workspace/CaPTk/bin/ITK-build" -DDCMTK_DIR="/workspace/CaPTk/bin/DCMTK-build" -DBUILD_TESTING=OFF .. && make -j$(nproc) && make install/strip 
@@ -44,7 +46,7 @@ RUN echo "Installing OpenFederatedLearning in virtual environment and separate e
     cd bin/install/appdir/usr/bin/OpenFederatedLearning && \
     ./venv/bin/pip install setuptools --upgrade && \
     make install_openfl && \
-    make install_fets && \
+    ./venv/bin/pip install OpenFederatedLearning/submodules/fets_ai/Algorithms && \
     ./venv/bin/pip install -e ./submodules/fets_ai/Algorithms/GANDLF && \
     cd ../LabelFusion && \
     rm -rf venv && python3.7 -m venv ./venv && \
