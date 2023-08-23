@@ -46,7 +46,7 @@ RUN echo "Installing OpenFederatedLearning in virtual environment and separate e
     cd bin/install/appdir/usr/bin/OpenFederatedLearning && \
     ./venv/bin/pip install setuptools --upgrade && \
     make install_openfl && \
-    ./venv/bin/pip install OpenFederatedLearning/submodules/fets_ai/Algorithms && \
+    ./venv/bin/pip install ./submodules/fets_ai/Algorithms && \
     ./venv/bin/pip install -e ./submodules/fets_ai/Algorithms/GANDLF && \
     cd ../LabelFusion && \
     rm -rf venv && python3.7 -m venv ./venv && \
