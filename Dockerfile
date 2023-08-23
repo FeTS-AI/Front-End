@@ -16,7 +16,7 @@ WORKDIR /Front-End
 
 COPY . .
 
-RUN pwd && ls -l && ls -l OpenFederatedLearning && ls -l OpenFederatedLearning/submodules/fets_ai/Algorithms && ls -l OpenFederatedLearning/submodules/fets_ai/Algorithms/GANDLF
+RUN pwd && ls -l && git submodule update --recursive && ls -l OpenFederatedLearning && ls -l OpenFederatedLearning/submodules/fets_ai/Algorithms && ls -l OpenFederatedLearning/submodules/fets_ai/Algorithms/GANDLF
 
 ## C++ build
 RUN mkdir bin && cd bin && cmake -DCMAKE_INSTALL_PREFIX="./install/appdir/usr" -DITK_DIR="/workspace/CaPTk/bin/ITK-build" -DDCMTK_DIR="/workspace/CaPTk/bin/DCMTK-build" -DBUILD_TESTING=OFF .. && make -j$(nproc) && make install/strip 
