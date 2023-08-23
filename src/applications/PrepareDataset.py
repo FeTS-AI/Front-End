@@ -740,10 +740,7 @@ class Preparator:
         for modality in MODALITIES_LIST:
             image = sitk.ReadImage(outputs_reoriented[modality])
             masked_image = sitk.Mask(image, brain_mask)
-            file_to_save = posixpath.join(
-                finalSubjectOutputDir_actual,
-                f"{subject_id_timepoint}_brain_{MODALITY_ID_MAPPING[modality]}.nii.gz",
-            )
+            file_to_save = input_for_tumor_models[modality]
             sitk.WriteImage(masked_image, file_to_save)
 
         # save the screenshot
