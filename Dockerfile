@@ -21,16 +21,18 @@ RUN pwd && ls -l
 ## C++ build
 RUN mkdir bin && cd bin && cmake -DCMAKE_INSTALL_PREFIX="./install/appdir/usr" -DITK_DIR="/workspace/CaPTk/bin/ITK-build" -DDCMTK_DIR="/workspace/CaPTk/bin/DCMTK-build" -DBUILD_TESTING=OFF .. && make -j$(nproc) && make install/strip 
 
-## Python package installation
-RUN cd bin/install/appdir/usr/bin/ && python3.8 -m venv ./venv && ./venv/bin/pip install --upgrade pip wheel && ./venv/bin/pip install torch==1.13.1+cpu torchvision==0.14.1+cpu torchaudio==0.13.1 --extra-index-url https://download.pytorch.org/whl/cpu && ./venv/bin/pip install -e . && ./venv/bin/pip install setuptools-rust Cython scikit-build scikit-learn openvino-dev==2023.0.1 && ./venv/bin/pip install -e .
+# ## Python package installation -- this is for the new docker image, which is much simpler
+# RUN cd bin/install/appdir/usr/bin/ && python3.8 -m venv ./venv && ./venv/bin/pip install --upgrade pip wheel && ./venv/bin/pip install torch==1.13.1+cpu torchvision==0.14.1+cpu torchaudio==0.13.1 --extra-index-url https://download.pytorch.org/whl/cpu && ./venv/bin/pip install -e . && ./venv/bin/pip install setuptools-rust Cython scikit-build scikit-learn openvino-dev==2023.0.1 && ./venv/bin/pip install -e .
 
 # set up environment and install correct version of pytorch
-RUN cd bin/install/appdir/usr/bin/OpenFederatedLearning && \
+RUN echo "Setting up virtual environment for OpenFederatedLearning with base dependencies" && \
+    cd bin/install/appdir/usr/bin/OpenFederatedLearning && \
     rm -rf ./venv && python3.7 -m venv ./venv && ./venv/bin/pip install Cython && \
     ./venv/bin/pip install --upgrade pip setuptools wheel setuptools-rust && \
-    ./venv/bin/pip install torch==1.7.1+cu110 torchvision==0.8.2+cu110 torchaudio==0.7.2 -f https://download.pytorch.org/whl/torch_stable.html 
+    ./venv/bin/pip install torch==1.7.1+cu110 torchvision==0.8.2+cu110 torchaudio==0.7.2 -f https://download.pytorch.org/whl/torch_stable.html
 
-RUN cd bin/install/appdir/usr/bin/OpenFederatedLearning && \
+RUN echo "Setting up virtual environment for OpenFederatedLearning with second-level dependencies" && \
+    cd bin/install/appdir/usr/bin/OpenFederatedLearning && \
     ./venv/bin/pip install wheel && \
     ./venv/bin/pip install scikit-build scikit-learn && \
     ./venv/bin/pip install SimpleITK==1.2.4 && \
@@ -38,7 +40,8 @@ RUN cd bin/install/appdir/usr/bin/OpenFederatedLearning && \
     ./venv/bin/pip install opencv-python==4.2.0.34
     # ./venv/bin/pip install python-gdcm
 
-RUN cd bin/install/appdir/usr/bin/OpenFederatedLearning && \
+RUN echo "Installing OpenFederatedLearning in virtual environment and separate environment for LabelFusion" && \
+    cd bin/install/appdir/usr/bin/OpenFederatedLearning && \
     ./venv/bin/pip install setuptools --upgrade && \
     make install_openfl && \
     make install_fets && \
