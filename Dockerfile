@@ -2,7 +2,7 @@ FROM ghcr.io/fets-ai/fetstool_docker_dependencies:0.0.2.gpu
 
 LABEL authors="FeTS_Admin <admin@fets.ai>"
 
-RUN apt-get update && apt-get update --fix-missing && apt-get install -y libnss3 libnspr4 libxcursor1 libxcursor-dev libasound2 libdbus-1-dev libglfw3-dev libgles2-mesa-dev ffmpeg libsm6 libxext6
+RUN apt-get update && apt-get update --fix-missing && apt-get install -y libnss3 libnspr4 libxcursor1 libxcursor-dev libasound2 libdbus-1-dev libglfw3-dev libgles2-mesa-dev ffmpeg libsm6 libxext6 python3.8 python3.8-venv python3.8-dev python3-setuptools
 
 # older python
 RUN apt-get update -y && apt install -y --reinstall software-properties-common && add-apt-repository ppa:deadsnakes/ppa && apt update -y && apt install -y python3.7 python3.7-venv python3.7-dev python3-setuptools
@@ -42,7 +42,7 @@ RUN echo "Setting up virtual environment for OpenFederatedLearning with second-l
     ./venv/bin/pip install opencv-python==4.2.0.34
     # ./venv/bin/pip install python-gdcm
 
-RUN echo "Installing OpenFederatedLearning in virtual environment and separate environment for LabelFusion" && \
+RUN echo "Installing OpenFederatedLearning in virtual environment" && \
     cd bin/install/appdir/usr/bin/OpenFederatedLearning && \
     ./venv/bin/pip install setuptools --upgrade && \
     make install_openfl && \
@@ -50,6 +50,12 @@ RUN echo "Installing OpenFederatedLearning in virtual environment and separate e
     ./venv/bin/pip install -e ./submodules/fets_ai/Algorithms/GANDLF && \
     cd ../LabelFusion && \
     rm -rf venv && python3.7 -m venv ./venv && \
+    ./venv/bin/pip install --upgrade pip setuptools wheel setuptools-rust && \
+    ./venv/bin/pip install -e .
+
+RUN echo "Installing separate environment for LabelFusion" && \
+    cd bin/install/appdir/usr/bin/LabelFusion && \
+    rm -rf venv && python3.8 -m venv ./venv && \
     ./venv/bin/pip install --upgrade pip setuptools wheel setuptools-rust && \
     ./venv/bin/pip install -e .
     
