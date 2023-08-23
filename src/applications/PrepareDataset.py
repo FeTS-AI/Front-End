@@ -779,7 +779,7 @@ class Preparator:
         )
 
         for tumor_mask in tumor_masks_for_qc:
-            tumor_mask_id = os.path.basename(tumor_mask)
+            tumor_mask_id = os.path.basename(tumor_mask).replace(".nii.gz", "")
             # save the screenshot
             _save_screenshot(
                 input_for_tumor_models,
