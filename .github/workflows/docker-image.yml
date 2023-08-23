@@ -29,9 +29,9 @@ jobs:
     steps:
     - name: Check out the repository
       uses: actions/checkout@v3
-      # with:
+      with:
       #   lfs: false
-      #   submodules: 'recursive'
+        submodules: 'recursive'
         
     # - name: Check if the repository has changed
     #   run: ls -l
