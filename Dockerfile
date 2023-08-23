@@ -2,7 +2,10 @@ FROM ghcr.io/fets-ai/fetstool_docker_dependencies:0.0.2.gpu
 
 LABEL authors="FeTS_Admin <admin@fets.ai>"
 
-RUN apt-get update && apt-get update --fix-missing && apt-get install -y libnss3 libnspr4 libxcursor1 libxcursor-dev libasound2 libdbus-1-dev libglfw3-dev libgles2-mesa-dev ffmpeg libsm6 libxext6 python3.7 python3.7-venv python3.7-dev python3-setuptools
+RUN apt-get update && apt-get update --fix-missing && apt-get install -y libnss3 libnspr4 libxcursor1 libxcursor-dev libasound2 libdbus-1-dev libglfw3-dev libgles2-mesa-dev ffmpeg libsm6 libxext6
+
+# older python
+RUN apt-get update -y && add-apt-repository ppa:deadsnakes/ppa && apt update -y && apt install python3.7 python3.7-venv python3.7-dev python3-setuptools -y
 
 ENV PATH=/workspace/CaPTk/bin/qt/5.12.1/bin:/workspace/CaPTk/bin/qt/5.12.1/libexec:$PATH
 ENV CMAKE_PREFIX_PATH=/workspace/CaPTk/bin/ITK-build:/workspace/CaPTk/bin/DCMTK-build:/workspace/CaPTk/bin/qt/5.12.1/lib/cmake/Qt5:$CMAKE_PREFIX_PATH
