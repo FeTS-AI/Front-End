@@ -16,7 +16,7 @@ WORKDIR /Front-End
 
 COPY . .
 
-RUN git submodule update --init --recursive && ls OpenFederatedLearning/submodules/fets_ai/Algorithms
+RUN pwd && ls -l && mv ./data/Algorithms_for_fetsTool1.0.zip OpenFederatedLearning/submodules/fets_ai/ && cd OpenFederatedLearning/submodules/fets_ai/ && unzip -qq Algorithms_for_fetsTool1.0.zip && rm -rf Algorithms_for_fetsTool1.0.zip
 
 RUN pwd && ls -l && mv ./data/GANDLF_for_fetsTool1.0.zip OpenFederatedLearning/submodules/fets_ai/Algorithms && cd OpenFederatedLearning/submodules/fets_ai/Algorithms && unzip -qq GANDLF_for_fetsTool1.0.zip && rm -rf GANDLF_for_fetsTool1.0.zip
 
