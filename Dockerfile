@@ -32,16 +32,16 @@ RUN echo "Setting up virtual environment for OpenFederatedLearning with base dep
     rm -rf ./venv && python3.7 -m venv ./venv && ./venv/bin/pip install Cython && \
     ./venv/bin/pip install --upgrade pip setuptools wheel setuptools-rust && \
     ./venv/bin/pip install torch==1.7.1+cu110 torchvision==0.8.2+cu110 torchaudio==0.7.2 -f https://download.pytorch.org/whl/torch_stable.html && \
+    ./venv/bin/pip install wheel && \
+    ./venv/bin/pip install SimpleITK==1.2.4 && \
+    ./venv/bin/pip install protobuf==3.17.3 grpcio==1.30.0 && \
+    ./venv/bin/pip install opencv-python==4.2.0.34 && \
+    ./venv/bin/pip install scikit-build scikit-learn && \
     make install_openfl && \
     make install_openfl_pytorch
 
 RUN echo "Setting up virtual environment for OpenFederatedLearning with second-level dependencies" && \
     cd bin/install/appdir/usr/bin/OpenFederatedLearning && \
-    ./venv/bin/pip install wheel && \
-    ./venv/bin/pip install scikit-build scikit-learn && \
-    ./venv/bin/pip install SimpleITK==1.2.4 && \
-    ./venv/bin/pip install protobuf==3.17.3 grpcio==1.30.0 && \
-    ./venv/bin/pip install opencv-python==4.2.0.34 && \
     ./venv/bin/pip install ../BrainMaGe && \
     ./venv/bin/pip install ./submodules/fets_ai/Algorithms && \
     ./venv/bin/pip install -e ./submodules/fets_ai/Algorithms/GANDLF
