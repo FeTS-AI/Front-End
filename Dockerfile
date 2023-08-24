@@ -9,6 +9,7 @@ RUN apt-get update -y && apt install -y --reinstall software-properties-common &
 
 ENV PATH=/workspace/CaPTk/bin/qt/5.12.1/bin:/workspace/CaPTk/bin/qt/5.12.1/libexec:$PATH
 ENV CMAKE_PREFIX_PATH=/workspace/CaPTk/bin/ITK-build:/workspace/CaPTk/bin/DCMTK-build:/workspace/CaPTk/bin/qt/5.12.1/lib/cmake/Qt5:$CMAKE_PREFIX_PATH
+ENV SKLEARN_ALLOW_DEPRECATED_SKLEARN_PACKAGE_INSTALL=True
 
 RUN pwd && ls -l
 
