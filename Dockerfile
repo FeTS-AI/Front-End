@@ -31,7 +31,9 @@ RUN echo "Setting up virtual environment for OpenFederatedLearning with base dep
     cd bin/install/appdir/usr/bin/OpenFederatedLearning && \
     rm -rf ./venv && python3.7 -m venv ./venv && ./venv/bin/pip install Cython && \
     ./venv/bin/pip install --upgrade pip setuptools wheel setuptools-rust && \
-    ./venv/bin/pip install torch==1.7.1+cu110 torchvision==0.8.2+cu110 torchaudio==0.7.2 -f https://download.pytorch.org/whl/torch_stable.html
+    ./venv/bin/pip install torch==1.7.1+cu110 torchvision==0.8.2+cu110 torchaudio==0.7.2 -f https://download.pytorch.org/whl/torch_stable.html && \
+    make install_openfl && \
+    make install_openfl_pytorch
 
 RUN echo "Setting up virtual environment for OpenFederatedLearning with second-level dependencies" && \
     cd bin/install/appdir/usr/bin/OpenFederatedLearning && \
@@ -39,25 +41,23 @@ RUN echo "Setting up virtual environment for OpenFederatedLearning with second-l
     ./venv/bin/pip install scikit-build scikit-learn && \
     ./venv/bin/pip install SimpleITK==1.2.4 && \
     ./venv/bin/pip install protobuf==3.17.3 grpcio==1.30.0 && \
-    ./venv/bin/pip install opencv-python==4.2.0.34
-    # ./venv/bin/pip install python-gdcm
-
-RUN echo "Installing OpenFederatedLearning in virtual environment" && \
-    cd bin/install/appdir/usr/bin/OpenFederatedLearning && \
-    ./venv/bin/pip install setuptools --upgrade && \
-    make install_openfl && \
+    ./venv/bin/pip install opencv-python==4.2.0.34 && \
+    ./venv/bin/pip install ../BrainMaGe && \
     ./venv/bin/pip install ./submodules/fets_ai/Algorithms && \
-    ./venv/bin/pip install -e ./submodules/fets_ai/Algorithms/GANDLF && \
-    cd ../LabelFusion && \
-    rm -rf venv && python3.7 -m venv ./venv && \
-    ./venv/bin/pip install --upgrade pip setuptools wheel setuptools-rust && \
-    ./venv/bin/pip install -e .
+    ./venv/bin/pip install -e ./submodules/fets_ai/Algorithms/GANDLF
 
 RUN echo "Installing separate environment for LabelFusion" && \
     cd bin/install/appdir/usr/bin/LabelFusion && \
     rm -rf venv && python3.8 -m venv ./venv && \
     ./venv/bin/pip install --upgrade pip setuptools wheel setuptools-rust && \
     ./venv/bin/pip install -e .
+
+RUN echo "Downloading model weights" && \
+    cd bin/install/appdir/usr/data/fets && \
+    wget https://upenn.box.com/shared/static/f7zt19d08c545qt3tcaeg7b37z6qafum.zip -O nnunet.zip && \
+    unzip -qq nnunet.zip && rm -rf nnunet.zip && \
+    wget https://upenn.box.com/shared/static/hhvn8nb9xtz6nxcilmdl8kbx9n1afkdu.zip -O ./fets_consensus_models.zip && \
+    unzip -qq fets_consensus_models.zip && rm -rf fets_consensus_models.zip
     
 ### put together a data example that is already aligned and ready to invoke the brain extraction and tumor segmentation
 
