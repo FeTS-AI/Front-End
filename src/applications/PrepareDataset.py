@@ -314,11 +314,11 @@ def _run_brain_extraction_using_gandlf(
         else models_to_infer.split(",")
     )
 
-    model_counter = 0
     images_for_fusion = []
     for model_dir in models_to_run:
+        model_id = os.path.basename(model_dir)
         model_output_dir = posixpath.join(
-            base_output_dir, "model_" + str(model_counter)
+            base_output_dir, "brain_extraction_" + str(model_id)
         )
         file_list = os.listdir(model_dir)
         for file in file_list:
@@ -342,18 +342,17 @@ def _run_brain_extraction_using_gandlf(
         for modality in modality_outputs:
             modality_output_dir = posixpath.join(model_output_dir_testing, modality)
             files_in_modality = os.listdir(modality_output_dir)
-            for file in files_in_modality:
+            for file in files_in_modality:  # this loop may not be necessary
                 if file.endswith(".nii.gz"):
                     file_path = posixpath.join(modality_output_dir, file)
                     shutil.copyfile(
                         file_path,
                         posixpath.join(
                             base_output_dir,
-                            f"brainMask_{model_counter}_{modality}.nii.gz",
+                            f"brainMask_{model_id}_{modality}.nii.gz",
                         ),
                     )
                     images_for_fusion.append(sitk.ReadImage(file_path, sitk.sitkUInt8))
-        model_counter += 1
 
     return fuse_images(images_for_fusion, "staple", [0, 1])
 
@@ -379,8 +378,10 @@ def _run_tumor_segmentation_using_gandlf(
     df_for_gandlf = pd.DataFrame(columns=GANDLF_DF_COLUMNS)
     current_subject = {"SubjectID": subject_id}
     channel_idx = 0
+    # modality order (trained according to EC): t1,t2,flair,t1c
+    modality_order = ["T1", "T2", "FLAIR", "T1GD"]
     # todo: confirm the order for modalities
-    for key in MODALITIES_LIST:
+    for key in modality_order:
         current_subject[f"Channel_{channel_idx}"] = input_oriented_brain_images[key]
         channel_idx += 1
     df_for_gandlf = pd.DataFrame(current_subject, index=[0])
@@ -396,13 +397,14 @@ def _run_tumor_segmentation_using_gandlf(
         else models_to_infer.split(",")
     )
 
-    model_counter = 0
+    tumor_masks_to_return = []
     images_for_fusion = []
     mask_output_dir = posixpath.join(base_output_dir, TUMOR_MASK_FOLDER)
     os.makedirs(mask_output_dir, exist_ok=True)
     for model_dir in models_to_run:
+        model_id = os.path.basename(model_dir)
         model_output_dir = posixpath.join(
-            base_output_dir, "model_" + str(model_counter)
+            base_output_dir, "tumor_segmentation_" + str(model_id)
         )
         file_list = os.listdir(model_dir)
         for file in file_list:
@@ -427,24 +429,21 @@ def _run_tumor_segmentation_using_gandlf(
         )
 
         model_output_dir_testing = posixpath.join(model_output_dir, TESTING_FOLDER)
-        subject_model_output_dir = os.listdir(model_output_dir_testing)
-        tumor_masks_to_return = []
-        for subject in subject_model_output_dir:
-            subject_output_dir = posixpath.join(model_output_dir_testing, subject)
-            files_in_modality = os.listdir(subject_output_dir)
-            for file in files_in_modality:
-                if file.endswith(".nii.gz"):
-                    file_path = posixpath.join(subject_output_dir, file)
-                    shutil.copyfile(
-                        file_path,
-                        posixpath.join(
-                            mask_output_dir,
-                            f"{subject_id}_tumorMask_model-{model_counter}.nii.gz",
-                        ),
-                    )
-                    tumor_masks_to_return.append(file_path)
-                    images_for_fusion.append(sitk.ReadImage(file_path, sitk.sitkUInt8))
-        model_counter += 1
+        # We expect one subject (one output modality, one file).
+        subject = os.listdir(model_output_dir_testing)[0]
+        subject_output_dir = posixpath.join(model_output_dir_testing, subject)
+        files_in_modality = os.listdir(subject_output_dir)
+        for file in files_in_modality:  # this loop may not be necessary
+            if file.endswith(".nii.gz"):
+                file_path = posixpath.join(subject_output_dir, file)
+                renamed_path = posixpath.join(
+                    mask_output_dir,
+                    f"{subject_id}_tumorMask_model-{model_id}.nii.gz",
+                )
+                shutil.copyfile(file_path, renamed_path)
+                # Append the renamed path to keep track of model IDs
+                tumor_masks_to_return.append(renamed_path)
+                images_for_fusion.append(sitk.ReadImage(file_path, sitk.sitkUInt8))
 
     tumor_class_list = [0, 1, 2, 3, 4]
 
@@ -738,10 +737,7 @@ class Preparator:
         for modality in MODALITIES_LIST:
             image = sitk.ReadImage(outputs_reoriented[modality])
             masked_image = sitk.Mask(image, brain_mask)
-            file_to_save = posixpath.join(
-                finalSubjectOutputDir_actual,
-                f"{subject_id_timepoint}_brain_{MODALITY_ID_MAPPING[modality]}.nii.gz",
-            )
+            file_to_save = input_for_tumor_models[modality]
             sitk.WriteImage(masked_image, file_to_save)
 
         # save the screenshot
@@ -782,18 +778,14 @@ class Preparator:
             interimOutputDir_actual,
         )
 
-        tumor_mask_idx = 0
         for tumor_mask in tumor_masks_for_qc:
+            tumor_mask_id = os.path.basename(tumor_mask).replace(".nii.gz", "")
             # save the screenshot
             _save_screenshot(
                 input_for_tumor_models,
-                posixpath.join(
-                    interimOutputDir_actual,
-                    f"{subject_id_timepoint}_summary_tumor-segmentation_model-{tumor_mask_idx}.png",
-                ),
+                posixpath.join(interimOutputDir_actual, f"{tumor_mask_id}_summary.png"),
                 tumor_mask,
             )
-            tumor_mask_idx += 1
 
         with open(self.stdout_log, "a+") as f:
             f.write(f"***\nTumor Masks For QC:\n{tumor_masks_for_qc}\n***")
