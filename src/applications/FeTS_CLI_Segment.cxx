@@ -97,14 +97,16 @@ int main(int argc, char** argv)
     parser.getParameterValue("g", gpuRequested);
   }
 
-  std::string device_arg = " -md ";
+  std::string device_arg = " -md ", device_arg_for_second_script = " --device ";
   if (gpuRequested)
   {
     device_arg += "cuda";
+    device_arg_for_second_script += "cuda";
   }
   else
   {
     device_arg += "cpu";
+    device_arg_for_second_script += "cpu";
   }
 
 
@@ -288,7 +290,7 @@ int main(int argc, char** argv)
                       + " -ET " + hardcodedFinalModelsSeriesWeightsPath + "52"
                       + " -TC " + hardcodedFinalModelsSeriesWeightsPath + "52"
                       + " -WT " + hardcodedFinalModelsSeriesWeightsPath + "52"
-                      + " -pp " + hardcodedOpenFLPlanPath + " -op " + current_outputDir + device_arg + " -dp " + current_temp_output + " -ptd";
+                      + " -pp " + hardcodedOpenFLPlanPath + " -op " + current_outputDir + device_arg_for_second_script + " -dp " + current_temp_output + " -ptd";
                     if (std::system(command_to_run.c_str()) != 0)
                     {
                       std::cerr << "WARNING: The singlet model '52' did not run, please contact admin@fets.ai with this error.\n\n";
@@ -319,7 +321,7 @@ int main(int argc, char** argv)
                       + " -ET " + hardcodedFinalModelsSeriesWeightsPath + "69"
                       + " -TC " + hardcodedFinalModelsSeriesWeightsPath + "72"
                       + " -WT " + hardcodedFinalModelsSeriesWeightsPath + "52"
-                      + " -pp " + hardcodedOpenFLPlanPath + " -op " + current_outputDir + device_arg + " -dp " + current_temp_output + " -ptd";
+                      + " -pp " + hardcodedOpenFLPlanPath + " -op " + current_outputDir + device_arg_for_second_script + " -dp " + current_temp_output + " -ptd";
                     if (std::system(command_to_run.c_str()) != 0)
                     {
                       std::cerr << "WARNING: The triplet model '[69,72,52]' did not run, please contact admin@fets.ai with this error.\n\n";
