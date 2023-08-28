@@ -75,14 +75,14 @@ class AddToCSV(RowStage):
             "data_path": tp_out_path,
             "labels_path": "",
         }
-        if self.csv_processor.subject_timepoint_missing_modalities:
+        if f"{id}_{tp}" in self.csv_processor.subject_timepoint_missing_modalities:
             shutil.rmtree(tp_out_path, ignore_errors=True)
             comment = "There are missing modalities. Please check the data"
             report_data["status"] = -1.1
             report_data["status_name"] = "MISSING_MODALITIES"
             report_data["data_path"] = tp_path
             report_data["comment"] = comment
-        elif self.csv_processor.subject_timepoint_extra_modalities:
+        elif f"{id}_{tp}" in self.csv_processor.subject_timepoint_extra_modalities:
             shutil.rmtree(tp_out_path, ignore_errors=True)
             comment = "There are extra modalities. Please check the data"
             report_data["status"] = -1.2
