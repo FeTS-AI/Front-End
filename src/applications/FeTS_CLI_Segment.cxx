@@ -135,7 +135,7 @@ int main(int argc, char** argv)
     hardcodedModelWeightPath = hardcodedOpenFLPath + "/bin/federations/weights/", // start with the common location
     hardcodedPythonPath = hardcodedOpenFLPath + "/venv/bin/python", // this needs to change for Windows (wonder what happens for macOS?)
     hardcodedPythonPath_fusion = fetsApplicationPath + "/LabelFusion/venv/bin/python", // this needs to change for Windows (wonder what happens for macOS?)
-    scriptToCall = hardcodedOpenFLPath + "/submodules/fets_ai/Algorithms/fets/bin/brainmage_validation_scores_to_disk.py"; // the script that does the inference and scoring
+    scriptToCall = hardcodedOpenFLPath + "/submodules/fets_ai/Algorithms/fets/bin/brainmage_validation_outputs_to_disk_newer.py"; // the script that does the inference and scoring
   auto fets_dataDir = getCaPTkDataDir();
   auto hardcodedFinalModelsWeightsPath = fets_dataDir + "/fets_consensus";
   auto hardcodedFinalModelsSeriesWeightsPath = fets_dataDir + "/fets_consensus_models/";
