@@ -63,6 +63,8 @@ class ManualStage(RowStage):
         out_path = self.__get_output_path(index)
         under_review_path = self.__get_under_review_path(index)
         bak_path = self.__get_backup_path(index)
+        id, tp = get_id_tp(index)
+        final_filename = f"{id}_{tp}_final_seg.nii.gz"
         if not os.path.exists(bak_path):
             shutil.copytree(in_path, bak_path)
             set_files_read_only(bak_path)
@@ -73,7 +75,7 @@ class ManualStage(RowStage):
             f"You may find baseline segmentations inside {in_path}. "
             + f"Please inspect those segmentations and move the best one to {under_review_path}. "
             + "Make the necessary corrections to the generated segmentations with your desired tool, "
-            + f"and once you're done, move the finalized file to {out_path}"
+            + f"and once you're done, move the finalized file to {out_path} with the name {final_filename}."
         )
 
         report_data = {
