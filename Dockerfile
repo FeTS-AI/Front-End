@@ -54,7 +54,7 @@ RUN echo "Installing separate environment for LabelFusion" && \
     ./venv/bin/pip install -e .
 
 RUN echo "Downloading model weights" && \
-    cd bin/install/appdir/usr/data/fets && \
+    cd bin/install/appdir/usr/data && \
     wget https://upenn.box.com/shared/static/f7zt19d08c545qt3tcaeg7b37z6qafum.zip -O nnunet.zip && \
     unzip -qq nnunet.zip && rm -rf nnunet.zip && \
     wget https://upenn.box.com/shared/static/hhvn8nb9xtz6nxcilmdl8kbx9n1afkdu.zip -O ./fets_consensus_models.zip && \
