@@ -263,10 +263,10 @@ int main(int argc, char** argv)
                 auto current_subject_temp_output = current_temp_output + "/subject";
                 cbica::createDir(current_subject_temp_output);
                 // std::string file_t1gd, file_t1, file_t2, file_flair;
-                auto file_t1gd_temp = current_subject_temp_output + "/t1gd.nii.gz",
-                  file_t1_temp = current_subject_temp_output + "/t1.nii.gz",
-                  file_t2_temp = current_subject_temp_output + "/t2.nii.gz",
-                  file_flair_temp = current_subject_temp_output + "/flair.nii.gz";
+                auto file_t1gd_temp = current_subject_temp_output + "/_t1gd.nii.gz",
+                  file_t1_temp = current_subject_temp_output + "/_t1.nii.gz",
+                  file_t2_temp = current_subject_temp_output + "/_t2.nii.gz",
+                  file_flair_temp = current_subject_temp_output + "/_flair.nii.gz";
                 cbica::copyFile(file_t1gd, file_t1gd_temp);
                 cbica::copyFile(file_t1, file_t1_temp);
                 cbica::copyFile(file_t2, file_t2_temp);
