@@ -16,6 +16,7 @@ class ManualStage(RowStage):
         self.out_path = out_path
         self.prev_stage_path = prev_stage_path
         self.backup_path = backup_path
+        self.status_code = 5
 
     def get_name(self):
         return "Manual review"
@@ -42,8 +43,66 @@ class ManualStage(RowStage):
         path = os.path.join(self.backup_path, id, tp, TUMOR_MASK_FOLDER)
         return path
 
+    def __report_success(
+        self, index: Union[str, int], report: pd.DataFrame
+    ) -> pd.DataFrame:
+        out_path = self.__get_output_path(index)
+        report_data = {
+            "status": 5,
+            "status_name": "MANUAL_REVIEW_COMPLETED",
+            "comment": "",
+            "data_path": out_path,
+            "labels_path": "",
+        }
+        update_row_with_dict(report, report_data, index)
+        return report
+
+    def __report_step_missing(
+        self, index: Union[str, int], report: pd.DataFrame
+    ) -> pd.DataFrame:
+        in_path = self.__get_input_path(index)
+        out_path = self.__get_output_path(index)
+        under_review_path = self.__get_under_review_path(index)
+        msg = (
+            f"You may find baseline segmentations inside {in_path}. "
+            + f"Please inspect those segmentations and move the best one to {under_review_path}. "
+            + "Make the necessary corrections to the generated segmentations with your desired tool, "
+            + f"and once you're done, move the finalized file to {out_path}."
+        )
+
+        report_data = {
+            "status": -self.status_code,
+            "status_name": "MANUAL_REVIEW_REQUIRED",
+            "comment": msg,
+            "data_path": in_path,
+            "labels_path": "",
+        }
+        update_row_with_dict(report, report_data, index)
+        return report
+
+    def __report_multiple_cases_error(
+        self, index: Union[str, int], report: pd.DataFrame
+    ) -> pd.DataFrame:
+        path = self.__get_output_path(index)
+        msg = "More than one reviewed segmentation was identified. Please ensure there's only one NIfTI file present"
+
+        report_data = {
+            "status": -self.status_code,
+            "status_name": "MULTIPLE_ANNOTATIONS_ERROR",
+            "comment": msg,
+            "data_path": path,
+            "labels_path": "",
+        }
+        update_row_with_dict(report, report_data, index)
+        return report
+
     def should_run(self, index: Union[str, int], report: pd.DataFrame) -> bool:
-        return os.path.exists(self.__get_input_path(index))
+        out_path = self.__get_output_path(index)
+        cases = os.listdir(out_path)
+
+        segmentation_exists = os.path.exists(self.__get_input_path(index))
+        annotation_exists = len(cases) == 1
+        return segmentation_exists and not annotation_exists
 
     def execute(self, index: Union[str, int], report: pd.DataFrame) -> pd.DataFrame:
         """Manual steps are by definition not doable by an algorithm. Therefore,
@@ -63,27 +122,18 @@ class ManualStage(RowStage):
         out_path = self.__get_output_path(index)
         under_review_path = self.__get_under_review_path(index)
         bak_path = self.__get_backup_path(index)
-        id, tp = get_id_tp(index)
-        final_filename = f"{id}_{tp}_final_seg.nii.gz"
         if not os.path.exists(bak_path):
             shutil.copytree(in_path, bak_path)
             set_files_read_only(bak_path)
         os.makedirs(under_review_path, exist_ok=True)
         os.makedirs(out_path, exist_ok=True)
 
-        msg = (
-            f"You may find baseline segmentations inside {in_path}. "
-            + f"Please inspect those segmentations and move the best one to {under_review_path}. "
-            + "Make the necessary corrections to the generated segmentations with your desired tool, "
-            + f"and once you're done, move the finalized file to {out_path} with the name {final_filename}."
-        )
+        cases = os.listdir(out_path)
 
-        report_data = {
-            "status": -5,
-            "status_name": "MANUAL_REVIEW_REQUIRED",
-            "comment": msg,
-            "data_path": in_path,
-            "labels_path": "",
-        }
-        update_row_with_dict(report, report_data, index)
-        return report
+        if len(cases) > 1:
+            # Found more than one reviewed case
+            return self.__report_multiple_cases_error(index, report)
+        elif not len(cases):
+            # Found no cases yet reviewed
+            return self.__report_step_missing(index, report)
+        return self.__report_success(index, report)
