@@ -1,5 +1,6 @@
 from .dset_stage import DatasetStage
 import pandas as pd
+import numpy as np
 import os
 
 
@@ -31,6 +32,7 @@ class GenerateReport(DatasetStage):
                     "comment": "",
                     "data_path": tp_path,
                     "labels_path": "",
+                    "changed_voxels": np.nan,
                 }
                 subject_series = pd.Series(data)
                 subject_series.name = f"{subject}|{timepoint}"
