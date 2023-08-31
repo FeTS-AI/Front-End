@@ -10,7 +10,7 @@ from stages.get_csv import AddToCSV
 from stages.nifti_transform import NIfTITransform
 from stages.extract import Extract
 from stages.manual import ManualStage
-from stages.match import MatchStage
+from stages.comparison import SegmentationComparisonStage
 from stages.constants import INTERIM_FOLDER, FINAL_FOLDER, TUMOR_MASK_FOLDER
 
 
@@ -30,6 +30,14 @@ def cleanup(path: str):
     for path, _, _ in walk[::-1]:
         if len(os.listdir(path)) == 0:
             os.rmdir(path)
+
+
+def remove_files_in_directory(directory_path):
+    files = os.listdir(directory_path)
+    for file in files:
+        file_path = os.path.join(directory_path, file)
+        if os.path.isfile(file_path):  # Check if the path is a file
+            os.remove(file_path)
 
 
 def setup_argparser():
@@ -60,46 +68,13 @@ if __name__ == "__main__":
     args = setup_argparser()
     out_data_csv = os.path.join(args.data_out, "data.csv")
 
-    # DETERMINE CURRENT STATUS
-    # We will be using paths with keywords to determine the status
-    # of each patient
-    # Assumption:
-    # There's a deterministic way in which I can find the patient
-    # for every state, e.g. patient1 will always be named as such
-    # inside every step folder
-    #
-    # step1/
-    # ├─ patient3/
-    # ├─ patient4/
-    # step2/
-    # ├─ patient1/
-    # step3/
-    # ├─ patient2/
-    #
-    # Given this, we can iterate through the folders to find where the patient is
-    # And continue with the procedure
     report = None
     if os.path.exists(args.report):
         with open(args.report, "r") as f:
             report_data = yaml.safe_load(f)
         report = pd.DataFrame(report_data)
 
-    # Generate all paths for all steps
-
-    #########################################################
-    # TODO: Turn the enclosed logic into a Stage
-    # Check if there's any folder in our data out
-    # If not, then that means this is a new execution
-    start_new = not next(os.walk(args.data_out))[1]
-
-    # 1. Copy all the data to the out raw path
-    out_raw = os.path.join(args.data_out, "raw")
-    if start_new:
-        print("Copying data to staging")
-        shutil.copytree(args.data, out_raw)
-    #########################################################
-
-    # If there is a csv file in the input folder
+    # 1. If there is a csv file in the input folder
     # always reuse it for the prepared dataset
     csvs = find_csv_filenames(args.data_out)
     if len(csvs) == 1:
@@ -108,9 +83,18 @@ if __name__ == "__main__":
         # TODO: How to deal with inconsistent paths because of MLCube functionality?
         csv_path = os.path.join(args.data_out, csvs[0])
         os.rename(csv_path, out_data_csv)
+        # can we assume the paths inside data.csv to be relative to the csv?
+        # TODO: Create some logic to turn the csv paths into the expected paths for the MLCube
+        # update_csv_paths(out_data_csv)
+
+    # Generate all paths for all steps
+
+    # TODO: If we identify a folder structure similar to the data-preparation one,
+    # copy everything into the folders and start from there
 
     # 2. Generate the report for all identified subjects
-    report_gen = GenerateReport(out_raw)
+    out_raw = os.path.join(args.data_out, "raw")
+    report_gen = GenerateReport(args.data, out_raw)
     if report_gen.should_run(report):
         print("Generating new report")
         report = report_gen.execute(report)
@@ -128,6 +112,7 @@ if __name__ == "__main__":
     brain_subpaths = [INTERIM_FOLDER, FINAL_FOLDER]
     tumor_subpaths = [TUMOR_MASK_FOLDER]
 
+    # TODO: Split the data and labels path so that FINAL FOLDER is data and INTERIM is labels
     csv_proc = AddToCSV(out_raw, out_data_csv, csv_data_out, out_raw)
     nifti_proc = NIfTITransform(out_data_csv, nifti_data_out, csv_data_out, loop)
     brain_extract_proc = Extract(
@@ -151,8 +136,21 @@ if __name__ == "__main__":
         4,
     )
     manual_proc = ManualStage(out_data_csv, tumor_data_out, tumor_data_out, backup_out)
+    match_proc = SegmentationComparisonStage(
+        out_data_csv,
+        match_data_out,
+        tumor_data_out,
+        backup_out,
+    )
 
-    stages = [csv_proc, nifti_proc, brain_extract_proc, tumor_extract_proc, manual_proc]
+    stages = [
+        csv_proc,
+        nifti_proc,
+        brain_extract_proc,
+        tumor_extract_proc,
+        manual_proc,
+        match_proc,
+    ]
 
     for subject in loop:
         for stage in stages:
@@ -165,14 +163,3 @@ if __name__ == "__main__":
     cleanup(csv_data_out)
     cleanup(nifti_data_out)
     cleanup(brain_data_out)
-
-    match_proc = MatchStage(
-        out_data_csv,
-        match_data_out,
-        tumor_data_out,
-        backup_out,
-    )
-
-    if match_proc.should_run(report):
-        loop.set_description(match_proc.get_name())
-        report = match_proc.execute("AAAC_0|2008.03.30", report)
