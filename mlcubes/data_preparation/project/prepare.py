@@ -11,6 +11,7 @@ from stages.nifti_transform import NIfTITransform
 from stages.extract import Extract
 from stages.manual import ManualStage
 from stages.comparison import SegmentationComparisonStage
+from stages.confirm import ConfirmStage
 from stages.constants import INTERIM_FOLDER, FINAL_FOLDER, TUMOR_MASK_FOLDER
 
 
@@ -101,20 +102,27 @@ if __name__ == "__main__":
         write_report(report, args.report)
 
     # RUN COLUMN-WISE PROCESSING
-    csv_data_out = os.path.join(args.data_out, "validated")
+    valid_data_out = os.path.join(args.data_out, "validated")
     nifti_data_out = os.path.join(args.data_out, "prepared")
     brain_data_out = os.path.join(args.data_out, "brain_extracted")
     tumor_data_out = os.path.join(args.data_out, "tumor_extracted")
     match_data_out = args.labels_out
     backup_out = os.path.join(args.labels_out, ".tumor_segmentation_backup")
+    staging_folders = [
+        valid_data_out,
+        nifti_data_out,
+        brain_data_out,
+        tumor_data_out,
+        backup_out,
+    ]
     subjects = list(report.index)
     loop = tqdm(subjects)
     brain_subpaths = [INTERIM_FOLDER, FINAL_FOLDER]
     tumor_subpaths = [TUMOR_MASK_FOLDER]
 
     # TODO: Split the data and labels path so that FINAL FOLDER is data and INTERIM is labels
-    csv_proc = AddToCSV(out_raw, out_data_csv, csv_data_out, out_raw)
-    nifti_proc = NIfTITransform(out_data_csv, nifti_data_out, csv_data_out, loop)
+    csv_proc = AddToCSV(out_raw, out_data_csv, valid_data_out, out_raw)
+    nifti_proc = NIfTITransform(out_data_csv, nifti_data_out, valid_data_out, loop)
     brain_extract_proc = Extract(
         out_data_csv,
         brain_data_out,
@@ -159,7 +167,15 @@ if __name__ == "__main__":
                 report = stage.execute(subject, report)
                 write_report(report, args.report)
 
-    cleanup(out_raw)
-    cleanup(csv_data_out)
-    cleanup(nifti_data_out)
-    cleanup(brain_data_out)
+    confirm_proc = ConfirmStage(
+        out_data_csv,
+        args.data_out,
+        args.labels_out,
+        tumor_data_out,
+        backup_out,
+        staging_folders,
+    )
+
+    if confirm_proc.should_run(report):
+        report = confirm_proc.execute(report)
+        write_report(report, args.report)

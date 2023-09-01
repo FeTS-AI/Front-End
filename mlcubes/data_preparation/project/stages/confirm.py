@@ -19,12 +19,14 @@ class ConfirmStage(DatasetStage):
         out_labels_path: str,
         prev_stage_path: str,
         backup_path: str,
+        staging_folders: str,
     ):
         self.data_csv = data_csv
         self.out_data_path = out_data_path
         self.out_labels_path = out_labels_path
         self.prev_stage_path = prev_stage_path
         self.backup_path = backup_path
+        self.staging_folders = staging_folders
         self.status_code = 7
 
     def get_name(self):
@@ -82,13 +84,15 @@ class ConfirmStage(DatasetStage):
         Returns:
             DataFrame: modified data preparation report
         """
-        index = row.index
+        print(row)
+        index = row.name
         input_data_path = self.__get_input_data_path(index)
         input_label_path = self.__get_input_label_path(index)
         output_data_path = self.__get_output_data_path(index)
         output_label_path = self.__get_output_label_path(index)
 
-        shutil.copy(input_data_path, output_data_path)
+        shutil.rmtree(output_data_path, ignore_errors=True)
+        shutil.copytree(input_data_path, output_data_path)
         shutil.copy(input_label_path, output_label_path)
 
         row["status"] = self.status_code
@@ -98,8 +102,10 @@ class ConfirmStage(DatasetStage):
         row["comment"] = ""
         return row
 
-    def __report_success(self, report: DataFrame) -> DataFrame:
-        pass
+    def __cleanup_storage(self):
+        for folder in self.staging_folders:
+            staging_path = os.path.join(self.out_data_path, folder)
+            shutil.rmtree(staging_path, ignore_errors=True)
 
     def should_run(self, report: DataFrame) -> bool:
         # Should run once all cases have been compared to the ground truth
@@ -114,9 +120,8 @@ class ConfirmStage(DatasetStage):
         if not confirmed:
             return self.__report_failure(report)
 
-        report_bak = report.copy(deep=True)
+        report = report.apply(self.__process_row, axis=1)
+        # Remove all intermediary steps
+        self.__cleanup_storage()
 
-        report.apply(self.__process_row, axis=1)
-        print(report)
-
-        return report_bak
+        return report
