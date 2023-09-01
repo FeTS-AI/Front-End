@@ -1,4 +1,5 @@
 import os
+import shutil
 from tqdm import tqdm
 
 
@@ -22,6 +23,11 @@ def set_files_read_only(path):
             set_files_read_only(
                 dir_path
             )  # Recursively call the function for subdirectories
+
+
+def cleanup_storage(remove_folders):
+    for folder in remove_folders:
+        shutil.rmtree(folder, ignore_errors=True)
 
 
 class MockTqdm(tqdm):
