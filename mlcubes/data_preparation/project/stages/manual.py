@@ -98,7 +98,9 @@ class ManualStage(RowStage):
 
     def should_run(self, index: Union[str, int], report: pd.DataFrame) -> bool:
         out_path = self.__get_output_path(index)
-        cases = os.listdir(out_path)
+        cases = []
+        if os.path.exists(out_path):
+            cases = os.listdir(out_path)
 
         segmentation_exists = os.path.exists(self.__get_input_path(index))
         annotation_exists = len(cases) == 1
