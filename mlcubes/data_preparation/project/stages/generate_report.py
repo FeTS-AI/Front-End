@@ -50,7 +50,7 @@ class GenerateReport(DatasetStage):
 
         for subject in os.listdir(self.input_path):
             in_subject_path = os.path.join(self.input_path, subject)
-            out_subject_path = os.path.join(self.input_path, subject)
+            out_subject_path = os.path.join(self.output_path, subject)
 
             if not os.path.isdir(in_subject_path):
                 continue
