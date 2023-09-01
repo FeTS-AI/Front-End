@@ -74,10 +74,15 @@ class SegmentationComparisonStage(RowStage):
         self, index: Union[str, int], report: pd.DataFrame
     ) -> pd.DataFrame:
         case_path = self.__get_case_path(index)
+        msg = (
+            "The annotation seems to be a copy of a baseline segmentation, "
+            + "Please ensure this is intended. Waiting on all cases to be "
+            + "reviewed in order to proceed."
+        )
         report_data = {
             "status": self.status_code,
             "status_name": "EXACT_MATCH_IDENTIFIED",
-            "comment": "",
+            "comment": msg,
             "data_path": case_path,
             "labels_path": "",
             "num_changed_voxels": 0,
