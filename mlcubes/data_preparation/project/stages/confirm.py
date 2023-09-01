@@ -2,12 +2,13 @@ from typing import Union
 import os
 import yaml
 import shutil
+from typing import List
 
 import pandas as pd
 from pandas import DataFrame
 
 from .dset_stage import DatasetStage
-from .utils import get_id_tp
+from .utils import get_id_tp, cleanup_storage
 from .constants import TUMOR_MASK_FOLDER, INTERIM_FOLDER, FINAL_FOLDER
 
 
@@ -19,7 +20,7 @@ class ConfirmStage(DatasetStage):
         out_labels_path: str,
         prev_stage_path: str,
         backup_path: str,
-        staging_folders: str,
+        staging_folders: List[str],
     ):
         self.data_csv = data_csv
         self.out_data_path = out_data_path
@@ -84,7 +85,6 @@ class ConfirmStage(DatasetStage):
         Returns:
             DataFrame: modified data preparation report
         """
-        print(row)
         index = row.name
         input_data_path = self.__get_input_data_path(index)
         input_label_path = self.__get_input_label_path(index)
@@ -102,16 +102,15 @@ class ConfirmStage(DatasetStage):
         row["comment"] = ""
         return row
 
-    def __cleanup_storage(self):
-        for folder in self.staging_folders:
-            staging_path = os.path.join(self.out_data_path, folder)
-            shutil.rmtree(staging_path, ignore_errors=True)
-
     def should_run(self, report: DataFrame) -> bool:
         # Should run once all cases have been compared to the ground truth
         missing_voxels = report["num_changed_voxels"].isnull().values.any()
+        prev_path_exists = os.path.exists(self.prev_stage_path)
+        empty_prev_path = True
+        if prev_path_exists:
+            empty_prev_path = len(os.listdir(self.prev_stage_path)) == 0
 
-        return not missing_voxels
+        return prev_path_exists and not empty_prev_path and not missing_voxels
 
     def execute(self, report: DataFrame) -> DataFrame:
         exact_match_percent = (report["num_changed_voxels"] == 0).sum() / len(report)
@@ -122,6 +121,6 @@ class ConfirmStage(DatasetStage):
 
         report = report.apply(self.__process_row, axis=1)
         # Remove all intermediary steps
-        self.__cleanup_storage()
+        cleanup_storage(self.staging_folders)
 
         return report

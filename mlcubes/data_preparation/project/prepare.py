@@ -12,6 +12,7 @@ from stages.extract import Extract
 from stages.manual import ManualStage
 from stages.comparison import SegmentationComparisonStage
 from stages.confirm import ConfirmStage
+from stages.split import SplitStage
 from stages.constants import INTERIM_FOLDER, FINAL_FOLDER, TUMOR_MASK_FOLDER
 
 
@@ -61,6 +62,12 @@ def setup_argparser():
     parser.add_argument(
         "--report", dest="report", type=str, help="path to the report csv file to store"
     )
+    parser.add_argument(
+        "--parameters",
+        dest="parameters",
+        type=str,
+        help="path to the parameters yaml file",
+    )
 
     return parser.parse_args()
 
@@ -109,6 +116,7 @@ if __name__ == "__main__":
     match_data_out = args.labels_out
     backup_out = os.path.join(args.labels_out, ".tumor_segmentation_backup")
     staging_folders = [
+        out_raw,
         valid_data_out,
         nifti_data_out,
         brain_data_out,
@@ -178,4 +186,13 @@ if __name__ == "__main__":
 
     if confirm_proc.should_run(report):
         report = confirm_proc.execute(report)
+        write_report(report, args.report)
+
+    split_csv_path = os.path.join(args.data_out, "splits.csv")
+    split_proc = SplitStage(
+        args.parameters, args.data_out, args.labels_out, split_csv_path, staging_folders
+    )
+
+    if split_proc.should_run(report):
+        report = split_proc.execute(report)
         write_report(report, args.report)
