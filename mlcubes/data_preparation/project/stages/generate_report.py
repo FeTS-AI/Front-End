@@ -85,7 +85,7 @@ class GenerateReport(DatasetStage):
                     "comment": "",
                     "data_path": out_tp_path,
                     "labels_path": "",
-                    "changed_voxels": np.nan,
+                    "num_changed_voxels": np.nan,
                     "input_hash": input_hash,
                 }
                 subject_series = pd.Series(data)
