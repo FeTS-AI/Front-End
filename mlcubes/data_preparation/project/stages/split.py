@@ -24,7 +24,10 @@ class SplitStage(DatasetStage):
         self.staging_folders = staging_folders
         self.status_code = 8
 
-    def should_run(self, report: pd.DataFrame) -> bool:
+    def get_name(self) -> str:
+        return "Generate splits"
+
+    def could_run(self, report: pd.DataFrame) -> bool:
         for index in report.index:
             id, tp = get_id_tp(index)
             case_data_path = os.path.join(self.data_path, id, tp)
@@ -38,7 +41,7 @@ class SplitStage(DatasetStage):
         return True
 
     def __report_success(self, report: pd.DataFrame) -> pd.DataFrame:
-        report["status"] = 8
+        report["status"] = self.status_code
         report["status_name"] = "DONE"
         report["comment"] = ""
 

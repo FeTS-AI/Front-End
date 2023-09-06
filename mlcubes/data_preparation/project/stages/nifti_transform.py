@@ -16,12 +16,14 @@ class NIfTITransform(RowStage):
         self.prev_stage_path = prev_stage_path
         os.makedirs(self.out_path, exist_ok=True)
         self.prep = Preparator(data_csv, out_path, "BraTSPipeline")
-        self.pbar = pbar
+        # self.pbar = pbar
+        self.pbar = tqdm()
+        self.status_code = 2
 
     def get_name(self) -> str:
         return "NiFTI Conversion"
 
-    def should_run(self, index: Union[str, int], report: pd.DataFrame) -> bool:
+    def could_run(self, index: Union[str, int], report: pd.DataFrame) -> bool:
         """Determine if case at given index needs to be converted to NIfTI
 
         Args:
@@ -29,7 +31,7 @@ class NIfTITransform(RowStage):
             report (pd.DataFrame): Report Dataframe for providing additional context
 
         Returns:
-            bool: Wether this stage should be executed for the given case
+            bool: Wether this stage could be executed for the given case
         """
         id, tp = get_id_tp(index)
         prev_case_path = os.path.join(self.prev_stage_path, id, tp)
@@ -47,10 +49,10 @@ class NIfTITransform(RowStage):
         """
         self.__prepare_exec()
         self.__process_case(index)
-        report = self.__update_report(index, report)
+        report, success = self.__update_report(index, report)
         self.prep.write()
 
-        return report
+        return report, success
 
     def __get_output_paths(self, index: Union[str, int]):
         id, tp = get_id_tp(index)
@@ -83,7 +85,7 @@ class NIfTITransform(RowStage):
     def __update_report(
         self, index: Union[str, int], report: pd.DataFrame
     ) -> pd.DataFrame:
-        # TODO: What should be reported? We have the processed data,
+        # TODO: What could be reported? We have the processed data,
         # QC subjects with negative intensities and
         # QC subjects with bratspipeline error
         id, tp = get_id_tp(index)
@@ -94,11 +96,13 @@ class NIfTITransform(RowStage):
         if len(failing_subject):
             self.__undo_current_stage_changes(index)
             report = self.__report_failure(index, report)
+            success = False
         else:
             self.__update_prev_stage_state(index, report)
             report = self.__report_success(index, report)
+            success = True
 
-        return report
+        return report, success
 
     def __report_success(
         self, index: Union[str, int], report: pd.DataFrame
@@ -107,7 +111,7 @@ class NIfTITransform(RowStage):
         # TODO: Determine if this is a correct way of doing things
         paths = self.__get_output_paths(index)
         report_data = {
-            "status": 2,
+            "status": self.status_code,
             "status_name": "CONVERTED_TO_NIfTI",
             "comment": "",
             "data_path": ",".join(paths),
@@ -126,7 +130,7 @@ class NIfTITransform(RowStage):
             msg = f.read()
 
         report_data = {
-            "status": -2,
+            "status": -self.status_code,
             "status_name": "NIfTI_CONVERSION_FAILED",
             "comment": msg,
             "data_path": prev_data_path,

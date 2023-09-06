@@ -414,7 +414,7 @@ def _run_tumor_segmentation_using_gandlf(
 
         # ensure the openvino version is used
         parameters = yaml.safe_load(open(config_file, "r"))
-        parameters["model"]["type"] = "openvino"
+        # parameters["model"]["type"] = "openvino"
         yaml.safe_dump(parameters, open(config_file, "w"))
 
         main_run(

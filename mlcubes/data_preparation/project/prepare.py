@@ -13,18 +13,13 @@ from stages.manual import ManualStage
 from stages.comparison import SegmentationComparisonStage
 from stages.confirm import ConfirmStage
 from stages.split import SplitStage
+from stages.pipeline import Pipeline
 from stages.constants import INTERIM_FOLDER, FINAL_FOLDER, TUMOR_MASK_FOLDER
 
 
 def find_csv_filenames(path_to_dir, suffix=".csv"):
     filenames = os.listdir(path_to_dir)
     return [filename for filename in filenames if filename.endswith(suffix)]
-
-
-def write_report(report: pd.DataFrame, filepath: str):
-    report_dict = report.to_dict()
-    with open(filepath, "w") as f:
-        yaml.dump(report_dict, f)
 
 
 def cleanup(path: str):
@@ -72,6 +67,84 @@ def setup_argparser():
     return parser.parse_args()
 
 
+def init_pipeline():
+    # RUN COLUMN-WISE PROCESSING
+    out_raw = os.path.join(args.data_out, "raw")
+    valid_data_out = os.path.join(args.data_out, "validated")
+    nifti_data_out = os.path.join(args.data_out, "prepared")
+    brain_data_out = os.path.join(args.data_out, "brain_extracted")
+    tumor_data_out = os.path.join(args.data_out, "tumor_extracted")
+    match_data_out = args.labels_out
+    backup_out = os.path.join(args.labels_out, ".tumor_segmentation_backup")
+    staging_folders = [
+        out_raw,
+        valid_data_out,
+        nifti_data_out,
+        brain_data_out,
+        tumor_data_out,
+        backup_out,
+    ]
+    brain_subpaths = [INTERIM_FOLDER, FINAL_FOLDER]
+    tumor_subpaths = [TUMOR_MASK_FOLDER]
+    split_csv_path = os.path.join(args.data_out, "splits.csv")
+
+    # TODO: Split the data and labels path so that FINAL FOLDER is data and INTERIM is labels
+    loop = None
+    report_gen = GenerateReport(args.data, out_raw)
+    csv_proc = AddToCSV(out_raw, out_data_csv, valid_data_out, out_raw)
+    nifti_proc = NIfTITransform(out_data_csv, nifti_data_out, valid_data_out, loop)
+    brain_extract_proc = Extract(
+        out_data_csv,
+        brain_data_out,
+        brain_subpaths,
+        nifti_data_out,
+        brain_subpaths,
+        # loop,
+        "extract_brain",
+        3,
+    )
+    tumor_extract_proc = Extract(
+        out_data_csv,
+        tumor_data_out,
+        tumor_subpaths,
+        brain_data_out,
+        brain_subpaths,
+        # loop,
+        "extract_tumor",
+        4,
+    )
+    manual_proc = ManualStage(out_data_csv, tumor_data_out, tumor_data_out, backup_out)
+    match_proc = SegmentationComparisonStage(
+        out_data_csv,
+        match_data_out,
+        tumor_data_out,
+        backup_out,
+    )
+    confirm_proc = ConfirmStage(
+        out_data_csv,
+        args.data_out,
+        args.labels_out,
+        tumor_data_out,
+        backup_out,
+        staging_folders,
+    )
+    split_proc = SplitStage(
+        args.parameters, args.data_out, args.labels_out, split_csv_path, staging_folders
+    )
+    stages = [
+        csv_proc,
+        nifti_proc,
+        brain_extract_proc,
+        tumor_extract_proc,
+        manual_proc,
+        match_proc,
+        confirm_proc,
+        split_proc
+    ]
+    return Pipeline(report_gen, stages)
+
+
+
 if __name__ == "__main__":
     args = setup_argparser()
     out_data_csv = os.path.join(args.data_out, "data.csv")
@@ -99,100 +172,5 @@ if __name__ == "__main__":
 
     # TODO: If we identify a folder structure similar to the data-preparation one,
     # copy everything into the folders and start from there
-
-    # 2. Generate the report for all identified subjects
-    out_raw = os.path.join(args.data_out, "raw")
-    report_gen = GenerateReport(args.data, out_raw)
-    if report_gen.should_run(report):
-        print("Generating new report")
-        report = report_gen.execute(report)
-        write_report(report, args.report)
-
-    # RUN COLUMN-WISE PROCESSING
-    valid_data_out = os.path.join(args.data_out, "validated")
-    nifti_data_out = os.path.join(args.data_out, "prepared")
-    brain_data_out = os.path.join(args.data_out, "brain_extracted")
-    tumor_data_out = os.path.join(args.data_out, "tumor_extracted")
-    match_data_out = args.labels_out
-    backup_out = os.path.join(args.labels_out, ".tumor_segmentation_backup")
-    staging_folders = [
-        out_raw,
-        valid_data_out,
-        nifti_data_out,
-        brain_data_out,
-        tumor_data_out,
-        backup_out,
-    ]
-    subjects = list(report.index)
-    loop = tqdm(subjects)
-    brain_subpaths = [INTERIM_FOLDER, FINAL_FOLDER]
-    tumor_subpaths = [TUMOR_MASK_FOLDER]
-
-    # TODO: Split the data and labels path so that FINAL FOLDER is data and INTERIM is labels
-    csv_proc = AddToCSV(out_raw, out_data_csv, valid_data_out, out_raw)
-    nifti_proc = NIfTITransform(out_data_csv, nifti_data_out, valid_data_out, loop)
-    brain_extract_proc = Extract(
-        out_data_csv,
-        brain_data_out,
-        brain_subpaths,
-        nifti_data_out,
-        brain_subpaths,
-        loop,
-        "extract_brain",
-        3,
-    )
-    tumor_extract_proc = Extract(
-        out_data_csv,
-        tumor_data_out,
-        tumor_subpaths,
-        brain_data_out,
-        brain_subpaths,
-        loop,
-        "extract_tumor",
-        4,
-    )
-    manual_proc = ManualStage(out_data_csv, tumor_data_out, tumor_data_out, backup_out)
-    match_proc = SegmentationComparisonStage(
-        out_data_csv,
-        match_data_out,
-        tumor_data_out,
-        backup_out,
-    )
-
-    stages = [
-        csv_proc,
-        nifti_proc,
-        brain_extract_proc,
-        tumor_extract_proc,
-        manual_proc,
-        match_proc,
-    ]
-
-    for subject in loop:
-        for stage in stages:
-            if stage.should_run(subject, report):
-                loop.set_description(f"{subject} | {stage.get_name()}")
-                report = stage.execute(subject, report)
-                write_report(report, args.report)
-
-    confirm_proc = ConfirmStage(
-        out_data_csv,
-        args.data_out,
-        args.labels_out,
-        tumor_data_out,
-        backup_out,
-        staging_folders,
-    )
-
-    if confirm_proc.should_run(report):
-        report = confirm_proc.execute(report)
-        write_report(report, args.report)
-
-    split_csv_path = os.path.join(args.data_out, "splits.csv")
-    split_proc = SplitStage(
-        args.parameters, args.data_out, args.labels_out, split_csv_path, staging_folders
-    )
-
-    if split_proc.should_run(report):
-        report = split_proc.execute(report)
-        write_report(report, args.report)
+    pipeline = init_pipeline()
+    pipeline.run(report, args.report)

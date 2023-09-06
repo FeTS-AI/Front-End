@@ -4,7 +4,7 @@ from .utils import update_row_with_dict, get_id_tp
 from pathlib import Path
 
 import pandas as pd
-from typing import Union
+from typing import Union, Tuple
 import os
 import shutil
 
@@ -17,6 +17,7 @@ class AddToCSV(RowStage):
         self.output_csv = output_csv
         self.out_dir = out_dir
         self.prev_stage_path = prev_stage_path
+        self.status_code = 1
         os.makedirs(self.out_dir, exist_ok=True)
         self.csv_processor = CSVCreator(self.input_dir, self.output_csv)
         if os.path.exists(self.output_csv):
@@ -30,7 +31,7 @@ class AddToCSV(RowStage):
     def get_name(self) -> str:
         return "Initial Validation"
 
-    def should_run(self, index: Union[str, int], report: pd.DataFrame) -> bool:
+    def could_run(self, index: Union[str, int], report: pd.DataFrame) -> bool:
         """Determines if getting a new CSV is necessary.
         This is done by checking the existence of the expected file
 
@@ -39,14 +40,16 @@ class AddToCSV(RowStage):
             report (pd.DataFrame): Dataframe containing the current state of the preparation flow
 
         Returns:
-            bool: wether this stage should be executed
+            bool: wether this stage could be executed
         """
         id, tp = get_id_tp(index)
         prev_case_path = os.path.join(self.prev_stage_path, id, tp)
 
         return os.path.exists(prev_case_path)
 
-    def execute(self, index: Union[str, int], report: pd.DataFrame) -> pd.DataFrame:
+    def execute(
+        self, index: Union[str, int], report: pd.DataFrame
+    ) -> Tuple[pd.DataFrame, bool]:
         """Adds valid cases to the data csv that is used for later processing
         Invalid cases are flagged in the report
 
@@ -69,7 +72,7 @@ class AddToCSV(RowStage):
 
         self.csv_processor.process_timepoint(tp, id, subject_out_path)
         report_data = {
-            "status": 1,
+            "status": self.status_code,
             "status_name": "VALIDATED",
             "comment": "",
             "data_path": tp_out_path,
@@ -77,15 +80,19 @@ class AddToCSV(RowStage):
         }
         if f"{id}_{tp}" in self.csv_processor.subject_timepoint_missing_modalities:
             shutil.rmtree(tp_out_path, ignore_errors=True)
+            # Differentiate errors by floating point value
+            status_code = -self.status_code - 0.1 # -1.1
             comment = "There are missing modalities. Please check the data"
-            report_data["status"] = -1.1
+            report_data["status"] = status_code 
             report_data["status_name"] = "MISSING_MODALITIES"
             report_data["data_path"] = tp_path
             report_data["comment"] = comment
         elif f"{id}_{tp}" in self.csv_processor.subject_timepoint_extra_modalities:
             shutil.rmtree(tp_out_path, ignore_errors=True)
+            # Differentiate errors by floating point value
+            status_code = -self.status_code - 0.2 # -1.2
             comment = "There are extra modalities. Please check the data"
-            report_data["status"] = -1.2
+            report_data["status"] = status_code
             report_data["status_name"] = "EXTRA MODALITIES"
             report_data["data_path"] = tp_path
             report_data["comment"] = comment

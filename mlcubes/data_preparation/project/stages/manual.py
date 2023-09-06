@@ -96,7 +96,7 @@ class ManualStage(RowStage):
         update_row_with_dict(report, report_data, index)
         return report
 
-    def should_run(self, index: Union[str, int], report: pd.DataFrame) -> bool:
+    def could_run(self, index: Union[str, int], report: pd.DataFrame) -> bool:
         out_path = self.__get_output_path(index)
         cases = []
         if os.path.exists(out_path):

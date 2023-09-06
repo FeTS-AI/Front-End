@@ -1,4 +1,4 @@
-from typing import Union
+from typing import Union, Tuple
 import os
 import yaml
 import shutil
@@ -102,8 +102,8 @@ class ConfirmStage(DatasetStage):
         row["comment"] = ""
         return row
 
-    def should_run(self, report: DataFrame) -> bool:
-        # Should run once all cases have been compared to the ground truth
+    def could_run(self, report: DataFrame) -> bool:
+        # could run once all cases have been compared to the ground truth
         missing_voxels = report["num_changed_voxels"].isnull().values.any()
         prev_path_exists = os.path.exists(self.prev_stage_path)
         empty_prev_path = True
@@ -112,15 +112,16 @@ class ConfirmStage(DatasetStage):
 
         return prev_path_exists and not empty_prev_path and not missing_voxels
 
-    def execute(self, report: DataFrame) -> DataFrame:
+    def execute(self, report: DataFrame) -> Tuple[DataFrame, bool]:
         exact_match_percent = (report["num_changed_voxels"] == 0).sum() / len(report)
         confirmed = self.__confirm(exact_match_percent)
 
         if not confirmed:
-            return self.__report_failure(report)
+            report = self.__report_failure(report)
+            return report, False
 
         report = report.apply(self.__process_row, axis=1)
         # Remove all intermediary steps
         cleanup_storage(self.staging_folders)
 
-        return report
+        return report, True
