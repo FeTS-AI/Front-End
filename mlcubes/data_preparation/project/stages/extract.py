@@ -1,4 +1,4 @@
-from typing import Union, List
+from typing import Union, List, Tuple
 from tqdm import tqdm
 import pandas as pd
 import os
@@ -18,7 +18,7 @@ class Extract(RowStage):
         subpaths: List[str],
         prev_stage_path: str,
         prev_subpaths: List[str],
-        pbar: tqdm,
+        # pbar: tqdm,
         func_name: str,
         status_code: int,
     ):
@@ -31,7 +31,7 @@ class Extract(RowStage):
         self.prep = Preparator(data_csv, out_path, "BraTSPipeline")
         self.func_name = func_name
         self.func = getattr(self.prep, func_name)
-        self.pbar = pbar
+        self.pbar = tqdm()
         self.failed = False
         self.exception = None
         self.status_code = status_code
@@ -39,7 +39,7 @@ class Extract(RowStage):
     def get_name(self) -> str:
         return self.func_name.replace("_", " ").capitalize()
 
-    def should_run(self, index: Union[str, int], report: pd.DataFrame) -> bool:
+    def could_run(self, index: Union[str, int], report: pd.DataFrame) -> bool:
         """Determine if case at given index needs to be converted to NIfTI
 
         Args:
@@ -47,12 +47,14 @@ class Extract(RowStage):
             report (pd.DataFrame): Report Dataframe for providing additional context
 
         Returns:
-            bool: Wether this stage should be executed for the given case
+            bool: Wether this stage could be executed for the given case
         """
         prev_paths = self.__get_paths(index, self.prev_path, self.prev_subpaths)
         return all([os.path.exists(path) for path in prev_paths])
 
-    def execute(self, index: Union[str, int], report: pd.DataFrame) -> pd.DataFrame:
+    def execute(
+        self, index: Union[str, int], report: pd.DataFrame
+    ) -> Tuple[pd.DataFrame, bool]:
         """Executes the NIfTI transformation stage on the given case
 
         Args:
@@ -65,10 +67,10 @@ class Extract(RowStage):
         self.__prepare_exec()
         self.__copy_case(index)
         self.__process_case(index)
-        report = self.__update_state(index, report)
+        report, success = self.__update_state(index, report)
         self.prep.write()
 
-        return report
+        return report, success
 
     def __prepare_exec(self):
         # Reset the file contents for errors
@@ -103,18 +105,20 @@ class Extract(RowStage):
 
     def __update_state(
         self, index: Union[str, int], report: pd.DataFrame
-    ) -> pd.DataFrame:
+    ) -> Tuple[pd.DataFrame, bool]:
         if self.failed:
             del_paths = self.__get_paths(index, self.out_path, self.subpaths)
             report = self.__report_failure(index, report)
+            success = False
         else:
             del_paths = self.__get_paths(index, self.prev_path, self.prev_subpaths)
             report = self.__report_success(index, report)
+            success = True
 
         for path in del_paths:
             shutil.rmtree(path, ignore_errors=True)
 
-        return report
+        return report, success
 
     def __report_success(
         self, index: Union[str, int], report: pd.DataFrame

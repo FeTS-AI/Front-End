@@ -1,4 +1,4 @@
-from typing import Union
+from typing import Union, Tuple
 import os
 import yaml
 
@@ -27,7 +27,7 @@ class SegmentationComparisonStage(RowStage):
         self.status_code = 6
 
     def get_name(self):
-        return "Annotations Confirmation"
+        return "Label Segmentation Comparison"
 
     def __get_input_path(self, index: Union[str, int]) -> str:
         id, tp = get_id_tp(index)
@@ -105,7 +105,7 @@ class SegmentationComparisonStage(RowStage):
         update_row_with_dict(report, report_data, index)
         return report
 
-    def should_run(self, index: Union[str, int], report: DataFrame) -> bool:
+    def could_run(self, index: Union[str, int], report: DataFrame) -> bool:
         # Ensure a single reviewed segmentation file exists
         path = os.path.join(self.__get_input_path(index), "reviewed")
 
@@ -119,7 +119,9 @@ class SegmentationComparisonStage(RowStage):
 
         return is_valid
 
-    def execute(self, index: Union[str, int], report: DataFrame) -> DataFrame:
+    def execute(
+        self, index: Union[str, int], report: DataFrame
+    ) -> Tuple[DataFrame, bool]:
         path = os.path.join(self.__get_input_path(index), "reviewed")
         cases = os.listdir(path)
 
@@ -132,7 +134,8 @@ class SegmentationComparisonStage(RowStage):
 
         if not os.path.exists(gt_file):
             # Ground truth file not found, reviewed file most probably renamed
-            return self.__report_gt_not_found(index, report, reviewed_file)
+            report = self.__report_gt_not_found(index, report, reviewed_file)
+            return report, False
 
         reviewed_img = nib.load(reviewed_file)
         gt_img = nib.load(gt_file)
@@ -142,6 +145,8 @@ class SegmentationComparisonStage(RowStage):
 
         num_changed_voxels = np.sum(reviewed_voxels != gt_voxels)
         if num_changed_voxels == 0:
-            return self.__report_exact_match(index, report)
+            report = self.__report_exact_match(index, report)
+            return report, True
 
-        return self.__report_success(index, report, num_changed_voxels)
+        report = self.__report_success(index, report, num_changed_voxels)
+        return report, True

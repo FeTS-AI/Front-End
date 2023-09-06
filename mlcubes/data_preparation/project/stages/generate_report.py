@@ -5,6 +5,7 @@ import os
 from pathlib import Path
 import hashlib
 import shutil
+from typing import Tuple
 
 
 # Taken from https://stackoverflow.com/questions/24937495/how-can-i-calculate-a-hash-for-a-filesystem-directory-using-python
@@ -29,11 +30,15 @@ class GenerateReport(DatasetStage):
     def __init__(self, input_path: str, output_path: str):
         self.input_path = input_path
         self.output_path = output_path
+        self.status_code = 0
 
-    def should_run(self, report: pd.DataFrame):
+    def get_name(self) -> str:
+        return "Generate Report"
+
+    def could_run(self, report: pd.DataFrame):
         return True
 
-    def execute(self, report: pd.DataFrame):
+    def execute(self, report: pd.DataFrame) -> Tuple[pd.DataFrame, bool]:
         # Rewrite the report
         cols = [
             "status",
@@ -78,9 +83,13 @@ class GenerateReport(DatasetStage):
                     shutil.rmtree(out_tp_path, ignore_errors=True)
                     shutil.copytree(in_tp_path, out_tp_path)
                     report = report.drop(index)
+                else:
+                    # New case not identified by the report. Add it
+                    shutil.copytree(in_tp_path, out_tp_path)
+
 
                 data = {
-                    "status": 0,
+                    "status": self.status_code,
                     "status_name": "IDENTIFIED",
                     "comment": "",
                     "data_path": out_tp_path,
@@ -99,4 +108,4 @@ class GenerateReport(DatasetStage):
         for case_index in removed_cases:
             report = report.drop(case_index)
 
-        return report
+        return report, True
