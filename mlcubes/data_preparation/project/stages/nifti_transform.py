@@ -75,7 +75,7 @@ class NIfTITransform(RowStage):
 
     def __update_prev_stage_state(self, index: Union[str, int], report: pd.DataFrame):
         prev_data_path = report.loc[index]["data_path"]
-        shutil.rmtree(prev_data_path)
+        shutil.rmtree(prev_data_path, ignore_errors=True)
 
     def __undo_current_stage_changes(self, index: Union[str, int]):
         fets_path, qc_path = self.__get_output_paths(index)

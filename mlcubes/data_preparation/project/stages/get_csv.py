@@ -87,6 +87,7 @@ class AddToCSV(RowStage):
             report_data["status_name"] = "MISSING_MODALITIES"
             report_data["data_path"] = tp_path
             report_data["comment"] = comment
+            success = False
         elif f"{id}_{tp}" in self.csv_processor.subject_timepoint_extra_modalities:
             shutil.rmtree(tp_out_path, ignore_errors=True)
             # Differentiate errors by floating point value
@@ -96,11 +97,13 @@ class AddToCSV(RowStage):
             report_data["status_name"] = "EXTRA MODALITIES"
             report_data["data_path"] = tp_path
             report_data["comment"] = comment
+            success = False
         else:
             shutil.rmtree(tp_path)
+            success = True
 
         update_row_with_dict(report, report_data, index)
 
         self.csv_processor.write()
 
-        return report
+        return report, success
