@@ -76,4 +76,4 @@ class SplitStage(DatasetStage):
         report = self.__report_success(report)
         cleanup_storage(self.staging_folders)
 
-        return report
+        return report, True

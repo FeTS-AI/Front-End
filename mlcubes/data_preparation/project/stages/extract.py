@@ -108,12 +108,10 @@ class Extract(RowStage):
     ) -> Tuple[pd.DataFrame, bool]:
         if self.failed:
             del_paths = self.__get_paths(index, self.out_path, self.subpaths)
-            report = self.__report_failure(index, report)
-            success = False
+            report, success = self.__report_failure(index, report)
         else:
             del_paths = self.__get_paths(index, self.prev_path, self.prev_subpaths)
-            report = self.__report_success(index, report)
-            success = True
+            report, success = self.__report_success(index, report)
 
         for path in del_paths:
             shutil.rmtree(path, ignore_errors=True)
@@ -122,7 +120,7 @@ class Extract(RowStage):
 
     def __report_success(
         self, index: Union[str, int], report: pd.DataFrame
-    ) -> pd.DataFrame:
+    ) -> Tuple[pd.DataFrame, bool]:
         paths = self.__get_paths(index, self.out_path, self.subpaths)
         report_data = {
             "status": self.status_code,
@@ -132,11 +130,11 @@ class Extract(RowStage):
             "labels_path": "",
         }
         update_row_with_dict(report, report_data, index)
-        return report
+        return report, True
 
     def __report_failure(
         self, index: Union[str, int], report: pd.DataFrame
-    ) -> pd.DataFrame:
+    ) -> Tuple[pd.DataFrame, bool]:
         prev_paths = self.__get_paths(index, self.prev_path, self.prev_subpaths)
         msg = f"{str(self.exception)}: {self.traceback}"
 
@@ -148,4 +146,4 @@ class Extract(RowStage):
             "labels_path": "",
         }
         update_row_with_dict(report, report_data, index)
-        return report
+        return report, False

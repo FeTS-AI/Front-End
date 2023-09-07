@@ -1,4 +1,4 @@
-from typing import Union
+from typing import Union, Tuple
 import pandas as pd
 import os
 import shutil
@@ -106,7 +106,7 @@ class ManualStage(RowStage):
         annotation_exists = len(cases) == 1
         return segmentation_exists and not annotation_exists
 
-    def execute(self, index: Union[str, int], report: pd.DataFrame) -> pd.DataFrame:
+    def execute(self, index: Union[str, int], report: pd.DataFrame) -> Tuple[pd.DataFrame, bool]:
         """Manual steps are by definition not doable by an algorithm. Therefore,
         execution of this step leads to a failed stage message, indicating that
         the manual step has not been done.
@@ -134,8 +134,8 @@ class ManualStage(RowStage):
 
         if len(cases) > 1:
             # Found more than one reviewed case
-            return self.__report_multiple_cases_error(index, report)
+            return self.__report_multiple_cases_error(index, report), False
         elif not len(cases):
             # Found no cases yet reviewed
-            return self.__report_step_missing(index, report)
-        return self.__report_success(index, report)
+            return self.__report_step_missing(index, report), False
+        return self.__report_success(index, report), True
