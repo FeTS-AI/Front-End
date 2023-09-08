@@ -84,8 +84,6 @@ def init_pipeline():
         tumor_data_out,
         backup_out,
     ]
-    brain_subpaths = [INTERIM_FOLDER, FINAL_FOLDER]
-    tumor_subpaths = [TUMOR_MASK_FOLDER]
     split_csv_path = os.path.join(args.data_out, "splits.csv")
 
     # TODO: Split the data and labels path so that FINAL FOLDER is data and INTERIM is labels
@@ -96,9 +94,9 @@ def init_pipeline():
     brain_extract_proc = Extract(
         out_data_csv,
         brain_data_out,
-        brain_subpaths,
+        INTERIM_FOLDER,
         nifti_data_out,
-        brain_subpaths,
+        INTERIM_FOLDER,
         # loop,
         "extract_brain",
         3,
@@ -106,9 +104,9 @@ def init_pipeline():
     tumor_extract_proc = Extract(
         out_data_csv,
         tumor_data_out,
-        tumor_subpaths,
+        TUMOR_MASK_FOLDER,
         brain_data_out,
-        brain_subpaths,
+        INTERIM_FOLDER,
         # loop,
         "extract_tumor",
         4,

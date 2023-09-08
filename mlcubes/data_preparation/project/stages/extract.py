@@ -6,7 +6,7 @@ import shutil
 import traceback
 
 from .row_stage import RowStage
-from .PrepareDataset import Preparator, INTERIM_FOLDER, FINAL_FOLDER
+from .PrepareDataset import Preparator, FINAL_FOLDER
 from .utils import update_row_with_dict, get_id_tp, MockTqdm
 
 
@@ -15,18 +15,19 @@ class Extract(RowStage):
         self,
         data_csv: str,
         out_path: str,
-        subpaths: List[str],
+        subpath: str,
         prev_stage_path: str,
-        prev_subpaths: List[str],
+        prev_subpath: str,
         # pbar: tqdm,
         func_name: str,
         status_code: int,
     ):
         self.data_csv = data_csv
         self.out_path = out_path
-        self.subpaths = subpaths
+        self.subpath = subpath
+        self.data_subpath = FINAL_FOLDER
         self.prev_path = prev_stage_path
-        self.prev_subpaths = prev_subpaths
+        self.prev_subpath = prev_subpath
         os.makedirs(self.out_path, exist_ok=True)
         self.prep = Preparator(data_csv, out_path, "BraTSPipeline")
         self.func_name = func_name
@@ -49,7 +50,7 @@ class Extract(RowStage):
         Returns:
             bool: Wether this stage could be executed for the given case
         """
-        prev_paths = self.__get_paths(index, self.prev_path, self.prev_subpaths)
+        prev_paths = self.__get_paths(index, self.prev_path, self.prev_subpath)
         return all([os.path.exists(path) for path in prev_paths])
 
     def execute(
@@ -79,16 +80,15 @@ class Extract(RowStage):
         # Update the out dataframes to current state
         self.prep.read()
 
-    def __get_paths(self, index: Union[str, int], path: str, subpaths: List[str]):
+    def __get_paths(self, index: Union[str, int], path: str, subpath: str):
         id, tp = get_id_tp(index)
-        out_paths = []
-        for subpath in subpaths:
-            out_paths.append(os.path.join(path, subpath, id, tp))
-        return out_paths
+        data_path = os.path.join(path, self.data_subpath, id, tp)
+        out_path = os.path.join(path, subpath, id, tp)
+        return data_path, out_path
 
     def __copy_case(self, index: Union[str, int]):
-        prev_paths = self.__get_paths(index, self.prev_path, self.prev_subpaths)
-        copy_paths = self.__get_paths(index, self.out_path, self.prev_subpaths)
+        prev_paths = self.__get_paths(index, self.prev_path, self.prev_subpath)
+        copy_paths = self.__get_paths(index, self.out_path, self.prev_subpath)
         for prev, copy in zip(prev_paths, copy_paths):
             shutil.copytree(prev, copy, dirs_exist_ok=True)
 
@@ -107,27 +107,27 @@ class Extract(RowStage):
         self, index: Union[str, int], report: pd.DataFrame
     ) -> Tuple[pd.DataFrame, bool]:
         if self.failed:
-            del_paths = self.__get_paths(index, self.out_path, self.subpaths)
+            del_paths = self.__get_paths(index, self.out_path, self.subpath)
             report, success = self.__report_failure(index, report)
         else:
-            del_paths = self.__get_paths(index, self.prev_path, self.prev_subpaths)
+            del_paths = self.__get_paths(index, self.prev_path, self.prev_subpath)
             report, success = self.__report_success(index, report)
 
-        for path in del_paths:
-            shutil.rmtree(path, ignore_errors=True)
+        for del_path in del_paths:
+            shutil.rmtree(del_path, ignore_errors=True)
 
         return report, success
 
     def __report_success(
         self, index: Union[str, int], report: pd.DataFrame
     ) -> Tuple[pd.DataFrame, bool]:
-        paths = self.__get_paths(index, self.out_path, self.subpaths)
+        data_path, labels_path = self.__get_paths(index, self.out_path, self.subpath)
         report_data = {
             "status": self.status_code,
             "status_name": f"{self.func_name.upper()}_FINISHED",
             "comment": "",
-            "data_path": ",".join(paths),
-            "labels_path": "",
+            "data_path": data_path,
+            "labels_path": labels_path,
         }
         update_row_with_dict(report, report_data, index)
         return report, True
@@ -135,15 +135,15 @@ class Extract(RowStage):
     def __report_failure(
         self, index: Union[str, int], report: pd.DataFrame
     ) -> Tuple[pd.DataFrame, bool]:
-        prev_paths = self.__get_paths(index, self.prev_path, self.prev_subpaths)
+        prev_data_path, prev_labels_path = self.__get_paths(index, self.prev_path, self.prev_subpath)
         msg = f"{str(self.exception)}: {self.traceback}"
 
         report_data = {
             "status": -self.status_code,
             "status_name": f"{self.func_name.upper()}_FAILED",
             "comment": msg,
-            "data_path": ",".join(prev_paths),
-            "labels_path": "",
+            "data_path": prev_data_path,
+            "labels_path": prev_labels_path,
         }
         update_row_with_dict(report, report_data, index)
         return report, False
