@@ -107,15 +107,13 @@ class NIfTITransform(RowStage):
     def __report_success(
         self, index: Union[str, int], report: pd.DataFrame
     ) -> pd.DataFrame:
-        # At the moment we're reporting both paths joined by a comma
-        # TODO: Determine if this is a correct way of doing things
-        paths = self.__get_output_paths(index)
+        fets_path, qc_path = self.__get_output_paths(index)
         report_data = {
             "status": self.status_code,
             "status_name": "CONVERTED_TO_NIfTI",
             "comment": "",
-            "data_path": ",".join(paths),
-            "labels_path": "",
+            "data_path": qc_path,
+            "labels_path": fets_path,
         }
         update_row_with_dict(report, report_data, index)
         return report

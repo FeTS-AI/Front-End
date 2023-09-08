@@ -46,13 +46,14 @@ class ManualStage(RowStage):
     def __report_success(
         self, index: Union[str, int], report: pd.DataFrame
     ) -> pd.DataFrame:
-        out_path = self.__get_output_path(index)
+        labels_path = self.__get_output_path(index)
+        data_path = report.loc[index, "data_path"]
         report_data = {
             "status": 5,
             "status_name": "MANUAL_REVIEW_COMPLETED",
             "comment": "",
-            "data_path": out_path,
-            "labels_path": "",
+            "data_path": data_path,
+            "labels_path": labels_path,
         }
         update_row_with_dict(report, report_data, index)
         return report
@@ -63,6 +64,7 @@ class ManualStage(RowStage):
         in_path = self.__get_input_path(index)
         out_path = self.__get_output_path(index)
         under_review_path = self.__get_under_review_path(index)
+        data_path = report.loc[index, "data_path"]
         msg = (
             f"You may find baseline segmentations inside {in_path}. "
             + f"Please inspect those segmentations and move the best one to {under_review_path}. "
@@ -74,8 +76,8 @@ class ManualStage(RowStage):
             "status": -self.status_code,
             "status_name": "MANUAL_REVIEW_REQUIRED",
             "comment": msg,
-            "data_path": in_path,
-            "labels_path": "",
+            "data_path": data_path,
+            "labels_path": in_path
         }
         update_row_with_dict(report, report_data, index)
         return report
@@ -84,14 +86,15 @@ class ManualStage(RowStage):
         self, index: Union[str, int], report: pd.DataFrame
     ) -> pd.DataFrame:
         path = self.__get_output_path(index)
+        data_path = report.loc[index, "data_path"]
         msg = "More than one reviewed segmentation was identified. Please ensure there's only one NIfTI file present"
 
         report_data = {
             "status": -self.status_code,
             "status_name": "MULTIPLE_ANNOTATIONS_ERROR",
             "comment": msg,
-            "data_path": path,
-            "labels_path": "",
+            "data_path": data_path,
+            "labels_path": path,
         }
         update_row_with_dict(report, report_data, index)
         return report
