@@ -5,7 +5,7 @@ import shutil
 
 from .row_stage import RowStage
 from .constants import TUMOR_MASK_FOLDER, INTERIM_FOLDER
-from .utils import get_id_tp, update_row_with_dict, set_files_read_only
+from .utils import get_id_tp, update_row_with_dict, set_files_read_only, normalize_path
 
 
 class ManualStage(RowStage):
@@ -66,10 +66,10 @@ class ManualStage(RowStage):
         under_review_path = self.__get_under_review_path(index)
         data_path = report.loc[index, "data_path"]
         msg = (
-            f"You may find baseline segmentations inside {in_path}. "
-            + f"Please inspect those segmentations and move the best one to {under_review_path}. "
+            f"You may find baseline segmentations inside {normalize_path(in_path)}. "
+            + f"Please inspect those segmentations and move the best one to {normalize_path(under_review_path)}. "
             + "Make the necessary corrections to the generated segmentations with your desired tool, "
-            + f"and once you're done, move the finalized file to {out_path}."
+            + f"and once you're done, move the finalized file to {normalize_path(out_path)}."
         )
 
         report_data = {
@@ -115,8 +115,8 @@ class ManualStage(RowStage):
         the manual step has not been done.
 
         Args:
-            index (Union[str, int]): _description_
-            report (pd.DataFrame): _description_
+            index (Union[str, int]): current case index
+            report (pd.DataFrame): data preparation report
 
         Returns:
             pd.DataFrame: _description_

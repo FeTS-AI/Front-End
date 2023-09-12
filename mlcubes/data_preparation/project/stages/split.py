@@ -28,6 +28,11 @@ class SplitStage(DatasetStage):
         return "Generate splits"
 
     def could_run(self, report: pd.DataFrame) -> bool:
+        split_exists = os.path.exists(self.split_csv_path)
+        if split_exists:
+            # This stage already ran
+            return False
+
         for index in report.index:
             id, tp = get_id_tp(index)
             case_data_path = os.path.join(self.data_path, id, tp)
@@ -36,6 +41,7 @@ class SplitStage(DatasetStage):
             labels_exist = os.path.exists(case_labels_path)
 
             if not data_exists or not labels_exist:
+                # Some subjects are not ready
                 return False
 
         return True

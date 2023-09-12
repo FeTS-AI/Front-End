@@ -86,7 +86,6 @@ def init_pipeline():
     ]
     split_csv_path = os.path.join(args.data_out, "splits.csv")
 
-    # TODO: Split the data and labels path so that FINAL FOLDER is data and INTERIM is labels
     loop = None
     report_gen = GenerateReport(args.data, out_raw)
     csv_proc = AddToCSV(out_raw, out_data_csv, valid_data_out, out_raw)
@@ -139,7 +138,7 @@ def init_pipeline():
         confirm_proc,
         split_proc
     ]
-    return Pipeline(report_gen, stages)
+    return Pipeline(report_gen, stages, staging_folders)
 
 
 
