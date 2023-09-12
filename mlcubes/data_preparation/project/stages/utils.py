@@ -3,6 +3,24 @@ import shutil
 from tqdm import tqdm
 
 
+def normalize_path(path: str) -> str:
+    """Remove mlcube-specific components from the given path
+
+    Args:
+        path (str): mlcube path
+
+    Returns:
+        str: normalized path
+    """
+    # for this specific problem, we know that all paths start with `/mlcube_io*`
+    # and that this pattern won't change, shrink or grow. We can therefore write a
+    # simple, specific solution
+    if path.startswith("/mlcube_io"):
+        return path[12:]
+
+    # In case the path has already been normalized
+    return path
+
 def update_row_with_dict(df, d, idx):
     for key in d.keys():
         df.loc[idx, key] = d.get(key)

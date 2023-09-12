@@ -1,6 +1,6 @@
 from typing import Union, Tuple
 import os
-import yaml
+import shutil
 
 import pandas as pd
 from pandas import DataFrame
@@ -111,14 +111,16 @@ class SegmentationComparisonStage(RowStage):
     def could_run(self, index: Union[str, int], report: DataFrame) -> bool:
         # Ensure a single reviewed segmentation file exists
         path = os.path.join(self.__get_input_path(index), "reviewed")
+        gt_path = self.__get_backup_path(index)
 
         is_valid = True
         path_exists = os.path.exists(path)
+        gt_path_exists = os.path.exists(gt_path)
         contains_case = False
         if path_exists:
             num_cases = len(os.listdir(path))
             contains_case = num_cases == 1
-        is_valid = path_exists and contains_case
+        is_valid = path_exists and contains_case and gt_path_exists
 
         return is_valid
 
@@ -147,6 +149,10 @@ class SegmentationComparisonStage(RowStage):
         gt_voxels = np.array(gt_img.dataobj)
 
         num_changed_voxels = np.sum(reviewed_voxels != gt_voxels)
+
+        # At this point we know we succeeded, remove the backup files
+        shutil.rmtree(self.__get_backup_path(index))
+
         if num_changed_voxels == 0:
             report = self.__report_exact_match(index, report)
             return report, True

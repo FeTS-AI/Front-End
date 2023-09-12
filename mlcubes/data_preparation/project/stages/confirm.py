@@ -2,6 +2,7 @@ from typing import Union, Tuple
 import os
 import yaml
 import shutil
+from time import sleep
 from typing import List
 
 import pandas as pd
@@ -29,6 +30,8 @@ class ConfirmStage(DatasetStage):
         self.backup_path = backup_path
         self.staging_folders = staging_folders
         self.status_code = 7
+        self.prompt_file = ".prompt.txt"
+        self.response_file = ".response.txt"
 
     def get_name(self):
         return "Annotations Confirmation"
@@ -54,7 +57,7 @@ class ConfirmStage(DatasetStage):
         id, tp = get_id_tp(index)
         path = os.path.join(self.out_labels_path, id, tp)
         filename = f"{id}_{tp}_final_seg.nii.gz"
-        return os.path.join(path, filename)
+        return path, filename
 
     def __confirm(self, exact_match_percent: float) -> bool:
         exact_match_percent = round(exact_match_percent * 100, 2)
@@ -65,7 +68,21 @@ class ConfirmStage(DatasetStage):
         )
 
         # user_input = input(msg).lower()
-        user_input = "y"
+        prompt_path = os.path.join(self.out_data_path, self.prompt_file)
+        response_path = os.path.join(self.out_data_path, self.response_file)
+
+        with open(prompt_path, "w") as f:
+            f.write(msg)
+
+        while not os.path.exists(response_path):
+            sleep(1)
+        
+        with open(response_path, "r") as f:
+            user_input = f.readline().strip()
+
+        os.remove(prompt_path)
+        os.remove(response_path)
+
         return user_input == "y" or user_input == ""
 
     def __report_failure(self, report: DataFrame) -> DataFrame:
@@ -87,13 +104,15 @@ class ConfirmStage(DatasetStage):
         """
         index = row.name
         input_data_path = self.__get_input_data_path(index)
-        input_label_path = self.__get_input_label_path(index)
+        input_label_filepath = self.__get_input_label_path(index)
         output_data_path = self.__get_output_data_path(index)
-        output_label_path = self.__get_output_label_path(index)
+        output_label_path, filename = self.__get_output_label_path(index)
+        output_label_filepath = os.path.join(output_label_path, filename)
 
         shutil.rmtree(output_data_path, ignore_errors=True)
         shutil.copytree(input_data_path, output_data_path)
-        shutil.copy(input_label_path, output_label_path)
+        os.makedirs(output_label_path, exist_ok=True)
+        shutil.copy(input_label_filepath, output_label_filepath)
 
         row["status"] = self.status_code
         row["status_name"] = "ANNOTATION_CONFIRMED"
