@@ -85,6 +85,8 @@ def init_pipeline():
         backup_out,
     ]
     split_csv_path = os.path.join(args.data_out, "splits.csv")
+    train_csv_path = os.path.join(args.data_out, "train.csv")
+    val_csv_path = os.path.join(args.data_out, "val.csv")
 
     loop = None
     report_gen = GenerateReport(args.data, out_raw)
@@ -126,7 +128,7 @@ def init_pipeline():
         staging_folders,
     )
     split_proc = SplitStage(
-        args.parameters, args.data_out, args.labels_out, split_csv_path, staging_folders
+        args.parameters, args.data_out, args.labels_out, split_csv_path, train_csv_path, val_csv_path, staging_folders
     )
     stages = [
         csv_proc,
