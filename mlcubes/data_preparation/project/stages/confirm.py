@@ -142,5 +142,7 @@ class ConfirmStage(DatasetStage):
         report = report.apply(self.__process_row, axis=1)
         # Remove all intermediary steps
         cleanup_storage(self.staging_folders)
+        if os.path.exists(self.data_csv):
+            os.remove(self.data_csv)
 
         return report, True
