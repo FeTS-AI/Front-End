@@ -8,6 +8,12 @@ from .dset_stage import DatasetStage
 from .utils import get_id_tp, cleanup_storage
 
 
+def row_to_path(row: pd.Series) -> str:
+    id = row["SubjectID"]
+    tp = row["Timepoint"]
+    return os.path.join(id, tp)
+
+
 class SplitStage(DatasetStage):
     def __init__(
         self,
@@ -15,12 +21,16 @@ class SplitStage(DatasetStage):
         data_path: str,
         labels_path: str,
         split_csv_path: str,
+        train_csv_path: str,
+        val_csv_path: str,
         staging_folders: List[str],
     ):
         self.params = params
         self.data_path = data_path
         self.labels_path = labels_path
         self.split_csv_path = split_csv_path
+        self.train_csv_path = train_csv_path
+        self.val_csv_path = val_csv_path
         self.staging_folders = staging_folders
         self.status_code = 8
 
@@ -78,6 +88,12 @@ class SplitStage(DatasetStage):
         split_df.loc[val_mask, "Split"] = "Val"
 
         split_df.to_csv(self.split_csv_path, index=False)
+
+        # Generate separate splits files with relative path
+        split_df["path"] = split_df.apply(row_to_path, axis=1)
+
+        split_df.loc[train_mask].to_csv(self.train_csv_path, index=False)
+        split_df.loc[val_mask].to_csv(self.val_csv_path, index=False)
 
         report = self.__report_success(report)
         cleanup_storage(self.staging_folders)
