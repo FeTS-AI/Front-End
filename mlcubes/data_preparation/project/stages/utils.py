@@ -21,6 +21,19 @@ def normalize_path(path: str) -> str:
     # In case the path has already been normalized
     return path
 
+def unnormalize_path(path: str, parent: str) -> str:
+    """Add back mlcube-specific components to the given path
+
+    Args:
+        path (str): normalized path
+
+    Returns:
+        str: mlcube-specific path
+    """
+    if path.startswith(os.path.sep):
+        path = path[1:]
+    return os.path.join(parent, path)
+
 def update_row_with_dict(df, d, idx):
     for key in d.keys():
         df.loc[idx, key] = d.get(key)
