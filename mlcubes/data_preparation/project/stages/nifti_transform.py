@@ -6,7 +6,7 @@ import shutil
 
 from .row_stage import RowStage
 from .PrepareDataset import Preparator, INTERIM_FOLDER, FINAL_FOLDER
-from .utils import update_row_with_dict, get_id_tp, MockTqdm
+from .utils import update_row_with_dict, get_id_tp, MockTqdm, unnormalize_path
 
 
 class NIfTITransform(RowStage):
@@ -35,7 +35,9 @@ class NIfTITransform(RowStage):
         """
         id, tp = get_id_tp(index)
         prev_case_path = os.path.join(self.prev_stage_path, id, tp)
-        return os.path.exists(prev_case_path)
+        if os.path.exists(prev_case_path):
+            return len(os.listdir(prev_case_path)) > 0
+        return False
 
     def execute(self, index: Union[str, int], report: pd.DataFrame) -> pd.DataFrame:
         """Executes the NIfTI transformation stage on the given case
@@ -75,7 +77,8 @@ class NIfTITransform(RowStage):
 
     def __update_prev_stage_state(self, index: Union[str, int], report: pd.DataFrame):
         prev_data_path = report.loc[index]["data_path"]
-        shutil.rmtree(prev_data_path, ignore_errors=True)
+        prev_data_path = unnormalize_path(prev_data_path, "mlcube_io3")
+        shutil.rmtree(prev_data_path)
 
     def __undo_current_stage_changes(self, index: Union[str, int]):
         fets_path, qc_path = self.__get_output_paths(index)
