@@ -1,10 +1,8 @@
 import os
-import shutil
 from pathlib import Path
 import argparse
 import pandas as pd
 import yaml
-from tqdm import tqdm
 from stages.generate_report import GenerateReport
 from stages.get_csv import AddToCSV
 from stages.nifti_transform import NIfTITransform
@@ -67,7 +65,7 @@ def setup_argparser():
     return parser.parse_args()
 
 
-def init_pipeline():
+def init_pipeline(args):
     # RUN COLUMN-WISE PROCESSING
     out_raw = os.path.join(args.data_out, "raw")
     valid_data_out = os.path.join(args.data_out, "validated")
@@ -87,9 +85,10 @@ def init_pipeline():
     split_csv_path = os.path.join(args.data_out, "splits.csv")
     train_csv_path = os.path.join(args.data_out, "train.csv")
     val_csv_path = os.path.join(args.data_out, "val.csv")
+    out_data_csv = os.path.join(args.data_out, "data.csv")
 
     loop = None
-    report_gen = GenerateReport(args.data, out_raw)
+    report_gen = GenerateReport(args.data, out_raw, args.labels, args.labels_out, args.data_out, 8)
     csv_proc = AddToCSV(out_raw, out_data_csv, valid_data_out, out_raw)
     nifti_proc = NIfTITransform(out_data_csv, nifti_data_out, valid_data_out, loop)
     brain_extract_proc = Extract(
@@ -142,34 +141,40 @@ def init_pipeline():
     ]
     return Pipeline(report_gen, stages, staging_folders)
 
-
-
-if __name__ == "__main__":
-    args = setup_argparser()
-    out_data_csv = os.path.join(args.data_out, "data.csv")
-
+def init_report(args) -> pd.DataFrame:
     report = None
     if os.path.exists(args.report):
         with open(args.report, "r") as f:
             report_data = yaml.safe_load(f)
         report = pd.DataFrame(report_data)
 
-    # 1. If there is a csv file in the input folder
-    # always reuse it for the prepared dataset
-    csvs = find_csv_filenames(args.data_out)
-    if len(csvs) == 1:
-        # One csv was found. Assume this is the desired csv
-        # move it to the expected location
-        # TODO: How to deal with inconsistent paths because of MLCube functionality?
-        csv_path = os.path.join(args.data_out, csvs[0])
-        os.rename(csv_path, out_data_csv)
-        # can we assume the paths inside data.csv to be relative to the csv?
-        # TODO: Create some logic to turn the csv paths into the expected paths for the MLCube
-        # update_csv_paths(out_data_csv)
+    return report
 
-    # Generate all paths for all steps
 
-    # TODO: If we identify a folder structure similar to the data-preparation one,
-    # copy everything into the folders and start from there
-    pipeline = init_pipeline()
+def main():
+    args = setup_argparser()
+
+    # Check if the input data is already prepared
+    # If so, just copy the contents and skip all processing
+    # TODO: this means we won't have a report. What would be the best way
+    # to handle this?
+    # TODO: Re-enable this when it is implemented correctly and we see the need for it
+    # # 1. If there is a csv file in the input folder
+    # # always reuse it for the prepared dataset
+    # csvs = find_csv_filenames(args.data_out)
+    # if len(csvs) == 1:
+    #     # One csv was found. Assume this is the desired csv
+    #     # move it to the expected location
+    #     # TODO: How to deal with inconsistent paths because of MLCube functionality?
+    #     csv_path = os.path.join(args.data_out, csvs[0])
+    #     os.rename(csv_path, out_data_csv)
+    #     # can we assume the paths inside data.csv to be relative to the csv?
+    #     # TODO: Create some logic to turn the csv paths into the expected paths for the MLCube
+    #     # update_csv_paths(out_data_csv)
+
+    report = init_report(args)
+    pipeline = init_pipeline(args)
     pipeline.run(report, args.report)
+
+if __name__ == "__main__":
+    main()

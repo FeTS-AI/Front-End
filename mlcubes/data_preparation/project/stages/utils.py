@@ -1,6 +1,52 @@
 import os
 import shutil
 from tqdm import tqdm
+from functools import reduce
+
+# Taken from https://code.activestate.com/recipes/577879-create-a-nested-dictionary-from-oswalk/
+def get_directory_structure(rootdir):
+    """
+    Creates a nested dictionary that represents the folder structure of rootdir
+    """
+    dir = {}
+    rootdir = rootdir.rstrip(os.sep)
+    start = rootdir.rfind(os.sep) + 1
+    for path, dirs, files in os.walk(rootdir):
+        folders = path[start:].split(os.sep)
+        subdir = dict.fromkeys(files)
+        parent = reduce(dict.get, folders[:-1], dir)
+        parent[folders[-1]] = subdir
+    return dir
+
+
+def has_prepared_folder_structure(data_path, labels_path) -> bool:
+    data_struct = get_directory_structure(data_path)["mlcube_io0"]
+    labels_struct = get_directory_structure(labels_path)["mlcube_io1"]
+    
+    expected_data_files = ["brain_t1c.nii.gz", "brain_t1n.nii.gz", "brain_t2f.nii.gz", "brain_t2w.nii.gz"]
+    expected_labels_files = ["final_seg.nii.gz"]
+
+    if "splits.csv" not in data_struct:
+        return False
+
+    for id in data_struct.keys():
+        if data_struct[id] is None:
+            # This is a file, ignore
+            continue
+        for tp in data_struct[id].keys():
+            expected_subject_data_files = set(["_".join([id, tp, file]) for file in expected_data_files])
+            expected_subject_labels_files = set(["_".join([id, tp, file]) for file in expected_labels_files])
+
+            found_data_files = set(data_struct[id][tp].keys())
+            found_labels_files = set(labels_struct[id][tp].keys())
+
+            data_files_diff = len(expected_subject_data_files - found_data_files)
+            labels_files_diff = len(expected_subject_labels_files - found_labels_files)
+            if data_files_diff or labels_files_diff:
+                return False
+
+    # Passed all checks
+    return True
 
 
 def normalize_path(path: str) -> str:
