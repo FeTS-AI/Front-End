@@ -6,6 +6,7 @@ from pathlib import Path
 import hashlib
 import shutil
 from typing import Tuple
+from .utils import has_prepared_folder_structure
 
 
 # Taken from https://stackoverflow.com/questions/24937495/how-can-i-calculate-a-hash-for-a-filesystem-directory-using-python
@@ -27,10 +28,14 @@ def md5_dir(directory):
 
 
 class GenerateReport(DatasetStage):
-    def __init__(self, input_path: str, output_path: str):
+    def __init__(self, input_path: str, output_path: str, input_labels_path: str, output_labels_path, done_data_out_path: str, done_status: int):
         self.input_path = input_path
         self.output_path = output_path
+        self.input_labels_path = input_labels_path
+        self.output_labels_path = output_labels_path
+        self.done_data_out_path = done_data_out_path
         self.status_code = 0
+        self.done_status_code = done_status
 
     def get_name(self) -> str:
         return "Generate Report"
@@ -51,11 +56,18 @@ class GenerateReport(DatasetStage):
         if report is None:
             report = pd.DataFrame(columns=cols)
 
+        input_is_prepared = has_prepared_folder_structure(self.input_path, self.input_labels_path)
+        if input_is_prepared:
+            # If prepared, store data directly in the data folder
+            self.output_path = self.done_data_out_path
+
         observed_cases = set()
 
         for subject in os.listdir(self.input_path):
             in_subject_path = os.path.join(self.input_path, subject)
             out_subject_path = os.path.join(self.output_path, subject)
+            in_labels_subject_path = os.path.join(self.input_labels_path, subject)
+            out_labels_subject_path = os.path.join(self.output_labels_path, subject)
 
             if not os.path.isdir(in_subject_path):
                 continue
@@ -63,6 +75,8 @@ class GenerateReport(DatasetStage):
             for timepoint in os.listdir(in_subject_path):
                 in_tp_path = os.path.join(in_subject_path, timepoint)
                 out_tp_path = os.path.join(out_subject_path, timepoint)
+                in_labels_tp_path = os.path.join(in_labels_subject_path, timepoint)
+                out_labels_tp_path = os.path.join(out_labels_subject_path, timepoint)
 
                 if not os.path.isdir(in_tp_path):
                     continue
@@ -87,7 +101,6 @@ class GenerateReport(DatasetStage):
                     # New case not identified by the report. Add it
                     shutil.copytree(in_tp_path, out_tp_path)
 
-
                 data = {
                     "status": self.status_code,
                     "status_name": "IDENTIFIED",
@@ -97,9 +110,17 @@ class GenerateReport(DatasetStage):
                     "num_changed_voxels": np.nan,
                     "input_hash": input_hash,
                 }
+                if input_is_prepared:
+                    data["status_name"] = "DONE"
+                    data["status_code"] = self.done_status_code
+                    shutil.rmtree(out_labels_tp_path, ignore_errors=True)
+                    shutil.copytree(in_labels_tp_path, out_labels_tp_path)
+
                 subject_series = pd.Series(data)
                 subject_series.name = index
                 report = report.append(subject_series)
+
+
 
         reported_cases = set(report.index)
         removed_cases = reported_cases - observed_cases
