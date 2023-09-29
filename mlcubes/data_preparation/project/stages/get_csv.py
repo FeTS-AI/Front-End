@@ -83,7 +83,7 @@ class AddToCSV(RowStage):
             report_data = {
                 "status": -self.status_code - 0.3,
                 "status_name": "VALIDATION_FAILED",
-                "comment": e,
+                "comment": str(e),
                 "data_path": tp_path,
                 "labels_path": "",
             }
