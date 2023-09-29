@@ -70,14 +70,26 @@ class AddToCSV(RowStage):
         # in the next stage, instead of the previous
         shutil.copytree(tp_path, tp_out_path)
 
-        self.csv_processor.process_timepoint(tp, id, subject_out_path)
-        report_data = {
-            "status": self.status_code,
-            "status_name": "VALIDATED",
-            "comment": "",
-            "data_path": tp_out_path,
-            "labels_path": "",
-        }
+        try:
+            self.csv_processor.process_timepoint(tp, id, subject_out_path)
+            report_data = {
+                "status": self.status_code,
+                "status_name": "VALIDATED",
+                "comment": "",
+                "data_path": tp_out_path,
+                "labels_path": "",
+            }
+        except Exception as e:
+            report_data = {
+                "status": -self.status_code - 0.3,
+                "status_name": "VALIDATION_FAILED",
+                "comment": e,
+                "data_path": tp_path,
+                "labels_path": "",
+            }
+            update_row_with_dict(report, report_data, index)
+            return report, False
+
         if f"{id}_{tp}" in self.csv_processor.subject_timepoint_missing_modalities:
             shutil.rmtree(tp_out_path, ignore_errors=True)
             # Differentiate errors by floating point value
