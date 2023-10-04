@@ -4,9 +4,11 @@ This section includes a reference of all ongoing and existing connections betwee
 A connectivity map featuring all ITCR projects can be found [here](https://www.ndexbio.org/#/network/04c0a7e8-af92-11e7-94d3-0ac135e8bacf).
 
 - [Existing Connections](#existing-connections)
+	- [OpenFL](#openfl)
+	- [GaNDLF](#gandlf)
+	- [CaPTk](#captk)
 	- [DCMTK](#dcmtk)
 	- [DCMQI](#dcmqi)
-	- [CaPTk](#captk)
 	- [Synapse PACS](#synapse-pacs)
 	- [TCIA and IDC](#tcia-and-idc)
 - [Ongoing Development](#ongoing-development)
@@ -14,16 +16,22 @@ A connectivity map featuring all ITCR projects can be found [here](https://www.n
 	- [FLAIM](#flaim)
 	- [PRISM](#prism)
 
-##  Existing Connections
+##  Existing Connections 
+
+### OpenFL
+FeTS leverages the [Open Federated Learning library (OpenFL)](https://github.com/securefederatedai/openfl) for enabling federated machine learning of models.
+
+### GaNDLF
+FeTS leverages the [Generally Nuanced Deep Learning Framework (GaNDLF)](https://gandlf.org/) for enabling advanced preprocessing and deep learing based training.
+
+### CaPTk
+FeTS leverages the [Cancer Imaging Phenomics Toolkit (CaPTk)](https://www.med.upenn.edu/cbica/captk) for integrating CaPTk's current functionality into FeTS. 
 
 ### DCMTK
 FeTS uses [DCMTK - DICOM ToolKit (DCMTK)](https://dicom.offis.de/dcmtk.php.en) for DICOM file handling. 
 
 ### DCMQI
-FeTS leverages [DICOM for Quantitative Imaging (DCMQI)](http://qiicr.org/dcmqi-guide/tutorials/intro.html) for generating DICOM-Seg files from NIfTI files. 
-
-### CaPTk
-FeTS leverages the [Cancer Imaging Phenomics Toolkit (CaPTk)](https://www.med.upenn.edu/cbica/captk) for integrating CaPTk's current functionality into FeTS. 
+FeTS leverages [DICOM for Quantitative Imaging (DCMQI)](http://qiicr.org/dcmqi-guide/tutorials/intro.html) for generating DICOM-Seg files from NIfTI files.
 
 ### Synapse PACS
 FeTS' performance evaluation metrics are used by [Synapse PACS](https://www.synapse.org/).  
