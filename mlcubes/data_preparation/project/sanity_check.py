@@ -34,6 +34,12 @@ if __name__ == "__main__":
     parser.add_argument(
         "--report", dest="report", type=str, help="path to the report file"
     )
+    parser.add_argument(
+        "--metadata_path",
+        dest="metadata_path",
+        type=str,
+        help="path to the local metadata folder"
+    )
 
     args = parser.parse_args()
 
