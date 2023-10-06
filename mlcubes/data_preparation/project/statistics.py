@@ -19,11 +19,19 @@ if __name__ == "__main__":
     parser.add_argument(
         "--out_file", dest="out_file", type=str, help="file to store statistics"
     )
+    parser.add_argument(
+        "--metadata_path",
+        dest="metadata_path",
+        type=str,
+        help="path to the local metadata folder"
+    )
 
     args = parser.parse_args()
 
-    # TODO: implement statistics
-    stats = {}
+    dicom_info_file = "dicom_tag_information_to_write_collab.yaml"
+    dicom_info_filepath = os.path.join(args.metadata_path, dicom_info_file)
+    with open(dicom_info_filepath, "r") as f:
+        stats = yaml.safe_load(f)
 
     with open(args.out_file, "w") as f:
         yaml.dump(stats, f)
