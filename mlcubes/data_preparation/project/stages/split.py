@@ -20,17 +20,14 @@ class SplitStage(DatasetStage):
         params: str,
         data_path: str,
         labels_path: str,
-        split_csv_path: str,
-        train_csv_path: str,
-        val_csv_path: str,
         staging_folders: List[str],
     ):
         self.params = params
         self.data_path = data_path
         self.labels_path = labels_path
-        self.split_csv_path = split_csv_path
-        self.train_csv_path = train_csv_path
-        self.val_csv_path = val_csv_path
+        self.split_csv_path = os.path.join(data_path, "splits.csv")
+        self.train_csv_path = os.path.join(data_path, "train.csv")
+        self.val_csv_path = os.path.join(data_path, "val.csv")
         self.staging_folders = staging_folders
         self.status_code = 8
 

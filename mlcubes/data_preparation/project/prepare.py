@@ -61,6 +61,12 @@ def setup_argparser():
         type=str,
         help="path to the parameters yaml file",
     )
+    parser.add_argument(
+        "--metadata_path",
+        dest="metadata_path",
+        type=str,
+        help="path to the local metadata folder"
+    )
 
     return parser.parse_args()
 
@@ -82,15 +88,12 @@ def init_pipeline(args):
         tumor_data_out,
         backup_out,
     ]
-    split_csv_path = os.path.join(args.data_out, "splits.csv")
-    train_csv_path = os.path.join(args.data_out, "train.csv")
-    val_csv_path = os.path.join(args.data_out, "val.csv")
     out_data_csv = os.path.join(args.data_out, "data.csv")
 
     loop = None
     report_gen = GenerateReport(args.data, out_raw, args.labels, args.labels_out, args.data_out, 8)
     csv_proc = AddToCSV(out_raw, out_data_csv, valid_data_out, out_raw)
-    nifti_proc = NIfTITransform(out_data_csv, nifti_data_out, valid_data_out, loop)
+    nifti_proc = NIfTITransform(out_data_csv, nifti_data_out, valid_data_out, args.metadata_path)
     brain_extract_proc = Extract(
         out_data_csv,
         brain_data_out,
@@ -127,7 +130,7 @@ def init_pipeline(args):
         staging_folders,
     )
     split_proc = SplitStage(
-        args.parameters, args.data_out, args.labels_out, split_csv_path, train_csv_path, val_csv_path, staging_folders
+        args.parameters, args.data_out, args.labels_out, staging_folders
     )
     stages = [
         csv_proc,

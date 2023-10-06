@@ -10,10 +10,11 @@ from .utils import update_row_with_dict, get_id_tp, MockTqdm, unnormalize_path
 
 
 class NIfTITransform(RowStage):
-    def __init__(self, data_csv: str, out_path: str, prev_stage_path: str, pbar: tqdm):
+    def __init__(self, data_csv: str, out_path: str, prev_stage_path: str, metadata_path: str):
         self.data_csv = data_csv
         self.out_path = out_path
         self.prev_stage_path = prev_stage_path
+        self.metadata_path = metadata_path
         os.makedirs(self.out_path, exist_ok=True)
         self.prep = Preparator(data_csv, out_path, "BraTSPipeline")
         # self.pbar = pbar
@@ -53,6 +54,7 @@ class NIfTITransform(RowStage):
         self.__process_case(index)
         report, success = self.__update_report(index, report)
         self.prep.write()
+        self.__update_metadata()
 
         return report, success
 
@@ -106,6 +108,15 @@ class NIfTITransform(RowStage):
             success = True
 
         return report, success
+
+    def __update_metadata(self):
+        fets_path = os.path.join(self.out_path, "DataForFeTS")
+        for file in os.listdir(fets_path):
+            filepath = os.path.join(fets_path, file)
+            out_filepath = os.path.join(self.metadata_path, file)
+            if os.path.isfile(filepath) and filepath.endswith(".yaml"):
+                shutil.copyfile(filepath, out_filepath)
+
 
     def __report_success(
         self, index: Union[str, int], report: pd.DataFrame
