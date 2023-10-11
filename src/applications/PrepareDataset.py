@@ -102,23 +102,25 @@ def _get_relevant_dicom_tags(filename: str) -> dict:
         }
         # although _technically_ the metadata is different for each slice, we'll just use the first slice's metadata, since the rest is not relevant for our purposes
         ## reference: https://simpleitk.readthedocs.io/en/master/link_DicomSeriesReadModifyWrite_docs.html
-        keys_to_extract = [
-            "0008|0070",  # Manufacturer
-            "0008|1090",  # Manufacturer's Model Name
-            "0008|103e",  # Series Description
-            "0008|0021",  # Series Date
-            "0008|0031",  # Series Time
-        ]
         keys_to_extract = {
+            "0008|0008": "Image Type",
             "0008|0070": "Manufacturer",
             "0008|1090": "Manufacturer's Model Name",
             "0008|0022": "Acquisition Date",
             "0008|0032": "Acquisition Time",
+            "0010|1010": "Patient's Age",
+            "0010|0040": "Patient's Sex",
+            "0018|0020": "Scanning Sequence",
+            "0018|0021": "Sequence Variant",
+            "0018|0022": "Scan Options",
+            "0018|0023": "MR Acquisition Type",
+            "0018|0080": "Repetition Time",
+            "0018|0081": "Echo Time",
+            "0018|1310": "Acquisition Matrix",
             "0018|0087": "Magnetic Field Strength",
             "0018|1050": "Slice Thickness",
             "0018|0088": "Spacing Between Slices",
-            "0010|1010": "Patient's Age",
-            "0010|0040": "Patient's Sex",
+            "0020|1002": "Images in Acquisition",
         }
         for key in keys_to_extract:
             output_dict[keys_to_extract[key]] = series_reader.GetMetaData(0, key)
