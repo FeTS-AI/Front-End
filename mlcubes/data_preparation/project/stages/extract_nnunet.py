@@ -5,6 +5,8 @@ import os
 from os.path import realpath, dirname, join
 import shutil
 import traceback
+import time
+import subprocess
 
 from .row_stage import RowStage
 from .PrepareDataset import Preparator, FINAL_FOLDER
@@ -21,7 +23,7 @@ MODALITY_MAPPING = {
     "flair": "t2f"
 }
 
-class Extract(RowStage):
+class ExtractNnUNet(RowStage):
     def __init__(
         self,
         data_csv: str,
@@ -29,8 +31,6 @@ class Extract(RowStage):
         subpath: str,
         prev_stage_path: str,
         prev_subpath: str,
-        # pbar: tqdm,
-        func_name: str,
         status_code: int,
     ):
         self.data_csv = data_csv
@@ -41,15 +41,13 @@ class Extract(RowStage):
         self.prev_subpath = prev_subpath
         os.makedirs(self.out_path, exist_ok=True)
         self.prep = Preparator(data_csv, out_path, "BraTSPipeline")
-        self.func_name = func_name
-        self.func = getattr(self.prep, func_name)
         self.pbar = tqdm()
         self.failed = False
         self.exception = None
         self.status_code = status_code
 
     def get_name(self) -> str:
-        return self.func_name.replace("_", " ").capitalize()
+        return "nnUNet Tumor Extraction"
 
     def could_run(self, index: Union[str, int], report: pd.DataFrame) -> bool:
         """Determine if case at given index needs to be converted to NIfTI
@@ -121,24 +119,62 @@ class Extract(RowStage):
         
 
     def __prepare_case(self, path, id, tp, order):
-        pass
+        tmp_subject = f"{id}-{tp}"
+        tmp_path = os.path.join(path, "tmp-data")
+        tmp_subject_path = os.path.join(tmp_path, tmp_subject)
+        tmp_out_path = os.path.join(path, "tmp-out")
+        shutil.rmtree(tmp_path, ignore_errors=True)
+        shutil.rmtree(tmp_out_path, ignore_errors=True)
+        os.makedirs(tmp_subject_path)
+        os.makedirs(tmp_out_path)
+        in_modalities_path = os.path.join(path, "DataForFeTS", id, tp)
+        for modality_file in os.listdir(in_modalities_path):
+            if not modality_file.endswith(".nii.gz"):
+                continue
+            modality = modality_file[:-7].split("_")[-1]
+            norm_mod = MODALITY_MAPPING[modality]
+            mod_idx = order.index(norm_mod)
+            mod_idx = str(mod_idx).zfill(4)
+
+            out_modality_file = f"{tmp_subject}_{mod_idx}.nii.gz"
+            in_file = os.path.join(in_modalities_path, modality_file)
+            out_file = os.path.join(tmp_subject_path, out_modality_file)
+            shutil.copyfile(in_file, out_file)
+            print(out_file)
+
+        return tmp_subject_path, tmp_out_path
     
+    def __run_model(self, model, data_path, out_path):
+        # models are named Task<ID>_..., where <ID> is always 3 numbers
+        task_id = model[4:7]
+        cmd = f"nnUNet_predict -i {data_path} -o {out_path} -t {task_id} -f all"
+        print(cmd)
+        print(os.listdir(data_path))
+        start = time.time()
+        subprocess.call(cmd, shell=True)
+        end = time.time()
+        total_time = (end - start)
+        print(f"Total time elapsed is {total_time} seconds")
+
+    def __finalize_pred(self, tmp_out_path, out_path, id, tp, model_idx):
+        # We assume there's only one file in out_path
+        pred = os.listdir(tmp_out_path)[0]
+        pred_filepath = os.path.join(tmp_out_path, pred)
+        out_pred_path = os.path.join(out_path, "DataForQC", id, tp, "TumorMasksForQC")
+        out_pred_filepath = os.path.join(out_pred_path, f"{id}_{tp}_tumorMask_model_{model_idx}.nii.gz")
+        shutil.move(pred_filepath, out_pred_filepath)
 
     def __process_case(self, index: Union[str, int]):
         id, tp = get_id_tp(index)
-        # TODO: identify all the nnunet models
         models = self.__get_models()
-        for model in models:
-            # TODO: get the required order for modalities
+        for i, model in enumerate(models):
             order = self.__get_mod_order(model)
-            # TODO: create a temporary folder with the renamed modalities
-            tmp_data_path = self.__prepare_case(self.out_path, id, tp, order)
-            # TODO: run model with specified inputs and outputs
-            run_model(model, tmp_data_path, tmp_out_path)
-            # get final .nii.gz file
-            finalize_pred(tmp_out_path)
+            tmp_data_path, tmp_out_path = self.__prepare_case(self.out_path, id, tp, order)
+            self.__run_model(model, tmp_data_path, tmp_out_path)
+            self.__finalize_pred(tmp_out_path, self.out_path, id, tp, i)
             #cleanup
-            cleanup_tmp_paths(tmp_data_path, tmp_out_path)
+            shutil.rmtree(tmp_data_path, ignore_errors=True)
+            shutil.rmtree(tmp_out_path, ignore_errors=True)
 
 
     def __update_state(
@@ -162,7 +198,7 @@ class Extract(RowStage):
         data_path, labels_path = self.__get_paths(index, self.out_path, self.subpath)
         report_data = {
             "status": self.status_code,
-            "status_name": f"{self.func_name.upper()}_FINISHED",
+            "status_name": "TUMOR_EXTRACT_FINISHED",
             "comment": "",
             "data_path": data_path,
             "labels_path": labels_path,
@@ -178,7 +214,7 @@ class Extract(RowStage):
 
         report_data = {
             "status": -self.status_code,
-            "status_name": f"{self.func_name.upper()}_FAILED",
+            "status_name": "TUMOR_EXTRACT_FAILED",
             "comment": msg,
             "data_path": prev_data_path,
             "labels_path": prev_labels_path,

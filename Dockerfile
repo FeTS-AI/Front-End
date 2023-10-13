@@ -83,6 +83,16 @@ RUN cp -R /Front-End/bin/install/appdir/usr/bin/data_prep_models /project/stages
 # Hotfix: install more recent version of GaNDLF for metrics generation
 RUN pip install git+https://github.com/mlcommons/GaNDLF@616b37bafad8f89d5c816a88f44fa30470601311
 
+RUN pip install torch torchvision
+
+RUN pip install git+https://github.com/MIC-DKFZ/nnUNet.git@nnunetv1
+
+RUN mkdir /nnUNet_raw_data_base && mkdir /nnUNet_preprocessed
+
+ENV nnUNet_raw_data_base="/nnUNet_raw_data_base"
+ENV nnUNet_preprocessed="/nnUNet_preprocessed"
+ENV RESULTS_FOLDER="/project/models/nnUNet_trained_models"
+
 COPY ./mlcubes/data_preparation/project /project
 
 ENTRYPOINT ["python", "/project/mlcube.py"]

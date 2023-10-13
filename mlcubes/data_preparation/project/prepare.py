@@ -7,6 +7,7 @@ from stages.generate_report import GenerateReport
 from stages.get_csv import AddToCSV
 from stages.nifti_transform import NIfTITransform
 from stages.extract import Extract
+from stages.extract_nnunet import ExtractNnUNet
 from stages.manual import ManualStage
 from stages.comparison import SegmentationComparisonStage
 from stages.confirm import ConfirmStage
@@ -104,14 +105,12 @@ def init_pipeline(args):
         "extract_brain",
         3,
     )
-    tumor_extract_proc = Extract(
+    tumor_extract_proc = ExtractNnUNet(
         out_data_csv,
         tumor_data_out,
         TUMOR_MASK_FOLDER,
         brain_data_out,
         INTERIM_FOLDER,
-        # loop,
-        "extract_tumor",
         4,
     )
     manual_proc = ManualStage(out_data_csv, tumor_data_out, tumor_data_out, backup_out)
