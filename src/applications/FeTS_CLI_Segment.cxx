@@ -97,14 +97,16 @@ int main(int argc, char** argv)
     parser.getParameterValue("g", gpuRequested);
   }
 
-  std::string device_arg = " -md ";
+  std::string device_arg = " -md ", device_arg_for_second_script = " --device ";
   if (gpuRequested)
   {
     device_arg += "cuda";
+    device_arg_for_second_script += "cuda";
   }
   else
   {
     device_arg += "cpu";
+    device_arg_for_second_script += "cpu";
   }
 
 
@@ -133,7 +135,7 @@ int main(int argc, char** argv)
     hardcodedModelWeightPath = hardcodedOpenFLPath + "/bin/federations/weights/", // start with the common location
     hardcodedPythonPath = hardcodedOpenFLPath + "/venv/bin/python", // this needs to change for Windows (wonder what happens for macOS?)
     hardcodedPythonPath_fusion = fetsApplicationPath + "/LabelFusion/venv/bin/python", // this needs to change for Windows (wonder what happens for macOS?)
-    scriptToCall = hardcodedOpenFLPath + "/submodules/fets_ai/Algorithms/fets/bin/brainmage_validation_scores_to_disk.py"; // the script that does the inference and scoring
+    scriptToCall = hardcodedOpenFLPath + "/submodules/fets_ai/Algorithms/fets/bin/brainmage_validation_outputs_to_disk_newer.py"; // the script that does the inference and scoring
   auto fets_dataDir = getCaPTkDataDir();
   auto hardcodedFinalModelsWeightsPath = fets_dataDir + "/fets_consensus";
   auto hardcodedFinalModelsSeriesWeightsPath = fets_dataDir + "/fets_consensus_models/";
@@ -258,13 +260,13 @@ int main(int argc, char** argv)
                 std::string command_to_run;
 
                 auto current_temp_output = cbica::createTmpDir();
-                auto current_subject_temp_output = current_temp_output + "/subject";
+                auto current_subject_temp_output = current_temp_output + "/" + subjectDirs[s];
                 cbica::createDir(current_subject_temp_output);
                 // std::string file_t1gd, file_t1, file_t2, file_flair;
-                auto file_t1gd_temp = current_subject_temp_output + "/t1gd.nii.gz",
-                  file_t1_temp = current_subject_temp_output + "/t1.nii.gz",
-                  file_t2_temp = current_subject_temp_output + "/t2.nii.gz",
-                  file_flair_temp = current_subject_temp_output + "/flair.nii.gz";
+                auto file_t1gd_temp = current_subject_temp_output + "/_t1gd.nii.gz",
+                  file_t1_temp = current_subject_temp_output + "/_t1.nii.gz",
+                  file_t2_temp = current_subject_temp_output + "/_t2.nii.gz",
+                  file_flair_temp = current_subject_temp_output + "/_flair.nii.gz";
                 cbica::copyFile(file_t1gd, file_t1gd_temp);
                 cbica::copyFile(file_t1, file_t1_temp);
                 cbica::copyFile(file_t2, file_t2_temp);
@@ -275,9 +277,8 @@ int main(int argc, char** argv)
                 if (archs_split[a] == "fets_singlet")
                 {
                   std::cout << "== Starting inference using FeTS Singlet Consensus model...\n";
-                  auto current_output_file = current_subject_temp_output + "/segmentation.nii.gz";
-                  auto fileNameToCheck = subjectDirs[s] + "_fets_singlet_seg.nii.gz";
-                  auto current_output_file_to_check = dataDir + "/" + subjectDirs[s] + "/" + fileNameToCheck;
+                  auto fileNameToCheck = "fets_singlet.nii.gz";
+                  auto current_output_file_to_check = currentSubjectOutputDir + fileNameToCheck;
                   
                   if (!cbica::isFile(current_output_file_to_check))
                   {
@@ -288,13 +289,14 @@ int main(int argc, char** argv)
                       + " -ET " + hardcodedFinalModelsSeriesWeightsPath + "52"
                       + " -TC " + hardcodedFinalModelsSeriesWeightsPath + "52"
                       + " -WT " + hardcodedFinalModelsSeriesWeightsPath + "52"
-                      + " -pp " + hardcodedOpenFLPlanPath + " -op " + current_outputDir + device_arg + " -dp " + current_temp_output + " -ptd";
+                      + " -pp " + hardcodedOpenFLPlanPath + " -mot _fets_singlet" + " -op " + current_outputDir + device_arg_for_second_script + " -dp " + current_temp_output;
                     if (std::system(command_to_run.c_str()) != 0)
                     {
                       std::cerr << "WARNING: The singlet model '52' did not run, please contact admin@fets.ai with this error.\n\n";
                     }
                     else
                     {
+                      auto current_output_file = current_outputDir + "/" + subjectDirs[s] + "/" + subjectDirs[s] + "_fets_singlet_seg.nii.gz";
                       if (cbica::isFile(current_output_file))
                       {
                         cbica::copyFile(current_output_file, current_output_file_to_check);
@@ -306,9 +308,8 @@ int main(int argc, char** argv)
                 {
                   std::cout << "== Starting inference using FeTS Triplet Consensus model...\n";
                   
-                  auto current_output_file = current_subject_temp_output + "/segmentation.nii.gz";
-                  auto fileNameToCheck = subjectDirs[s] + "_fets_triplet_seg.nii.gz";
-                  auto current_output_file_to_check = dataDir + "/" + subjectDirs[s] + "/" + fileNameToCheck;
+                  auto fileNameToCheck = "fets_triplet.nii.gz";
+                  auto current_output_file_to_check = currentSubjectOutputDir + fileNameToCheck;
 
                   if (!cbica::isFile(current_output_file_to_check))
                   {
@@ -319,13 +320,14 @@ int main(int argc, char** argv)
                       + " -ET " + hardcodedFinalModelsSeriesWeightsPath + "69"
                       + " -TC " + hardcodedFinalModelsSeriesWeightsPath + "72"
                       + " -WT " + hardcodedFinalModelsSeriesWeightsPath + "52"
-                      + " -pp " + hardcodedOpenFLPlanPath + " -op " + current_outputDir + device_arg + " -dp " + current_temp_output + " -ptd";
+                      + " -pp " + hardcodedOpenFLPlanPath + " -mot _fets_triplet" + " -op " + current_outputDir + device_arg_for_second_script + " -dp " + current_temp_output;
                     if (std::system(command_to_run.c_str()) != 0)
                     {
                       std::cerr << "WARNING: The triplet model '[69,72,52]' did not run, please contact admin@fets.ai with this error.\n\n";
                     }
                     else
                     {
+                      auto current_output_file = current_outputDir + "/" + subjectDirs[s] + "/" + subjectDirs[s] + "_fets_triplet_seg.nii.gz";
                       if (cbica::isFile(current_output_file))
                       {
                         cbica::copyFile(current_output_file, current_output_file_to_check);

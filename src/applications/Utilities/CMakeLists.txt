@@ -106,38 +106,37 @@ SET( DOWNLOADED_APPS_DIR ${PROJECT_BINARY_DIR}/hausdorff95 )
 
 IF( NOT EXISTS "${DOWNLOADED_APPS_DIR}" )
 
-  IF( NOT EXISTS "${FILE_TO_EXTRACT}" )
+#  IF( NOT EXISTS "${FILE_TO_EXTRACT}" )
+#    # do not re-download if the LFS fetch worked
+#    IF(NOT EXISTS ${FILE_TO_EXTRACT})
+#      # download exe from url
+#      MESSAGE( STATUS "Downloading pre-compiled hausdorff" )
+#      FILE(DOWNLOAD "${DOWNLOAD_LINK}" "${FILE_TO_EXTRACT}" TIMEOUT 1000000 STATUS STATUS_CODE SHOW_PROGRESS)
+#      IF(NOT STATUS_CODE EQUAL 0)
+#        SET( DOWNLOAD_LINK "https://github.com/CBICA/precompiledBinaries/raw/master/${PLATFORM_STRING}/Hausdorff95_${PLATFORM_STRING}.zip" )
+#        FILE(DOWNLOAD "${DOWNLOAD_LINK}" "${FILE_TO_EXTRACT}" TIMEOUT 1000000 STATUS STATUS_CODE SHOW_PROGRESS)
+#        IF(NOT STATUS_CODE EQUAL 0)
+#          MESSAGE(FATAL_ERROR "Failed to download Precompiled hausdorff. Status=${STATUS_CODE}")
+#        ENDIF()
+#      ENDIF()
+#    ENDIF()
+#  ENDIF()
 
-    # do not re-download if the LFS fetch worked
-    IF(NOT EXISTS ${FILE_TO_EXTRACT})
-      # download exe from url
-      MESSAGE( STATUS "Downloading pre-compiled hausdorff" )
-      FILE(DOWNLOAD "${DOWNLOAD_LINK}" "${FILE_TO_EXTRACT}" TIMEOUT 1000000 STATUS STATUS_CODE SHOW_PROGRESS)
-      IF(NOT STATUS_CODE EQUAL 0)
-        SET( DOWNLOAD_LINK "https://github.com/CBICA/precompiledBinaries/raw/master/${PLATFORM_STRING}/Hausdorff95_${PLATFORM_STRING}.zip" )
-        FILE(DOWNLOAD "${DOWNLOAD_LINK}" "${FILE_TO_EXTRACT}" TIMEOUT 1000000 STATUS STATUS_CODE SHOW_PROGRESS)
-        IF(NOT STATUS_CODE EQUAL 0)
-          MESSAGE(FATAL_ERROR "Failed to download Precompiled hausdorff. Status=${STATUS_CODE}")
-        ENDIF()
-      ENDIF()
-    ENDIF()
-  ENDIF()
+#  FILE(MAKE_DIRECTORY ${DOWNLOADED_APPS_DIR})
 
-  FILE(MAKE_DIRECTORY ${DOWNLOADED_APPS_DIR})
+#  MESSAGE( STATUS "Extracting pre-compiled hausdorff" )
+#  IF( EXISTS "${FILE_TO_EXTRACT}" )
 
-  MESSAGE( STATUS "Extracting pre-compiled hausdorff" )
-  IF( EXISTS "${FILE_TO_EXTRACT}" )
+#    EXECUTE_PROCESS( COMMAND ${CMAKE_COMMAND} -E tar xfz ${FILE_TO_EXTRACT}
+#      WORKING_DIRECTORY ${DOWNLOADED_APPS_DIR}
+#      RESULT_VARIABLE RESULT_CODE
+#    )
 
-    EXECUTE_PROCESS( COMMAND ${CMAKE_COMMAND} -E tar xfz ${FILE_TO_EXTRACT}
-      WORKING_DIRECTORY ${DOWNLOADED_APPS_DIR}
-      RESULT_VARIABLE RESULT_CODE
-    )
+#    IF(NOT RESULT_CODE EQUAL 0)
+#      MESSAGE( WARNING "Extracting the pre-compiled hausdorff failed" )
+#    ENDIF()
 
-    IF(NOT RESULT_CODE EQUAL 0)
-      MESSAGE( WARNING "Extracting the pre-compiled hausdorff failed" )
-    ENDIF()
-
-  ENDIF()
+#  ENDIF()
 ENDIF()
 
 FILE(GLOB HausdoffEXE "${DOWNLOADED_APPS_DIR}/*")
