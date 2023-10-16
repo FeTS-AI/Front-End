@@ -170,8 +170,13 @@ class ExtractNnUNet(RowStage):
         for i, model in enumerate(models):
             order = self.__get_mod_order(model)
             tmp_data_path, tmp_out_path = self.__prepare_case(self.out_path, id, tp, order)
-            self.__run_model(model, tmp_data_path, tmp_out_path)
-            self.__finalize_pred(tmp_out_path, self.out_path, id, tp, i)
+            try:
+                self.__run_model(model, tmp_data_path, tmp_out_path)
+                self.__finalize_pred(tmp_out_path, self.out_path, id, tp, i)
+            except Exception as e:
+                self.exception = e
+                self.failed = True
+                return
             #cleanup
             shutil.rmtree(tmp_data_path, ignore_errors=True)
             shutil.rmtree(tmp_out_path, ignore_errors=True)
