@@ -4,12 +4,14 @@ import pandas as pd
 import os
 from os.path import realpath, dirname, join
 import shutil
-import traceback
 import time
+import SimpleITK as sitk
 import subprocess
+import traceback
+from LabelFusion.wrapper import fuse_images
 
 from .row_stage import RowStage
-from .PrepareDataset import Preparator, FINAL_FOLDER
+from .PrepareDataset import Preparator, FINAL_FOLDER, generate_tumor_segmentation_fused_images, save_screenshot
 from .utils import update_row_with_dict, get_id_tp, MockTqdm
 
 MODALITY_MAPPING = {
@@ -21,6 +23,17 @@ MODALITY_MAPPING = {
     "t2w": "t2w",
     "t2f": "t2f",
     "flair": "t2f"
+}
+
+MODALITY_VARIANTS = {
+    "t1c": "T1GD",
+    "t1ce": "T1GD",
+    "t1": "T1",
+    "t1n": "T1",
+    "t2": "T2",
+    "t2w": "T2",
+    "t2f": "FLAIR",
+    "flair": "FLAIR"
 }
 
 class ExtractNnUNet(RowStage):
@@ -116,7 +129,6 @@ class ExtractNnUNet(RowStage):
         modalities = order_str.split()[2:]
         modalities = [MODALITY_MAPPING[mod] for mod in modalities]
         return modalities
-        
 
     def __prepare_case(self, path, id, tp, order):
         tmp_subject = f"{id}-{tp}"
@@ -128,6 +140,7 @@ class ExtractNnUNet(RowStage):
         os.makedirs(tmp_subject_path)
         os.makedirs(tmp_out_path)
         in_modalities_path = os.path.join(path, "DataForFeTS", id, tp)
+        input_modalities = {}
         for modality_file in os.listdir(in_modalities_path):
             if not modality_file.endswith(".nii.gz"):
                 continue
@@ -139,10 +152,10 @@ class ExtractNnUNet(RowStage):
             out_modality_file = f"{tmp_subject}_{mod_idx}.nii.gz"
             in_file = os.path.join(in_modalities_path, modality_file)
             out_file = os.path.join(tmp_subject_path, out_modality_file)
+            input_modalities[MODALITY_VARIANTS[modality]] = in_file
             shutil.copyfile(in_file, out_file)
-            print(out_file)
 
-        return tmp_subject_path, tmp_out_path
+        return tmp_subject_path, tmp_out_path, input_modalities
     
     def __run_model(self, model, data_path, out_path):
         # models are named Task<ID>_..., where <ID> is always 3 numbers
@@ -156,30 +169,67 @@ class ExtractNnUNet(RowStage):
         total_time = (end - start)
         print(f"Total time elapsed is {total_time} seconds")
 
-    def __finalize_pred(self, tmp_out_path, out_path, id, tp, model_idx):
+    def __finalize_pred(self, tmp_out_path, out_pred_filepath):
         # We assume there's only one file in out_path
-        pred = os.listdir(tmp_out_path)[0]
+        pred = None
+        for file in os.listdir(tmp_out_path):
+            if file.endswith(".nii.gz"):
+                pred = file
+
+        if pred is None:
+            raise RuntimeError("No tumor segmentation was found")
+
         pred_filepath = os.path.join(tmp_out_path, pred)
-        out_pred_path = os.path.join(out_path, "DataForQC", id, tp, "TumorMasksForQC")
-        out_pred_filepath = os.path.join(out_pred_path, f"{id}_{tp}_tumorMask_model_{model_idx}.nii.gz")
         shutil.move(pred_filepath, out_pred_filepath)
+        return out_pred_filepath
 
     def __process_case(self, index: Union[str, int]):
         id, tp = get_id_tp(index)
+        subject_id = f"{id}_{tp}"
         models = self.__get_models()
+        outputs = []
+        images_for_fusion = []
+        out_path = os.path.join(self.out_path, "DataForQC", id, tp) 
+        out_pred_path = os.path.join(out_path, "TumorMasksForQC")
+        os.makedirs(out_pred_path, exist_ok=True)
         for i, model in enumerate(models):
             order = self.__get_mod_order(model)
-            tmp_data_path, tmp_out_path = self.__prepare_case(self.out_path, id, tp, order)
+            tmp_data_path, tmp_out_path, input_modalities = self.__prepare_case(self.out_path, id, tp, order)
+            out_pred_filepath = os.path.join(out_pred_path, f"{id}_{tp}_tumorMask_model_{i}.nii.gz")
+            if os.path.exists(out_pred_filepath):
+                print("Model output detected, skipping model")
+                continue
             try:
                 self.__run_model(model, tmp_data_path, tmp_out_path)
-                self.__finalize_pred(tmp_out_path, self.out_path, id, tp, i)
+                output = self.__finalize_pred(tmp_out_path, out_pred_filepath)
+                outputs.append(output)
+                images_for_fusion.append(sitk.ReadImage(output, sitk.sitkUInt8))
             except Exception as e:
                 self.exception = e
                 self.failed = True
+                self.traceback = traceback.format_exc()
                 return
+
             #cleanup
             shutil.rmtree(tmp_data_path, ignore_errors=True)
             shutil.rmtree(tmp_out_path, ignore_errors=True)
+
+
+        fused_outputs = generate_tumor_segmentation_fused_images(images_for_fusion, out_pred_path, subject_id)
+        outputs += fused_outputs
+
+        for output in outputs:
+            # save the screenshot
+            tumor_mask_id = os.path.basename(output).replace(".nii.gz", "")
+            save_screenshot(
+                input_modalities,
+                os.path.join(
+                    out_path,
+                    f"{tumor_mask_id}_summary.png",
+                ),
+                output,
+            )
+
 
 
     def __update_state(
