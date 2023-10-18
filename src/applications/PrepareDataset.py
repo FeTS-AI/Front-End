@@ -118,7 +118,7 @@ def _get_relevant_dicom_tags(filename: str) -> dict:
     return output_dict
 
 
-def _save_screenshot(
+def save_screenshot(
     input_images: dict, output_filename: str = None, input_mask: str = None
 ) -> None:
     """
@@ -447,7 +447,13 @@ def _run_tumor_segmentation_using_gandlf(
                 tumor_masks_to_return.append(renamed_path)
                 images_for_fusion.append(sitk.ReadImage(file_path, sitk.sitkUInt8))
 
+    fused_masks_to_return = generate_tumor_segmentation_fused_images(images_for_fusion, mask_output_dir, subject_id)
+    return tumor_masks_to_return + fused_masks_to_return
+
+    
+def generate_tumor_segmentation_fused_images(images_for_fusion, mask_output_dir, subject_id):
     tumor_class_list = [0, 1, 2, 3, 4]
+    fused_masks_to_return = []
 
     if len(images_for_fusion) > 1:
         for fusion_type in ["staple", "simple", "voting"]:
@@ -457,9 +463,9 @@ def _run_tumor_segmentation_using_gandlf(
                 f"{subject_id}_tumorMask_fused-{fusion_type}.nii.gz",
             )
             sitk.WriteImage(fused_mask, fused_mask_file)
-            tumor_masks_to_return.append(fused_mask_file)
+            fused_masks_to_return.append(fused_mask_file)
 
-    return tumor_masks_to_return
+    return fused_masks_to_return
 
 
 class Preparator:
@@ -685,7 +691,7 @@ class Preparator:
             f"{subject_id_timepoint}_summary_coregistration.png",
         )
         # save the screenshot
-        _save_screenshot(outputs_reoriented, screenshot_path)
+        save_screenshot(outputs_reoriented, screenshot_path)
 
         if os.path.exists(screenshot_path):
             shutil.copyfile(
@@ -743,7 +749,7 @@ class Preparator:
             sitk.WriteImage(masked_image, file_to_save)
 
         # save the screenshot
-        _save_screenshot(
+        save_screenshot(
             input_for_tumor_models,
             posixpath.join(
                 interimOutputDir_actual,
@@ -783,7 +789,7 @@ class Preparator:
         for tumor_mask in tumor_masks_for_qc:
             tumor_mask_id = os.path.basename(tumor_mask).replace(".nii.gz", "")
             # save the screenshot
-            _save_screenshot(
+            save_screenshot(
                 input_for_tumor_models,
                 posixpath.join(interimOutputDir_actual, f"{tumor_mask_id}_summary.png"),
                 tumor_mask,
