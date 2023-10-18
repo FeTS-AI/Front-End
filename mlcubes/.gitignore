@@ -7,4 +7,4 @@
 */mlcube/workspace/*
 !requirements.txt
 !*/mlcube/workspace/parameters.yaml
-mlcubes/data_preparation/project/models
+models
