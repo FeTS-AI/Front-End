@@ -74,15 +74,12 @@ class AddToCSV(RowStage):
             self.csv_processor.process_timepoint(tp, id, subject_out_path)
             report_data = {
                 "status": self.status_code,
-                "status_name": "VALIDATED",
-                "comment": "",
                 "data_path": tp_out_path,
                 "labels_path": "",
             }
         except Exception as e:
             report_data = {
                 "status": -self.status_code - 0.3,
-                "status_name": "VALIDATION_FAILED",
                 "comment": str(e),
                 "data_path": tp_path,
                 "labels_path": "",

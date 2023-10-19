@@ -124,8 +124,6 @@ class NIfTITransform(RowStage):
         fets_path, qc_path = self.__get_output_paths(index)
         report_data = {
             "status": self.status_code,
-            "status_name": "CONVERTED_TO_NIfTI",
-            "comment": "",
             "data_path": qc_path,
             "labels_path": fets_path,
         }
@@ -135,7 +133,6 @@ class NIfTITransform(RowStage):
     def __report_failure(
         self, index: Union[str, int], report: pd.DataFrame
     ) -> pd.DataFrame:
-        id, tp = get_id_tp(index)
         prev_data_path = report.loc[index]["data_path"]
 
         with open(self.prep.stderr_log, "r") as f:
@@ -143,7 +140,6 @@ class NIfTITransform(RowStage):
 
         report_data = {
             "status": -self.status_code,
-            "status_name": "NIfTI_CONVERSION_FAILED",
             "comment": msg,
             "data_path": prev_data_path,
             "labels_path": "",

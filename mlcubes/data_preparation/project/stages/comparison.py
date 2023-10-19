@@ -55,16 +55,8 @@ class SegmentationComparisonStage(RowStage):
     ) -> pd.DataFrame:
         case_path = self.__get_case_path(index)
         data_path = report.loc[index, "data_path"]
-        msg = (
-            f"The original segmentation for file {case_path} was not identified. "
-            + "This most probably means the annotation file was renamed. "
-            + "Please ensure the reviewed file retains its original name."
-        )
-
         report_data = {
             "status": -self.status_code,
-            "status_name": "ANNOTATION_COMPARISON_FAILED",
-            "comment": msg,
             "data_path": data_path,
             "labels_path": case_path,
         }
@@ -76,15 +68,8 @@ class SegmentationComparisonStage(RowStage):
     ) -> pd.DataFrame:
         case_path = self.__get_case_path(index)
         data_path = report.loc[index, "data_path"]
-        msg = (
-            "The annotation seems to be a copy of a baseline segmentation, "
-            + "Please ensure this is intended. Waiting on all cases to be "
-            + "reviewed in order to proceed."
-        )
         report_data = {
-            "status": self.status_code,
-            "status_name": "EXACT_MATCH_IDENTIFIED",
-            "comment": msg,
+            "status": self.status_code + 0.1, # 6.1
             "data_path": data_path,
             "labels_path": case_path,
             "num_changed_voxels": 0,
@@ -99,8 +84,6 @@ class SegmentationComparisonStage(RowStage):
         data_path = report.loc[index, "data_path"]
         report_data = {
             "status": self.status_code,
-            "status_name": "COMPARISON_COMPLETED",
-            "comment": "",
             "data_path": data_path,
             "labels_path": case_path,
             "num_changed_voxels": num_changed_voxels,
