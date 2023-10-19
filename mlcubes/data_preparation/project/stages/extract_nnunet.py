@@ -196,9 +196,6 @@ class ExtractNnUNet(RowStage):
             order = self.__get_mod_order(model)
             tmp_data_path, tmp_out_path, input_modalities = self.__prepare_case(self.out_path, id, tp, order)
             out_pred_filepath = os.path.join(out_pred_path, f"{id}_{tp}_tumorMask_model_{i}.nii.gz")
-            if os.path.exists(out_pred_filepath):
-                print("Model output detected, skipping model")
-                continue
             try:
                 self.__run_model(model, tmp_data_path, tmp_out_path)
                 output = self.__finalize_pred(tmp_out_path, out_pred_filepath)
