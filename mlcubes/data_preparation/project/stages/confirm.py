@@ -115,10 +115,8 @@ class ConfirmStage(DatasetStage):
         shutil.copy(input_label_filepath, output_label_filepath)
 
         row["status"] = self.status_code
-        row["status_name"] = "ANNOTATION_CONFIRMED"
         row["data_path"] = output_data_path
         row["labels_path"] = output_label_path
-        row["comment"] = ""
         return row
 
     def could_run(self, report: DataFrame) -> bool:

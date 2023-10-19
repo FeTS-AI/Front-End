@@ -124,8 +124,6 @@ class Extract(RowStage):
         data_path, labels_path = self.__get_paths(index, self.out_path, self.subpath)
         report_data = {
             "status": self.status_code,
-            "status_name": f"{self.func_name.upper()}_FINISHED",
-            "comment": "",
             "data_path": data_path,
             "labels_path": labels_path,
         }
@@ -140,7 +138,6 @@ class Extract(RowStage):
 
         report_data = {
             "status": -self.status_code,
-            "status_name": f"{self.func_name.upper()}_FAILED",
             "comment": msg,
             "data_path": prev_data_path,
             "labels_path": prev_labels_path,

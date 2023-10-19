@@ -55,8 +55,6 @@ class SplitStage(DatasetStage):
 
     def __report_success(self, report: pd.DataFrame) -> pd.DataFrame:
         report["status"] = self.status_code
-        report["status_name"] = "DONE"
-        report["comment"] = ""
 
         return report
 

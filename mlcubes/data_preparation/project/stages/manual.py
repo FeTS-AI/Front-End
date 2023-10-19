@@ -50,8 +50,6 @@ class ManualStage(RowStage):
         data_path = report.loc[index, "data_path"]
         report_data = {
             "status": 5,
-            "status_name": "MANUAL_REVIEW_COMPLETED",
-            "comment": "",
             "data_path": data_path,
             "labels_path": labels_path,
         }
@@ -62,20 +60,10 @@ class ManualStage(RowStage):
         self, index: Union[str, int], report: pd.DataFrame
     ) -> pd.DataFrame:
         in_path = self.__get_input_path(index)
-        out_path = self.__get_output_path(index)
-        under_review_path = self.__get_under_review_path(index)
         data_path = report.loc[index, "data_path"]
-        msg = (
-            f"You may find baseline segmentations inside {normalize_path(in_path)}. "
-            + f"Please inspect those segmentations and move the best one to {normalize_path(under_review_path)}. "
-            + "Make the necessary corrections to the generated segmentations with your desired tool, "
-            + f"and once you're done, move the finalized file to {normalize_path(out_path)}."
-        )
 
         report_data = {
             "status": -self.status_code,
-            "status_name": "MANUAL_REVIEW_REQUIRED",
-            "comment": msg,
             "data_path": data_path,
             "labels_path": in_path
         }
@@ -90,7 +78,7 @@ class ManualStage(RowStage):
         msg = "More than one reviewed segmentation was identified. Please ensure there's only one NIfTI file present"
 
         report_data = {
-            "status": -self.status_code,
+            "status": -self.status_code - 0.1, #-5.1
             "status_name": "MULTIPLE_ANNOTATIONS_ERROR",
             "comment": msg,
             "data_path": data_path,

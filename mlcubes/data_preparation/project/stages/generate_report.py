@@ -103,8 +103,6 @@ class GenerateReport(DatasetStage):
 
                 data = {
                     "status": self.status_code,
-                    "status_name": "IDENTIFIED",
-                    "comment": "",
                     "data_path": out_tp_path,
                     "labels_path": "",
                     "num_changed_voxels": np.nan,
