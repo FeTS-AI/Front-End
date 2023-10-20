@@ -75,12 +75,9 @@ class ManualStage(RowStage):
     ) -> pd.DataFrame:
         path = self.__get_output_path(index)
         data_path = report.loc[index, "data_path"]
-        msg = "More than one reviewed segmentation was identified. Please ensure there's only one NIfTI file present"
 
         report_data = {
             "status": -self.status_code - 0.1, #-5.1
-            "status_name": "MULTIPLE_ANNOTATIONS_ERROR",
-            "comment": msg,
             "data_path": data_path,
             "labels_path": path,
         }
