@@ -48,7 +48,15 @@
   docs_url: ""
 -5:
   status_name: MANUAL_REVIEW_REQUIRED
-  comment: Please inspect the baseline segmentations at the indicated labels path, select the best one and make necessary corrections. Once you're done, move the finalized_file to the reviewed folder.
+  comment: >
+    Please inspect the baseline segmentations at the indicated labels path.
+    If using the monitoring tool, you may package cases for review by pressing the 'Package cases for review' button under SUMMARY. This will create a tarball file on the working directory, containing all the cases for review.
+
+
+    Select the best one and make any necessary corrections. Once you're done, move the finalized file to the reviewed folder, retaining the original name.
+
+
+    If using the monitoring tool, create a new tarball with the previously untarred files, as well as reviewed cases, and place it on the directory the monitoring tool is running. The tool will automatically detect the reviewed cases and place them in the expected locations.
   docs_url: ""
 -5.1:
   status_name: MULTIPLE_ANNOTATIONS_ERROR
