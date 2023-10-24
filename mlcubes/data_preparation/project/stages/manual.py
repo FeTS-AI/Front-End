@@ -5,7 +5,7 @@ import shutil
 
 from .row_stage import RowStage
 from .constants import TUMOR_MASK_FOLDER, INTERIM_FOLDER
-from .utils import get_id_tp, update_row_with_dict, set_files_read_only, normalize_path
+from .utils import get_id_tp, update_row_with_dict, set_files_read_only, copy_files
 
 
 class ManualStage(RowStage):
@@ -30,12 +30,12 @@ class ManualStage(RowStage):
 
     def __get_under_review_path(self, index: Union[str, int]):
         id, tp = get_id_tp(index)
-        path = os.path.join(self.out_path, INTERIM_FOLDER, id, tp, "under_review")
+        path = os.path.join(self.out_path, INTERIM_FOLDER, id, tp, TUMOR_MASK_FOLDER, "under_review")
         return path
 
     def __get_output_path(self, index: Union[str, int]):
         id, tp = get_id_tp(index)
-        path = os.path.join(self.out_path, INTERIM_FOLDER, id, tp, "reviewed")
+        path = os.path.join(self.out_path, INTERIM_FOLDER, id, tp, TUMOR_MASK_FOLDER, "finalized")
         return path
 
     def __get_backup_path(self, index: Union[str, int]):
@@ -75,12 +75,9 @@ class ManualStage(RowStage):
     ) -> pd.DataFrame:
         path = self.__get_output_path(index)
         data_path = report.loc[index, "data_path"]
-        msg = "More than one reviewed segmentation was identified. Please ensure there's only one NIfTI file present"
 
         report_data = {
             "status": -self.status_code - 0.1, #-5.1
-            "status_name": "MULTIPLE_ANNOTATIONS_ERROR",
-            "comment": msg,
             "data_path": data_path,
             "labels_path": path,
         }
@@ -116,7 +113,7 @@ class ManualStage(RowStage):
         under_review_path = self.__get_under_review_path(index)
         bak_path = self.__get_backup_path(index)
         if not os.path.exists(bak_path):
-            shutil.copytree(in_path, bak_path)
+            copy_files(in_path, bak_path)
             set_files_read_only(bak_path)
         os.makedirs(under_review_path, exist_ok=True)
         os.makedirs(out_path, exist_ok=True)

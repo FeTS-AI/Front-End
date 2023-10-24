@@ -107,6 +107,20 @@ def cleanup_storage(remove_folders):
         shutil.rmtree(folder, ignore_errors=True)
 
 
+def copy_files(src_dir, dest_dir):
+    # Ensure the destination directory exists
+    os.makedirs(dest_dir, exist_ok=True)
+
+    # Iterate through the files in the source directory
+    for filename in os.listdir(src_dir):
+        src_file = os.path.join(src_dir, filename)
+        dest_file = os.path.join(dest_dir, filename)
+
+        # Check if the item is a file (not a directory)
+        if os.path.isfile(src_file):
+            shutil.copy2(src_file, dest_file)  # Copy the file
+
+
 class MockTqdm(tqdm):
     def __getattr__(self, attr):
         return lambda *args, **kwargs: None

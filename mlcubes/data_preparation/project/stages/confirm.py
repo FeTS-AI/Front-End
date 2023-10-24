@@ -43,7 +43,7 @@ class ConfirmStage(DatasetStage):
 
     def __get_input_label_path(self, index: Union[str, int]):
         id, tp = get_id_tp(index)
-        path = os.path.join(self.prev_stage_path, INTERIM_FOLDER, id, tp, "reviewed")
+        path = os.path.join(self.prev_stage_path, INTERIM_FOLDER, id, tp, TUMOR_MASK_FOLDER, "finalized")
         case = os.listdir(path)[0]
 
         return os.path.join(path, case)
