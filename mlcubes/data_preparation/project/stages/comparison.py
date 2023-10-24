@@ -31,7 +31,7 @@ class SegmentationComparisonStage(RowStage):
 
     def __get_input_path(self, index: Union[str, int]) -> str:
         id, tp = get_id_tp(index)
-        path = os.path.join(self.prev_stage_path, INTERIM_FOLDER, id, tp)
+        path = os.path.join(self.prev_stage_path, INTERIM_FOLDER, id, tp, TUMOR_MASK_FOLDER, "finalized")
         return path
 
     def __get_backup_path(self, index: Union[str, int]) -> str:
@@ -45,7 +45,7 @@ class SegmentationComparisonStage(RowStage):
         return path
 
     def __get_case_path(self, index: Union[str, int]) -> str:
-        path = os.path.join(self.__get_input_path(index), "reviewed")
+        path = self.__get_input_path(index)
         case = os.listdir(path)[0]
 
         return os.path.join(path, case)
@@ -93,7 +93,7 @@ class SegmentationComparisonStage(RowStage):
 
     def could_run(self, index: Union[str, int], report: DataFrame) -> bool:
         # Ensure a single reviewed segmentation file exists
-        path = os.path.join(self.__get_input_path(index), "reviewed")
+        path = self.__get_input_path(index)
         gt_path = self.__get_backup_path(index)
 
         is_valid = True
@@ -110,7 +110,7 @@ class SegmentationComparisonStage(RowStage):
     def execute(
         self, index: Union[str, int], report: DataFrame
     ) -> Tuple[DataFrame, bool]:
-        path = os.path.join(self.__get_input_path(index), "reviewed")
+        path = self.__get_input_path(index)
         cases = os.listdir(path)
 
         match_output_path = self.__get_output_path(index)
