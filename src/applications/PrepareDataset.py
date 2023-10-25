@@ -103,7 +103,7 @@ def _get_relevant_dicom_tags(filename: str) -> dict:
             "0018|0081": "Echo Time",
             "0018|0082": "Inversion Time",
             "0018|1310": "Acquisition Matrix",
-            "0018|1314": "Flip Angle",",
+            "0018|1314": "Flip Angle",
             "0018|0087": "Magnetic Field Strength",
             "0018|1050": "Slice Thickness",
             "0018|0088": "Spacing Between Slices",
