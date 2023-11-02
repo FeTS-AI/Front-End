@@ -712,26 +712,32 @@ class Preparator:
             subject_id_timepoint, interimOutputDir_actual_reoriented
         )
 
-        pbar.set_description(f"Brain Extraction")
-
-        models_dir = posixpath.join(Path(__file__).parent.resolve(), "data_prep_models")
-
-        brain_extraction_models_dir = posixpath.join(models_dir, "brain_extraction")
-        brain_extraction_models = [
-            posixpath.join(brain_extraction_models_dir, model_dir)
-            for model_dir in os.listdir(brain_extraction_models_dir)
-        ]
-
-        brain_mask = _run_brain_extraction_using_gandlf(
-            subject_id_timepoint,
-            outputs_reoriented,
-            brain_extraction_models,
-            interimOutputDir_actual,
-        )
+        # Check for existence of brain mask.
+        # That way, we can pass corrected brain masks and proceed without
+        # overwriting the mask.
         brain_mask_path = posixpath.join(
             interimOutputDir_actual, "brainMask_fused.nii.gz"
         )
-        sitk.WriteImage(brain_mask, brain_mask_path)
+        if not os.path.exists(brain_mask_path):
+            pbar.set_description(f"Brain Extraction")
+
+            models_dir = posixpath.join(Path(__file__).parent.resolve(), "data_prep_models")
+
+            brain_extraction_models_dir = posixpath.join(models_dir, "brain_extraction")
+            brain_extraction_models = [
+                posixpath.join(brain_extraction_models_dir, model_dir)
+                for model_dir in os.listdir(brain_extraction_models_dir)
+            ]
+
+            brain_mask = _run_brain_extraction_using_gandlf(
+                subject_id_timepoint,
+                outputs_reoriented,
+                brain_extraction_models,
+                interimOutputDir_actual,
+            )
+            sitk.WriteImage(brain_mask, brain_mask_path)
+        else:
+            brain_mask = sitk.ReadImage(brain_mask_path)
 
         # this is to ensure that the mask and reoriented images are in the same byte order
         # brain_mask = sitk.Cast(brain_mask, sitk.sitkFloat32)

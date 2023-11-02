@@ -107,7 +107,7 @@ def init_pipeline(args):
     tumor_extract_proc = Extract(
         out_data_csv,
         tumor_data_out,
-        TUMOR_MASK_FOLDER,
+        INTERIM_FOLDER,
         brain_data_out,
         INTERIM_FOLDER,
         # loop,
