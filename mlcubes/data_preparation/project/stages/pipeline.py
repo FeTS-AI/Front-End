@@ -30,10 +30,11 @@ def write_report(report: DataFrame, filepath: str):
 
 
 class Pipeline:
-    def __init__(self, init_stage: DatasetStage, stages: List[Union[DatasetStage, RowStage]], staging_folders: List[str]):
+    def __init__(self, init_stage: DatasetStage, stages: List[Union[DatasetStage, RowStage]], staging_folders: List[str], trash_folders: List[str]):
         self.init_stage = init_stage
         self.stages = stages
         self.staging_folders = staging_folders
+        self.trash_folders = trash_folders
 
     def __is_subject_done(self, subject: Union[str, int], report: DataFrame) -> bool:
         """Determines if a subject is considered done
@@ -127,6 +128,9 @@ class Pipeline:
             return None, False
 
     def run(self, report: DataFrame, report_path: str):
+        # cleanup the trash at the very beginning
+        cleanup_storage(self.trash_folders)
+
         # The init stage always has to be executed
         report, _ = self.init_stage.execute(report)
         write_report(report, report_path)
@@ -147,7 +151,8 @@ class Pipeline:
             should_loop = any(report["status_name"] != prev_status)
 
         if self.__is_done(report):
-            cleanup_storage(self.staging_folders)
+            cleanup_folders = self.staging_folders + self.trash_folders
+            cleanup_storage(cleanup_folders)
 
     def process_subject(self, subject: Union[int, str], report: DataFrame, report_path: str, pbar: tqdm):
         # TODO: implement general cleanup
