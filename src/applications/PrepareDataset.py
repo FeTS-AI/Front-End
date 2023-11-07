@@ -520,7 +520,7 @@ class Preparator:
         items = self.subjects_df.iterrows()
         total = self.subjects_df.shape[0]
         pbar = tqdm(range(total), desc="Preparing Dataset (1-10 min per subject)")
-        for idx, row in items:
+        for idx, (_, row) in enumerate(items):
             self.process_row(idx, row, pbar)
 
     def process_row(self, idx: int, row: pd.Series, pbar: tqdm):

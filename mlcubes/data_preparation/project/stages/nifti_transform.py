@@ -75,7 +75,7 @@ class NIfTITransform(RowStage):
         id, tp = get_id_tp(index)
         df = self.prep.subjects_df
         row = df[(df["SubjectID"] == id) & (df["Timepoint"] == tp)].iloc[0]
-        self.prep.convert_to_dicom(index, row, self.pbar)
+        self.prep.convert_to_dicom(hash(index), row, self.pbar)
 
     def __update_prev_stage_state(self, index: Union[str, int], report: pd.DataFrame):
         prev_data_path = report.loc[index]["data_path"]
