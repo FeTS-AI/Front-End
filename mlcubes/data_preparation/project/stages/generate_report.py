@@ -2,29 +2,9 @@ from .dset_stage import DatasetStage
 import pandas as pd
 import numpy as np
 import os
-from pathlib import Path
-import hashlib
 import shutil
 from typing import Tuple
-from .utils import has_prepared_folder_structure
-
-
-# Taken from https://stackoverflow.com/questions/24937495/how-can-i-calculate-a-hash-for-a-filesystem-directory-using-python
-def md5_update_from_dir(directory, hash):
-    assert Path(directory).is_dir()
-    for path in sorted(Path(directory).iterdir(), key=lambda p: str(p).lower()):
-        hash.update(path.name.encode())
-        if path.is_file():
-            with open(path, "rb") as f:
-                for chunk in iter(lambda: f.read(4096), b""):
-                    hash.update(chunk)
-        elif path.is_dir():
-            hash = md5_update_from_dir(path, hash)
-    return hash
-
-
-def md5_dir(directory):
-    return md5_update_from_dir(directory, hashlib.md5()).hexdigest()
+from .utils import has_prepared_folder_structure, md5_dir
 
 
 class GenerateReport(DatasetStage):
@@ -103,6 +83,7 @@ class GenerateReport(DatasetStage):
                     "data_path": out_tp_path,
                     "labels_path": "",
                     "num_changed_voxels": np.nan,
+                    "brain_mask_hash": "",
                     "input_hash": input_hash,
                 }
                 if input_is_prepared:

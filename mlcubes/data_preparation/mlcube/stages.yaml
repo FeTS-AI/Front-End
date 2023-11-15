@@ -64,7 +64,7 @@
     ```
 
 
-    If working remotely, move the tarball file to your local machine. Untar the tarball file, select the best baseline segmentation and make any necessary corrections. Once you're done, move the finalized file to the reviewed folder, retaining the original name.
+    If working remotely, move the tarball file to your local machine. Untar the tarball file, select the best baseline segmentation and make any necessary corrections. Once you're done, move the finalized file to the `finalized` folder, retaining the original name.
 
 
     If using the monitoring tool, create a new tarball with the previously untarred files, as well as finalized cases. You can do so with the following command

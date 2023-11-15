@@ -1,5 +1,4 @@
 import os
-from pathlib import Path
 import argparse
 import pandas as pd
 import yaml
@@ -19,21 +18,6 @@ from stages.constants import INTERIM_FOLDER, FINAL_FOLDER, TUMOR_MASK_FOLDER
 def find_csv_filenames(path_to_dir, suffix=".csv"):
     filenames = os.listdir(path_to_dir)
     return [filename for filename in filenames if filename.endswith(suffix)]
-
-
-def cleanup(path: str):
-    walk = list(os.walk(path))
-    for path, _, _ in walk[::-1]:
-        if len(os.listdir(path)) == 0:
-            os.rmdir(path)
-
-
-def remove_files_in_directory(directory_path):
-    files = os.listdir(directory_path)
-    for file in files:
-        file_path = os.path.join(directory_path, file)
-        if os.path.isfile(file_path):  # Check if the path is a file
-            os.remove(file_path)
 
 
 def setup_argparser():
@@ -90,6 +74,7 @@ def init_pipeline(args):
         backup_out,
     ]
     out_data_csv = os.path.join(args.data_out, "data.csv")
+    trash_folder = os.path.join(args.data_out, ".trash")
 
     loop = None
     report_gen = GenerateReport(args.data, out_raw, args.labels, args.labels_out, args.data_out, 8)
@@ -108,7 +93,7 @@ def init_pipeline(args):
     tumor_extract_proc = ExtractNnUNet(
         out_data_csv,
         tumor_data_out,
-        TUMOR_MASK_FOLDER,
+        INTERIM_FOLDER,
         brain_data_out,
         INTERIM_FOLDER,
         4,
@@ -141,7 +126,7 @@ def init_pipeline(args):
         confirm_proc,
         split_proc
     ]
-    return Pipeline(report_gen, stages, staging_folders)
+    return Pipeline(report_gen, stages, staging_folders, [trash_folder])
 
 def init_report(args) -> pd.DataFrame:
     report = None
@@ -173,6 +158,7 @@ def main():
     #     # can we assume the paths inside data.csv to be relative to the csv?
     #     # TODO: Create some logic to turn the csv paths into the expected paths for the MLCube
     #     # update_csv_paths(out_data_csv)
+
 
     report = init_report(args)
     pipeline = init_pipeline(args)

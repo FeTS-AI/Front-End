@@ -2,6 +2,8 @@ import os
 import shutil
 from tqdm import tqdm
 from functools import reduce
+from pathlib import Path
+import hashlib
 
 # Taken from https://code.activestate.com/recipes/577879-create-a-nested-dictionary-from-oswalk/
 def get_directory_structure(rootdir):
@@ -119,6 +121,28 @@ def copy_files(src_dir, dest_dir):
         # Check if the item is a file (not a directory)
         if os.path.isfile(src_file):
             shutil.copy2(src_file, dest_file)  # Copy the file
+
+
+# Taken from https://stackoverflow.com/questions/24937495/how-can-i-calculate-a-hash-for-a-filesystem-directory-using-python
+def md5_update_from_dir(directory, hash):
+    assert Path(directory).is_dir()
+    for path in sorted(Path(directory).iterdir(), key=lambda p: str(p).lower()):
+        hash.update(path.name.encode())
+        if path.is_file():
+            with open(path, "rb") as f:
+                for chunk in iter(lambda: f.read(4096), b""):
+                    hash.update(chunk)
+        elif path.is_dir():
+            hash = md5_update_from_dir(path, hash)
+    return hash
+
+
+def md5_dir(directory):
+    return md5_update_from_dir(directory, hashlib.md5()).hexdigest()
+
+
+def md5_file(filepath):
+    return hashlib.md5(open(filepath,'rb').read()).hexdigest()
 
 
 class MockTqdm(tqdm):

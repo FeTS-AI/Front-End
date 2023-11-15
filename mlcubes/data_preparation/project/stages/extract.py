@@ -7,7 +7,7 @@ import traceback
 
 from .row_stage import RowStage
 from .PrepareDataset import Preparator, FINAL_FOLDER
-from .utils import update_row_with_dict, get_id_tp, MockTqdm
+from .utils import update_row_with_dict, get_id_tp, md5_file
 
 
 class Extract(RowStage):
@@ -21,6 +21,7 @@ class Extract(RowStage):
         # pbar: tqdm,
         func_name: str,
         status_code: int,
+        extra_labels_path = [],
     ):
         self.data_csv = data_csv
         self.out_path = out_path
@@ -36,6 +37,7 @@ class Extract(RowStage):
         self.failed = False
         self.exception = None
         self.status_code = status_code
+        self.extra_labels_path = extra_labels_path
 
     def get_name(self) -> str:
         return self.func_name.replace("_", " ").capitalize()
@@ -103,29 +105,43 @@ class Extract(RowStage):
             self.exception = e
             self.traceback = traceback.format_exc()
 
+    def __hide_paths(self, hide_paths):
+        for path in hide_paths:
+            dirname = os.path.dirname(path)
+            hidden_name = f".{os.path.basename(path)}"
+            hidden_path = os.path.join(dirname, hidden_name)
+            shutil.move(path, hidden_path)
+
     def __update_state(
         self, index: Union[str, int], report: pd.DataFrame
     ) -> Tuple[pd.DataFrame, bool]:
         if self.failed:
             del_paths = self.__get_paths(index, self.out_path, self.subpath)
             report, success = self.__report_failure(index, report)
+            for del_path in del_paths:
+                shutil.rmtree(del_path, ignore_errors=True)
         else:
-            del_paths = self.__get_paths(index, self.prev_path, self.prev_subpath)
-            report, success = self.__report_success(index, report)
-
-        for del_path in del_paths:
-            shutil.rmtree(del_path, ignore_errors=True)
+            # Backup the paths in case we need to revert to this stage
+            hide_paths = self.__get_paths(index, self.prev_path, self.prev_subpath)
+            _, out_path = self.__get_paths(index, self.out_path, self.subpath)
+            # Wait a little so that file gets created
+            brain_mask_file = os.path.join(out_path, "brainMask_fused.nii.gz")
+            brain_mask_hash = md5_file(brain_mask_file)
+            report, success = self.__report_success(index, report, brain_mask_hash)
+            self.__hide_paths(hide_paths)
 
         return report, success
 
     def __report_success(
-        self, index: Union[str, int], report: pd.DataFrame
+        self, index: Union[str, int], report: pd.DataFrame, brain_mask_hash: str
     ) -> Tuple[pd.DataFrame, bool]:
         data_path, labels_path = self.__get_paths(index, self.out_path, self.subpath)
+        labels_path = os.path.join(labels_path, *self.extra_labels_path)
         report_data = {
             "status": self.status_code,
             "data_path": data_path,
             "labels_path": labels_path,
+            "brain_mask_hash": brain_mask_hash,
         }
         update_row_with_dict(report, report_data, index)
         return report, True
