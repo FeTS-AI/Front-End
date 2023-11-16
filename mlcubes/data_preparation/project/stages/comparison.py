@@ -24,14 +24,20 @@ class SegmentationComparisonStage(RowStage):
         self.out_path = out_path
         self.prev_stage_path = prev_stage_path
         self.backup_path = backup_path
-        self.status_code = 6
 
-    def get_name(self):
+    @property
+    def name(self):
         return "Label Segmentation Comparison"
+
+    @property
+    def status_code(self):
+        return 6
 
     def __get_input_path(self, index: Union[str, int]) -> str:
         id, tp = get_id_tp(index)
-        path = os.path.join(self.prev_stage_path, INTERIM_FOLDER, id, tp, TUMOR_MASK_FOLDER, "finalized")
+        path = os.path.join(
+            self.prev_stage_path, INTERIM_FOLDER, id, tp, TUMOR_MASK_FOLDER, "finalized"
+        )
         return path
 
     def __get_backup_path(self, index: Union[str, int]) -> str:
@@ -69,7 +75,7 @@ class SegmentationComparisonStage(RowStage):
         case_path = self.__get_case_path(index)
         data_path = report.loc[index, "data_path"]
         report_data = {
-            "status": self.status_code + 0.1, # 6.1
+            "status": self.status_code + 0.1,  # 6.1
             "data_path": data_path,
             "labels_path": case_path,
             "num_changed_voxels": 0,

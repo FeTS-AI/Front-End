@@ -10,7 +10,9 @@ from .utils import update_row_with_dict, get_id_tp, MockTqdm, unnormalize_path
 
 
 class NIfTITransform(RowStage):
-    def __init__(self, data_csv: str, out_path: str, prev_stage_path: str, metadata_path: str):
+    def __init__(
+        self, data_csv: str, out_path: str, prev_stage_path: str, metadata_path: str
+    ):
         self.data_csv = data_csv
         self.out_path = out_path
         self.prev_stage_path = prev_stage_path
@@ -19,10 +21,14 @@ class NIfTITransform(RowStage):
         self.prep = Preparator(data_csv, out_path, "BraTSPipeline")
         # self.pbar = pbar
         self.pbar = tqdm()
-        self.status_code = 2
 
-    def get_name(self) -> str:
+    @property
+    def name(self) -> str:
         return "NiFTI Conversion"
+
+    @property
+    def status_code(self) -> int:
+        return 2
 
     def could_run(self, index: Union[str, int], report: pd.DataFrame) -> bool:
         """Determine if case at given index needs to be converted to NIfTI
@@ -116,7 +122,6 @@ class NIfTITransform(RowStage):
             out_filepath = os.path.join(self.metadata_path, file)
             if os.path.isfile(filepath) and filepath.endswith(".yaml"):
                 shutil.copyfile(filepath, out_filepath)
-
 
     def __report_success(
         self, index: Union[str, int], report: pd.DataFrame

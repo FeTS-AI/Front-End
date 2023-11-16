@@ -1,11 +1,14 @@
 from pandas import DataFrame
 from typing import Union, List, Tuple
 from tqdm import tqdm
+import traceback
 import yaml
 
 from .dset_stage import DatasetStage
 from .row_stage import RowStage
+from .stage import Stage
 from .utils import cleanup_storage
+
 
 def normalize_report_paths(report: DataFrame) -> DataFrame:
     """Ensures paths are normalized and converts them to relative paths for the local machine
@@ -16,10 +19,9 @@ def normalize_report_paths(report: DataFrame) -> DataFrame:
     Returns:
         DataFrame: report with transformed paths
     """
-    report["data_path"] = report['data_path'].str.split("mlcube_io3").str[-1]
-    report["labels_path"] = report['labels_path'].str.split("mlcube_io3").str[-1]
+    report["data_path"] = report["data_path"].str.split("mlcube_io3").str[-1]
+    report["labels_path"] = report["labels_path"].str.split("mlcube_io3").str[-1]
     return report
-
 
 
 def write_report(report: DataFrame, filepath: str):
@@ -30,7 +32,13 @@ def write_report(report: DataFrame, filepath: str):
 
 
 class Pipeline:
-    def __init__(self, init_stage: DatasetStage, stages: List[Union[DatasetStage, RowStage]], staging_folders: List[str], trash_folders: List[str]):
+    def __init__(
+        self,
+        init_stage: DatasetStage,
+        stages: List[Union[DatasetStage, RowStage]],
+        staging_folders: List[str],
+        trash_folders: List[str],
+    ):
         self.init_stage = init_stage
         self.stages = stages
         self.staging_folders = staging_folders
@@ -61,7 +69,9 @@ class Pipeline:
         """
         return all(report["status_name"] == "DONE")
 
-    def __get_report_stage_to_run(self, subject: Union[str, int], report: DataFrame) -> Union[DatasetStage, RowStage]:
+    def __get_report_stage_to_run(
+        self, subject: Union[str, int], report: DataFrame
+    ) -> Union[DatasetStage, RowStage]:
         """Retrieves the stage a subject is in indicated by the report
 
         Args:
@@ -83,7 +93,6 @@ class Pipeline:
                 return stage
 
         return None
-
 
     def determine_next_stage(
         self, subject: Union[str, int], report
@@ -124,7 +133,7 @@ class Pipeline:
             # syncing with the report
             if report_stage in could_run_stages:
                 return report_stage, False
-            
+
             return None, False
 
     def run(self, report: DataFrame, report_path: str):
@@ -145,7 +154,9 @@ class Pipeline:
             subjects_loop = tqdm(subjects)
 
             for subject in subjects_loop:
-                report = self.process_subject(subject, report, report_path, subjects_loop)
+                report = self.process_subject(
+                    subject, report, report_path, subjects_loop
+                )
 
             # Check for report differences. If there are, rerun the loop
             should_loop = any(report["status_name"] != prev_status)
@@ -154,7 +165,9 @@ class Pipeline:
             cleanup_folders = self.staging_folders + self.trash_folders
             cleanup_storage(cleanup_folders)
 
-    def process_subject(self, subject: Union[int, str], report: DataFrame, report_path: str, pbar: tqdm):
+    def process_subject(
+        self, subject: Union[int, str], report: DataFrame, report_path: str, pbar: tqdm
+    ):
         # TODO: implement general cleanup
         # self.cleanup(subject)
         # self.check_for_errors_that_need_user_attention(subject, report)
@@ -165,17 +178,42 @@ class Pipeline:
             if done:
                 break
 
-            if isinstance(stage, RowStage):
-                pbar.set_description(f"{subject} | {stage.get_name()}")
-                report, successful = stage.execute(subject, report)
-            else:
-                pbar.set_description(f"{stage.get_name()}")
-                report, successful = stage.execute(report)
-
-            write_report(report, report_path)
+            try:
+                successful = self.run_stage(stage, subject, report_path, pbar)
+            except Exception:
+                self.__report_unhandled_exception(stage, subject, report, report_path)
+                successful = False
 
             if not successful:
                 break
 
-
         return report
+
+    def run_stage(self, stage, subject, report_path, pbar):
+        if isinstance(stage, RowStage):
+            pbar.set_description(f"{subject} | {stage.name}")
+            report, successful = stage.execute(subject, report)
+        elif isinstance(stage, DatasetStage):
+            pbar.set_description(f"{stage.name}")
+            report, successful = stage.execute(report)
+
+        write_report(report, report_path)
+
+        return report, successful
+
+    def __report_unhandled_exception(
+        self,
+        stage: Stage,
+        subject: Union[int, str],
+        report: DataFrame,
+        report_path: str,
+    ):
+        # Assign a special status code for unhandled errors, associated
+        # to the stage status code
+        status_code = -stage.status_code - 0.101
+        name = f"{stage.name.upper().replace(' ', '_')}_UNHANDLED_ERROR"
+        comment = traceback.format_exc()
+
+        body = {"status": status_code, "status_name": name, "comment": comment}
+
+        report[subject] = body

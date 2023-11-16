@@ -5,7 +5,13 @@ import shutil
 
 from .row_stage import RowStage
 from .constants import TUMOR_MASK_FOLDER, INTERIM_FOLDER, FINAL_FOLDER
-from .utils import get_id_tp, update_row_with_dict, set_files_read_only, copy_files, md5_file
+from .utils import (
+    get_id_tp,
+    update_row_with_dict,
+    set_files_read_only,
+    copy_files,
+    md5_file,
+)
 
 
 class ManualStage(RowStage):
@@ -16,36 +22,46 @@ class ManualStage(RowStage):
         self.out_path = out_path
         self.prev_stage_path = prev_stage_path
         self.backup_path = backup_path
-        self.status_code = 5
         self.rollback_path = os.path.join(os.path.dirname(out_path), "prepared")
         self.brain_mask_file = "brainMask_fused.nii.gz"
 
-    def get_name(self):
+    @property
+    def name(self):
         return "Manual review"
+
+    @property
+    def status_code(self) -> int:
+        return 5
 
     def __get_input_paths(self, index: Union[str, int]):
         id, tp = get_id_tp(index)
         tumor_mask_path = os.path.join(
             self.prev_stage_path, INTERIM_FOLDER, id, tp, TUMOR_MASK_FOLDER
         )
-        brain_mask_path = os.path.join(self.prev_stage_path, INTERIM_FOLDER, id, tp, self.brain_mask_file)
+        brain_mask_path = os.path.join(
+            self.prev_stage_path, INTERIM_FOLDER, id, tp, self.brain_mask_file
+        )
         return tumor_mask_path, brain_mask_path
 
     def __get_under_review_path(self, index: Union[str, int]):
         id, tp = get_id_tp(index)
-        path = os.path.join(self.out_path, INTERIM_FOLDER, id, tp, TUMOR_MASK_FOLDER, "under_review")
+        path = os.path.join(
+            self.out_path, INTERIM_FOLDER, id, tp, TUMOR_MASK_FOLDER, "under_review"
+        )
         return path
 
     def __get_output_path(self, index: Union[str, int]):
         id, tp = get_id_tp(index)
-        path = os.path.join(self.out_path, INTERIM_FOLDER, id, tp, TUMOR_MASK_FOLDER, "finalized")
+        path = os.path.join(
+            self.out_path, INTERIM_FOLDER, id, tp, TUMOR_MASK_FOLDER, "finalized"
+        )
         return path
 
     def __get_backup_path(self, index: Union[str, int]):
         id, tp = get_id_tp(index)
         path = os.path.join(self.backup_path, id, tp, TUMOR_MASK_FOLDER)
         return path
-    
+
     def __get_rollback_paths(self, index: Union[str, int]):
         id, tp = get_id_tp(index)
         data_path = os.path.join(self.rollback_path, FINAL_FOLDER, id, tp)
@@ -74,7 +90,7 @@ class ManualStage(RowStage):
         report_data = {
             "status": -self.status_code,
             "data_path": data_path,
-            "labels_path": in_path
+            "labels_path": in_path,
         }
         update_row_with_dict(report, report_data, index)
         return report
@@ -86,7 +102,7 @@ class ManualStage(RowStage):
         data_path = report.loc[index, "data_path"]
 
         report_data = {
-            "status": -self.status_code - 0.1, #-5.1
+            "status": -self.status_code - 0.1,  # -5.1
             "data_path": data_path,
             "labels_path": path,
         }
@@ -99,7 +115,9 @@ class ManualStage(RowStage):
         for rollback_path in rollback_paths:
             rollback_dirname = os.path.dirname(rollback_path)
             rollback_basename = os.path.basename(rollback_path)
-            hidden_rollback_path = os.path.join(rollback_dirname, f".{rollback_basename}")
+            hidden_rollback_path = os.path.join(
+                rollback_dirname, f".{rollback_basename}"
+            )
 
             if os.path.exists(hidden_rollback_path):
                 shutil.move(hidden_rollback_path, rollback_path)
@@ -107,7 +125,9 @@ class ManualStage(RowStage):
         # Move the modified brain mask to the rollback path
         _, rollback_labels_path = rollback_paths
         tumor_masks_path, brain_mask_path = self.__get_input_paths(index)
-        rollback_brain_mask_path = os.path.join(rollback_labels_path, self.brain_mask_file)
+        rollback_brain_mask_path = os.path.join(
+            rollback_labels_path, self.brain_mask_file
+        )
         if os.path.exists(rollback_brain_mask_path):
             os.remove(rollback_brain_mask_path)
         shutil.move(brain_mask_path, rollback_brain_mask_path)
@@ -121,7 +141,7 @@ class ManualStage(RowStage):
         rollback_fets_path, rollback_qc_path = self.__get_rollback_paths(index)
 
         report_data = {
-            "status": 2, # Move back to nifti transform finished
+            "status": 2,  # Move back to nifti transform finished
             "data_path": rollback_qc_path,
             "labels_path": rollback_fets_path,
             "brain_mask_hash": mask_hash,
@@ -146,7 +166,9 @@ class ManualStage(RowStage):
         brain_mask_changed = brain_mask_hash != expected_brain_mask_hash
         return segmentation_exists and (not annotation_exists or brain_mask_changed)
 
-    def execute(self, index: Union[str, int], report: pd.DataFrame) -> Tuple[pd.DataFrame, bool]:
+    def execute(
+        self, index: Union[str, int], report: pd.DataFrame
+    ) -> Tuple[pd.DataFrame, bool]:
         """Manual steps are by definition not doable by an algorithm. Therefore,
         execution of this step leads to a failed stage message, indicating that
         the manual step has not been done.

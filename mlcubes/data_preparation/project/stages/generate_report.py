@@ -8,17 +8,29 @@ from .utils import has_prepared_folder_structure, md5_dir
 
 
 class GenerateReport(DatasetStage):
-    def __init__(self, input_path: str, output_path: str, input_labels_path: str, output_labels_path, done_data_out_path: str, done_status: int):
+    def __init__(
+        self,
+        input_path: str,
+        output_path: str,
+        input_labels_path: str,
+        output_labels_path,
+        done_data_out_path: str,
+        done_status: int,
+    ):
         self.input_path = input_path
         self.output_path = output_path
         self.input_labels_path = input_labels_path
         self.output_labels_path = output_labels_path
         self.done_data_out_path = done_data_out_path
-        self.status_code = 0
         self.done_status_code = done_status
 
-    def get_name(self) -> str:
+    @property
+    def name(self) -> str:
         return "Generate Report"
+
+    @property
+    def status_code(self) -> int:
+        return 0
 
     def could_run(self, report: pd.DataFrame):
         return True
@@ -36,7 +48,9 @@ class GenerateReport(DatasetStage):
         if report is None:
             report = pd.DataFrame(columns=cols)
 
-        input_is_prepared = has_prepared_folder_structure(self.input_path, self.input_labels_path)
+        input_is_prepared = has_prepared_folder_structure(
+            self.input_path, self.input_labels_path
+        )
         if input_is_prepared:
             # If prepared, store data directly in the data folder
             self.output_path = self.done_data_out_path
@@ -98,8 +112,6 @@ class GenerateReport(DatasetStage):
                 subject_series = pd.Series(data)
                 subject_series.name = index
                 report = report.append(subject_series)
-
-
 
         reported_cases = set(report.index)
         removed_cases = reported_cases - observed_cases
