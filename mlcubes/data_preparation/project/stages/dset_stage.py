@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 import pandas as pd
 from typing import Tuple
 
-from stage import Stage
+from .stage import Stage
 
 
 class DatasetStage(Stage, ABC):

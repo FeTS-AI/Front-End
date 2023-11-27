@@ -149,7 +149,7 @@ class Pipeline:
             # Sine we could have row and dataset stages interwoven, we want
             # to make sure we continue processing subjects until nothing new has happened.
             # This means we can resume a given subject and its row stages even after a dataset stage
-            prev_status = report["status_name"].copy()
+            prev_status = report["status"].copy()
             subjects = list(report.index)
             subjects_loop = tqdm(subjects)
 
@@ -159,7 +159,7 @@ class Pipeline:
                 )
 
             # Check for report differences. If there are, rerun the loop
-            should_loop = any(report["status_name"] != prev_status)
+            should_loop = any(report["status"] != prev_status)
 
         if self.__is_done(report):
             cleanup_folders = self.staging_folders + self.trash_folders
@@ -179,17 +179,23 @@ class Pipeline:
                 break
 
             try:
-                successful = self.run_stage(stage, subject, report_path, pbar)
+                report, successful = self.run_stage(
+                    stage, subject, report, report_path, pbar
+                )
             except Exception:
-                self.__report_unhandled_exception(stage, subject, report, report_path)
+                report = self.__report_unhandled_exception(
+                    stage, subject, report, report_path
+                )
+                print(traceback.format_exc())
                 successful = False
 
             if not successful:
+                print("breaking")
                 break
 
         return report
 
-    def run_stage(self, stage, subject, report_path, pbar):
+    def run_stage(self, stage, subject, report, report_path, pbar):
         if isinstance(stage, RowStage):
             pbar.set_description(f"{subject} | {stage.name}")
             report, successful = stage.execute(subject, report)
@@ -216,4 +222,8 @@ class Pipeline:
 
         body = {"status": status_code, "status_name": name, "comment": comment}
 
-        report[subject] = body
+        report.loc[subject] = body
+
+        write_report(report, report_path)
+
+        return report

@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from typing import Union, Tuple
 import pandas as pd
 
-from stage import Stage
+from .stage import Stage
 
 
 class RowStage(Stage, ABC):
