@@ -101,6 +101,7 @@ class GenerateReport(DatasetStage):
                     "labels_path": "",
                     "num_changed_voxels": np.nan,
                     "brain_mask_hash": "",
+                    "segmentation_hash": "",
                     "input_hash": input_hash,
                 }
                 if input_is_prepared:

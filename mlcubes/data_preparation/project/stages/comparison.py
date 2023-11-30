@@ -8,7 +8,7 @@ import numpy as np
 import nibabel as nib
 
 from .row_stage import RowStage
-from .utils import get_id_tp, update_row_with_dict
+from .utils import get_id_tp, update_row_with_dict, md5_file
 from .constants import TUMOR_MASK_FOLDER, INTERIM_FOLDER
 
 
@@ -57,7 +57,7 @@ class SegmentationComparisonStage(RowStage):
         return os.path.join(path, case)
 
     def __report_gt_not_found(
-        self, index: Union[str, int], report: pd.DataFrame
+        self, index: Union[str, int], report: pd.DataFrame, reviewed_hash: str
     ) -> pd.DataFrame:
         case_path = self.__get_case_path(index)
         data_path = report.loc[index, "data_path"]
@@ -65,12 +65,13 @@ class SegmentationComparisonStage(RowStage):
             "status": -self.status_code,
             "data_path": data_path,
             "labels_path": case_path,
+            "segmentation_hash": reviewed_hash,
         }
         update_row_with_dict(report, report_data, index)
         return report
 
     def __report_exact_match(
-        self, index: Union[str, int], report: pd.DataFrame
+        self, index: Union[str, int], report: pd.DataFrame, reviewed_hash: str
     ) -> pd.DataFrame:
         case_path = self.__get_case_path(index)
         data_path = report.loc[index, "data_path"]
@@ -79,12 +80,17 @@ class SegmentationComparisonStage(RowStage):
             "data_path": data_path,
             "labels_path": case_path,
             "num_changed_voxels": 0,
+            "segmentation_hash": reviewed_hash,
         }
         update_row_with_dict(report, report_data, index)
         return report
 
     def __report_success(
-        self, index: Union[str, int], report: pd.DataFrame, num_changed_voxels: int
+        self,
+        index: Union[str, int],
+        report: pd.DataFrame,
+        num_changed_voxels: int,
+        reviewed_hash: str,
     ) -> pd.DataFrame:
         case_path = self.__get_case_path(index)
         data_path = report.loc[index, "data_path"]
@@ -93,6 +99,7 @@ class SegmentationComparisonStage(RowStage):
             "data_path": data_path,
             "labels_path": case_path,
             "num_changed_voxels": num_changed_voxels,
+            "segmentation_hash": reviewed_hash,
         }
         update_row_with_dict(report, report_data, index)
         return report
@@ -106,10 +113,17 @@ class SegmentationComparisonStage(RowStage):
         path_exists = os.path.exists(path)
         gt_path_exists = os.path.exists(gt_path)
         contains_case = False
+        reviewed_hash = None
         if path_exists:
-            num_cases = len(os.listdir(path))
+            cases = os.listdir(path)
+            num_cases = len(cases)
+            reviewed_file = os.path.join(path, cases[0])
+            reviewed_hash = md5_file(reviewed_file)
             contains_case = num_cases == 1
-        is_valid = path_exists and contains_case and gt_path_exists
+
+        prev_hash = report.loc[index]["segmentation_hash"]
+        hash_changed = prev_hash != reviewed_hash
+        is_valid = path_exists and contains_case and gt_path_exists and hash_changed
 
         return is_valid
 
@@ -124,11 +138,14 @@ class SegmentationComparisonStage(RowStage):
         # Get the necessary files for match check
         # We assume reviewed and gt files have the same name
         reviewed_file = os.path.join(path, cases[0])
+        reviewed_hash = md5_file(reviewed_file)
         gt_file = os.path.join(self.__get_backup_path(index), cases[0])
 
         if not os.path.exists(gt_file):
             # Ground truth file not found, reviewed file most probably renamed
-            report = self.__report_gt_not_found(index, report, reviewed_file)
+            report = self.__report_gt_not_found(
+                index, report, reviewed_file, reviewed_hash
+            )
             return report, False
 
         reviewed_img = nib.load(reviewed_file)
@@ -139,12 +156,9 @@ class SegmentationComparisonStage(RowStage):
 
         num_changed_voxels = np.sum(reviewed_voxels != gt_voxels)
 
-        # At this point we know we succeeded, remove the backup files
-        shutil.rmtree(self.__get_backup_path(index))
-
         if num_changed_voxels == 0:
-            report = self.__report_exact_match(index, report)
+            report = self.__report_exact_match(index, report, reviewed_hash)
             return report, True
 
-        report = self.__report_success(index, report, num_changed_voxels)
+        report = self.__report_success(index, report, num_changed_voxels, reviewed_hash)
         return report, True
