@@ -219,8 +219,16 @@ class Pipeline:
         status_code = -stage.status_code - 0.101
         name = f"{stage.name.upper().replace(' ', '_')}_UNHANDLED_ERROR"
         comment = traceback.format_exc()
+        data_path = report.loc[subject]["data_path"]
+        labels_path = report.loc[subject]["labels_path"]
 
-        body = {"status": status_code, "status_name": name, "comment": comment}
+        body = {
+            "status": status_code,
+            "status_name": name,
+            "comment": comment,
+            "data_path": data_path,
+            "labels_path": labels_path,
+        }
 
         report.loc[subject] = body
 
