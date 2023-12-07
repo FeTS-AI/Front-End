@@ -117,8 +117,9 @@ class SegmentationComparisonStage(RowStage):
         if path_exists:
             cases = os.listdir(path)
             num_cases = len(cases)
-            reviewed_file = os.path.join(path, cases[0])
-            reviewed_hash = md5_file(reviewed_file)
+            if num_cases:
+                reviewed_file = os.path.join(path, cases[0])
+                reviewed_hash = md5_file(reviewed_file)
             contains_case = num_cases == 1
 
         prev_hash = report.loc[index]["segmentation_hash"]
