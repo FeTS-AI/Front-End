@@ -115,6 +115,8 @@ class Extract(RowStage):
             dirname = os.path.dirname(path)
             hidden_name = f".{os.path.basename(path)}"
             hidden_path = os.path.join(dirname, hidden_name)
+            if os.path.exists(hidden_path):
+                shutil.rmtree(hidden_path)
             shutil.move(path, hidden_path)
 
     def __update_state(
