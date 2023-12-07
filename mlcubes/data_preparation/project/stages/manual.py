@@ -132,8 +132,10 @@ class ManualStage(RowStage):
             os.remove(rollback_brain_mask_path)
         shutil.move(brain_mask_path, rollback_brain_mask_path)
 
-        # Remove tumor masks to avoid ambiguity
-        shutil.rmtree(tumor_masks_path)
+        # Remove the complete subject path
+        subject_path = os.path.abspath(os.path.join(tumor_masks_path, ".."))
+
+        shutil.rmtree(subject_path)
 
     def __report_rollback(
         self, index: Union[str, int], report: pd.DataFrame, mask_hash
@@ -145,6 +147,8 @@ class ManualStage(RowStage):
             "data_path": rollback_qc_path,
             "labels_path": rollback_fets_path,
             "brain_mask_hash": mask_hash,
+            "num_changed_voxels": 0.0,  # Ensure voxel count is reset
+            "segmentation_hash": "",
         }
         update_row_with_dict(report, report_data, index)
         return report
