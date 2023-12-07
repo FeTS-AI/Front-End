@@ -196,6 +196,7 @@ class Pipeline:
         return report
 
     def run_stage(self, stage, subject, report, report_path, pbar):
+        successful = False
         if isinstance(stage, RowStage):
             pbar.set_description(f"{subject} | {stage.name}")
             report, successful = stage.execute(subject, report)
