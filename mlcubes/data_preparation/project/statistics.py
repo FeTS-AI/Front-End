@@ -23,12 +23,12 @@ if __name__ == "__main__":
         "--metadata_path",
         dest="metadata_path",
         type=str,
-        help="path to the local metadata folder"
+        help="path to the local metadata folder",
     )
 
     args = parser.parse_args()
 
-    dicom_info_file = "dicom_tag_information_to_write_collab.yaml"
+    dicom_info_file = "dicom_tag_information_to_write_anon.yaml"
     dicom_info_filepath = os.path.join(args.metadata_path, dicom_info_file)
     with open(dicom_info_filepath, "r") as f:
         stats = yaml.safe_load(f)
