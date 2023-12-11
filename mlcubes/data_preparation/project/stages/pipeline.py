@@ -110,7 +110,13 @@ class Pipeline:
                 could_run_stages.append(runnable_stage)
 
         if len(could_run_stages) == 1:
-            return could_run_stages[0], False
+            stage = could_run_stages[0]
+            is_last_subject = subject == report.index[-1]
+            if isinstance(stage, DatasetStage) and not is_last_subject:
+                # Only run dataset stages on the last subject, so all subjects can update
+                # their state if needed before proceeding
+                return None, False
+            return stage, False
 
         # Handle errors
         # Either no stage can be executed (len(could_run_stages == 0))
@@ -134,7 +140,7 @@ class Pipeline:
             if report_stage in could_run_stages:
                 return report_stage, False
 
-            return None, False
+            return could_run_stages[0], False
 
     def run(self, report: DataFrame, report_path: str):
         # cleanup the trash at the very beginning
@@ -145,6 +151,7 @@ class Pipeline:
         write_report(report, report_path)
 
         should_loop = True
+        should_stop = False
         while should_loop:
             # Sine we could have row and dataset stages interwoven, we want
             # to make sure we continue processing subjects until nothing new has happened.
@@ -154,12 +161,14 @@ class Pipeline:
             subjects_loop = tqdm(subjects)
 
             for subject in subjects_loop:
-                report = self.process_subject(
+                report, should_stop = self.process_subject(
                     subject, report, report_path, subjects_loop
                 )
+                if should_stop:
+                    break
 
             # Check for report differences. If there are, rerun the loop
-            should_loop = any(report["status"] != prev_status)
+            should_loop = any(report["status"] != prev_status) and not should_stop
 
         if self.__is_done(report):
             cleanup_folders = self.staging_folders + self.trash_folders
@@ -171,6 +180,7 @@ class Pipeline:
         # TODO: implement general cleanup
         # self.cleanup(subject)
         # self.check_for_errors_that_need_user_attention(subject, report)
+        should_stop = False
         while True:
             # TODO also handle when everything's done
             stage, done = self.determine_next_stage(subject, report)
@@ -190,10 +200,13 @@ class Pipeline:
                 successful = False
 
             if not successful:
-                print("breaking")
+                # Send back a signal that a dset stage failed
+                if isinstance(stage, DatasetStage):
+                    should_stop = True
+                print("breaking", flush=True)
                 break
 
-        return report
+        return report, should_stop
 
     def run_stage(self, stage, subject, report, report_path, pbar):
         successful = False

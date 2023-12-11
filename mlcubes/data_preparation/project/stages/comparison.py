@@ -62,7 +62,7 @@ class SegmentationComparisonStage(RowStage):
         case_path = self.__get_case_path(index)
         data_path = report.loc[index, "data_path"]
         report_data = {
-            "status": -self.status_code,
+            "status": -self.status_code - 0.2,  # -6.2
             "data_path": data_path,
             "labels_path": case_path,
             "segmentation_hash": reviewed_hash,
@@ -76,7 +76,7 @@ class SegmentationComparisonStage(RowStage):
         case_path = self.__get_case_path(index)
         data_path = report.loc[index, "data_path"]
         report_data = {
-            "status": self.status_code + 0.1,  # 6.1
+            "status": -self.status_code - 0.1,  # -6.1
             "data_path": data_path,
             "labels_path": case_path,
             "num_changed_voxels": 0,
@@ -95,7 +95,7 @@ class SegmentationComparisonStage(RowStage):
         case_path = self.__get_case_path(index)
         data_path = report.loc[index, "data_path"]
         report_data = {
-            "status": self.status_code,
+            "status": -self.status_code,  # -6
             "data_path": data_path,
             "labels_path": case_path,
             "num_changed_voxels": num_changed_voxels,
