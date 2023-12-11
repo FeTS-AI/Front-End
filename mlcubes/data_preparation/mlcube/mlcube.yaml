@@ -34,7 +34,6 @@ tasks:
         data_path: data/,
         labels_path: labels/, 
         parameters_file: parameters.yaml,
-        report_file: report.yaml,
         metadata_path: metadata/,
       }
   statistics:

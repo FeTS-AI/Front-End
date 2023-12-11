@@ -30,8 +30,11 @@ if __name__ == "__main__":
 
     dicom_info_file = "dicom_tag_information_to_write_anon.yaml"
     dicom_info_filepath = os.path.join(args.metadata_path, dicom_info_file)
-    with open(dicom_info_filepath, "r") as f:
-        stats = yaml.safe_load(f)
+
+    stats = {}
+    if os.path.exists(dicom_info_filepath):
+        with open(dicom_info_filepath, "r") as f:
+            stats = yaml.safe_load(f)
 
     with open(args.out_file, "w") as f:
         yaml.dump(stats, f)
