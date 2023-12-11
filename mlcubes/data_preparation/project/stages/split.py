@@ -29,10 +29,14 @@ class SplitStage(DatasetStage):
         self.train_csv_path = os.path.join(data_path, "train.csv")
         self.val_csv_path = os.path.join(data_path, "val.csv")
         self.staging_folders = staging_folders
-        self.status_code = 8
 
-    def get_name(self) -> str:
+    @property
+    def name(self) -> str:
         return "Generate splits"
+
+    @property
+    def status_code(self) -> int:
+        return 8
 
     def could_run(self, report: pd.DataFrame) -> bool:
         split_exists = os.path.exists(self.split_csv_path)

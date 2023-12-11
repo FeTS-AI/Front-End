@@ -29,12 +29,16 @@ class ConfirmStage(DatasetStage):
         self.prev_stage_path = prev_stage_path
         self.backup_path = backup_path
         self.staging_folders = staging_folders
-        self.status_code = 7
         self.prompt_file = ".prompt.txt"
         self.response_file = ".response.txt"
 
-    def get_name(self):
+    @property
+    def name(self):
         return "Annotations Confirmation"
+
+    @property
+    def status_code(self):
+        return 7
 
     def __get_input_data_path(self, index: Union[str, int]):
         id, tp = get_id_tp(index)
@@ -43,7 +47,9 @@ class ConfirmStage(DatasetStage):
 
     def __get_input_label_path(self, index: Union[str, int]):
         id, tp = get_id_tp(index)
-        path = os.path.join(self.prev_stage_path, INTERIM_FOLDER, id, tp, TUMOR_MASK_FOLDER, "finalized")
+        path = os.path.join(
+            self.prev_stage_path, INTERIM_FOLDER, id, tp, TUMOR_MASK_FOLDER, "finalized"
+        )
         case = os.listdir(path)[0]
 
         return os.path.join(path, case)
@@ -76,7 +82,7 @@ class ConfirmStage(DatasetStage):
 
         while not os.path.exists(response_path):
             sleep(1)
-        
+
         with open(response_path, "r") as f:
             user_input = f.readline().strip()
 

@@ -2,8 +2,10 @@ from abc import ABC, abstractmethod
 from typing import Union, Tuple
 import pandas as pd
 
+from .stage import Stage
 
-class RowStage(ABC):
+
+class RowStage(Stage, ABC):
     @abstractmethod
     def could_run(self, index: Union[str, int], report: pd.DataFrame) -> bool:
         """Establishes if this step could be executed for the given case
@@ -29,13 +31,4 @@ class RowStage(ABC):
         Returns:
             pd.DataFrame: Updated report dataframe
             bool: Success status
-        """
-
-    @abstractmethod
-    def get_name(self) -> str:
-        """Returns a human readable short name for what the stage does
-        Used for printing to the user current status
-
-        Returns:
-            str: Stage name
         """

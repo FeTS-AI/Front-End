@@ -2,8 +2,10 @@ from abc import ABC, abstractmethod
 import pandas as pd
 from typing import Tuple
 
+from .stage import Stage
 
-class DatasetStage(ABC):
+
+class DatasetStage(Stage, ABC):
     @abstractmethod
     def could_run(self, report: pd.DataFrame) -> bool:
         """Establishes if this step could be executed
@@ -27,13 +29,4 @@ class DatasetStage(ABC):
         Returns:
             pd.DataFrame: Updated report dataframe
             bool: Success status
-        """
-
-    @abstractmethod
-    def get_name(self) -> str:
-        """Returns a human readable short name for what the stage does
-        Used for printing to the user current status
-
-        Returns:
-            str: Stage name
         """

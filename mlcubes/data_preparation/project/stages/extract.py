@@ -21,7 +21,7 @@ class Extract(RowStage):
         # pbar: tqdm,
         func_name: str,
         status_code: int,
-        extra_labels_path = [],
+        extra_labels_path=[],
     ):
         self.data_csv = data_csv
         self.out_path = out_path
@@ -36,11 +36,16 @@ class Extract(RowStage):
         self.pbar = tqdm()
         self.failed = False
         self.exception = None
-        self.status_code = status_code
+        self.__status_code = status_code
         self.extra_labels_path = extra_labels_path
 
-    def get_name(self) -> str:
+    @property
+    def name(self) -> str:
         return self.func_name.replace("_", " ").capitalize()
+
+    @property
+    def status_code(self) -> str:
+        return self.__status_code
 
     def could_run(self, index: Union[str, int], report: pd.DataFrame) -> bool:
         """Determine if case at given index needs to be converted to NIfTI
@@ -110,6 +115,8 @@ class Extract(RowStage):
             dirname = os.path.dirname(path)
             hidden_name = f".{os.path.basename(path)}"
             hidden_path = os.path.join(dirname, hidden_name)
+            if os.path.exists(hidden_path):
+                shutil.rmtree(hidden_path)
             shutil.move(path, hidden_path)
 
     def __update_state(
@@ -149,7 +156,9 @@ class Extract(RowStage):
     def __report_failure(
         self, index: Union[str, int], report: pd.DataFrame
     ) -> Tuple[pd.DataFrame, bool]:
-        prev_data_path, prev_labels_path = self.__get_paths(index, self.prev_path, self.prev_subpath)
+        prev_data_path, prev_labels_path = self.__get_paths(
+            index, self.prev_path, self.prev_subpath
+        )
         msg = f"{str(self.exception)}: {self.traceback}"
 
         report_data = {

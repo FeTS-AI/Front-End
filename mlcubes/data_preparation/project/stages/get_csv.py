@@ -17,7 +17,6 @@ class AddToCSV(RowStage):
         self.output_csv = output_csv
         self.out_dir = out_dir
         self.prev_stage_path = prev_stage_path
-        self.status_code = 1
         os.makedirs(self.out_dir, exist_ok=True)
         self.csv_processor = CSVCreator(self.input_dir, self.output_csv)
         if os.path.exists(self.output_csv):
@@ -28,8 +27,13 @@ class AddToCSV(RowStage):
             # Use the default, empty version
             self.contents = self.csv_processor.output_df_for_csv
 
-    def get_name(self) -> str:
+    @property
+    def name(self) -> str:
         return "Initial Validation"
+
+    @property
+    def status_code(self) -> int:
+        return 1
 
     def could_run(self, index: Union[str, int], report: pd.DataFrame) -> bool:
         """Determines if getting a new CSV is necessary.
@@ -90,9 +94,9 @@ class AddToCSV(RowStage):
         if f"{id}_{tp}" in self.csv_processor.subject_timepoint_missing_modalities:
             shutil.rmtree(tp_out_path, ignore_errors=True)
             # Differentiate errors by floating point value
-            status_code = -self.status_code - 0.1 # -1.1
+            status_code = -self.status_code - 0.1  # -1.1
             comment = "There are missing modalities. Please check the data"
-            report_data["status"] = status_code 
+            report_data["status"] = status_code
             report_data["status_name"] = "MISSING_MODALITIES"
             report_data["data_path"] = tp_path
             report_data["comment"] = comment
@@ -100,7 +104,7 @@ class AddToCSV(RowStage):
         elif f"{id}_{tp}" in self.csv_processor.subject_timepoint_extra_modalities:
             shutil.rmtree(tp_out_path, ignore_errors=True)
             # Differentiate errors by floating point value
-            status_code = -self.status_code - 0.2 # -1.2
+            status_code = -self.status_code - 0.2  # -1.2
             comment = "There are extra modalities. Please check the data"
             report_data["status"] = status_code
             report_data["status_name"] = "EXTRA MODALITIES"
