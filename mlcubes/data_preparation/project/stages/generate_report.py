@@ -88,9 +88,12 @@ class GenerateReport(DatasetStage):
                     if report.loc[index]["input_hash"] == input_hash:
                         continue
 
+                    shutil.rmtree(out_tp_path, ignore_errors=True)
+                    shutil.copytree(in_tp_path, out_tp_path)
                     report = report.drop(index)
-                shutil.rmtree(out_tp_path, ignore_errors=True)
-                shutil.copytree(in_tp_path, out_tp_path)
+                else:
+                    # New case not identified by the report. Add it
+                    shutil.copytree(in_tp_path, out_tp_path)
 
                 data = {
                     "status": self.status_code,
