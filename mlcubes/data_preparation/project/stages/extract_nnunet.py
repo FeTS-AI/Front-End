@@ -10,8 +10,13 @@ import subprocess
 import traceback
 from LabelFusion.wrapper import fuse_images
 
-from .row_stage import RowStage
-from .PrepareDataset import Preparator, FINAL_FOLDER, generate_tumor_segmentation_fused_images, save_screenshot
+from .extract import Extract
+from .PrepareDataset import (
+    Preparator,
+    FINAL_FOLDER,
+    generate_tumor_segmentation_fused_images,
+    save_screenshot,
+)
 from .utils import update_row_with_dict, get_id_tp, MockTqdm
 
 MODALITY_MAPPING = {
@@ -22,7 +27,7 @@ MODALITY_MAPPING = {
     "t2": "t2w",
     "t2w": "t2w",
     "t2f": "t2f",
-    "flair": "t2f"
+    "flair": "t2f",
 }
 
 MODALITY_VARIANTS = {
@@ -33,10 +38,11 @@ MODALITY_VARIANTS = {
     "t2": "T2",
     "t2w": "T2",
     "t2f": "FLAIR",
-    "flair": "FLAIR"
+    "flair": "FLAIR",
 }
 
-class ExtractNnUNet(RowStage):
+
+class ExtractNnUNet(Extract):
     def __init__(
         self,
         data_csv: str,
@@ -45,6 +51,7 @@ class ExtractNnUNet(RowStage):
         prev_stage_path: str,
         prev_subpath: str,
         status_code: int,
+        extra_labels_path=[],
     ):
         self.data_csv = data_csv
         self.out_path = out_path
@@ -57,63 +64,16 @@ class ExtractNnUNet(RowStage):
         self.pbar = tqdm()
         self.failed = False
         self.exception = None
-        self.status_code = status_code
+        self.__status_code = status_code
+        self.extra_labels_path = extra_labels_path
 
-    def get_name(self) -> str:
+    @property
+    def name(self) -> str:
         return "nnUNet Tumor Extraction"
 
-    def could_run(self, index: Union[str, int], report: pd.DataFrame) -> bool:
-        """Determine if case at given index needs to be converted to NIfTI
-
-        Args:
-            index (Union[str, int]): Case index, as used by the report dataframe
-            report (pd.DataFrame): Report Dataframe for providing additional context
-
-        Returns:
-            bool: Wether this stage could be executed for the given case
-        """
-        prev_paths = self.__get_paths(index, self.prev_path, self.prev_subpath)
-        return all([os.path.exists(path) for path in prev_paths])
-
-    def execute(
-        self, index: Union[str, int], report: pd.DataFrame
-    ) -> Tuple[pd.DataFrame, bool]:
-        """Runs the pretrained nnUNet models for tumor segmentation
-
-        Args:
-            index (Union[str, int]): case index, as used by the report
-            report (pd.DataFrame): DataFrame containing the current state of the preparation flow
-
-        Returns:
-            pd.DataFrame: Updated report dataframe
-        """
-        self.__prepare_exec()
-        self.__copy_case(index)
-        self.__process_case(index)
-        report, success = self.__update_state(index, report)
-        self.prep.write()
-
-        return report, success
-
-    def __prepare_exec(self):
-
-        # Reset the file contents for errors
-        open(self.prep.stderr_log, "w").close()
-
-        # Update the out dataframes to current state
-        self.prep.read()
-
-    def __get_paths(self, index: Union[str, int], path: str, subpath: str):
-        id, tp = get_id_tp(index)
-        data_path = os.path.join(path, self.data_subpath, id, tp)
-        out_path = os.path.join(path, subpath, id, tp)
-        return data_path, out_path
-
-    def __copy_case(self, index: Union[str, int]):
-        prev_paths = self.__get_paths(index, self.prev_path, self.prev_subpath)
-        copy_paths = self.__get_paths(index, self.out_path, self.prev_subpath)
-        for prev, copy in zip(prev_paths, copy_paths):
-            shutil.copytree(prev, copy, dirs_exist_ok=True)
+    @property
+    def status_code(self) -> str:
+        return self.__status_code
 
     def __get_models(self):
         rel_models_path = "../models/nnUNet_trained_models/nnUNet/3d_fullres"
@@ -156,7 +116,7 @@ class ExtractNnUNet(RowStage):
             shutil.copyfile(in_file, out_file)
 
         return tmp_subject_path, tmp_out_path, input_modalities
-    
+
     def __run_model(self, model, data_path, out_path):
         # models are named Task<ID>_..., where <ID> is always 3 numbers
         task_id = model[4:7]
@@ -166,7 +126,7 @@ class ExtractNnUNet(RowStage):
         start = time.time()
         subprocess.call(cmd, shell=True)
         end = time.time()
-        total_time = (end - start)
+        total_time = end - start
         print(f"Total time elapsed is {total_time} seconds")
 
     def __finalize_pred(self, tmp_out_path, out_pred_filepath):
@@ -183,19 +143,23 @@ class ExtractNnUNet(RowStage):
         shutil.move(pred_filepath, out_pred_filepath)
         return out_pred_filepath
 
-    def __process_case(self, index: Union[str, int]):
+    def _process_case(self, index: Union[str, int]):
         id, tp = get_id_tp(index)
         subject_id = f"{id}_{tp}"
         models = self.__get_models()
         outputs = []
         images_for_fusion = []
-        out_path = os.path.join(self.out_path, "DataForQC", id, tp) 
+        out_path = os.path.join(self.out_path, "DataForQC", id, tp)
         out_pred_path = os.path.join(out_path, "TumorMasksForQC")
         os.makedirs(out_pred_path, exist_ok=True)
         for i, model in enumerate(models):
             order = self.__get_mod_order(model)
-            tmp_data_path, tmp_out_path, input_modalities = self.__prepare_case(self.out_path, id, tp, order)
-            out_pred_filepath = os.path.join(out_pred_path, f"{id}_{tp}_tumorMask_model_{i}.nii.gz")
+            tmp_data_path, tmp_out_path, input_modalities = self.__prepare_case(
+                self.out_path, id, tp, order
+            )
+            out_pred_filepath = os.path.join(
+                out_pred_path, f"{id}_{tp}_tumorMask_model_{i}.nii.gz"
+            )
             try:
                 self.__run_model(model, tmp_data_path, tmp_out_path)
                 output = self.__finalize_pred(tmp_out_path, out_pred_filepath)
@@ -207,12 +171,13 @@ class ExtractNnUNet(RowStage):
                 self.traceback = traceback.format_exc()
                 return
 
-            #cleanup
+            # cleanup
             shutil.rmtree(tmp_data_path, ignore_errors=True)
             shutil.rmtree(tmp_out_path, ignore_errors=True)
 
-
-        fused_outputs = generate_tumor_segmentation_fused_images(images_for_fusion, out_pred_path, subject_id)
+        fused_outputs = generate_tumor_segmentation_fused_images(
+            images_for_fusion, out_pred_path, subject_id
+        )
         outputs += fused_outputs
 
         for output in outputs:
@@ -226,50 +191,3 @@ class ExtractNnUNet(RowStage):
                 ),
                 output,
             )
-
-
-
-    def __update_state(
-        self, index: Union[str, int], report: pd.DataFrame
-    ) -> Tuple[pd.DataFrame, bool]:
-        if self.failed:
-            del_paths = self.__get_paths(index, self.out_path, self.subpath)
-            report, success = self.__report_failure(index, report)
-        else:
-            del_paths = self.__get_paths(index, self.prev_path, self.prev_subpath)
-            report, success = self.__report_success(index, report)
-
-        for del_path in del_paths:
-            shutil.rmtree(del_path, ignore_errors=True)
-
-        return report, success
-
-    def __report_success(
-        self, index: Union[str, int], report: pd.DataFrame
-    ) -> Tuple[pd.DataFrame, bool]:
-        data_path, labels_path = self.__get_paths(index, self.out_path, self.subpath)
-        report_data = {
-            "status": self.status_code,
-            "status_name": "TUMOR_EXTRACT_FINISHED",
-            "comment": "",
-            "data_path": data_path,
-            "labels_path": labels_path,
-        }
-        update_row_with_dict(report, report_data, index)
-        return report, True
-
-    def __report_failure(
-        self, index: Union[str, int], report: pd.DataFrame
-    ) -> Tuple[pd.DataFrame, bool]:
-        prev_data_path, prev_labels_path = self.__get_paths(index, self.prev_path, self.prev_subpath)
-        msg = f"{str(self.exception)}: {self.traceback}"
-
-        report_data = {
-            "status": -self.status_code,
-            "status_name": "TUMOR_EXTRACT_FAILED",
-            "comment": msg,
-            "data_path": prev_data_path,
-            "labels_path": prev_labels_path,
-        }
-        update_row_with_dict(report, report_data, index)
-        return report, False
