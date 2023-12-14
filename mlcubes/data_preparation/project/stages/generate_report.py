@@ -12,6 +12,7 @@ DICOM_MODALITIES_PREFIX = {"fl": "t2_Flair", "t1": "t1_axial-3", "t1c": "t1_axia
 NIFTI_MODALITIES = ["t1c", "t1n", "t2f", "t2w"]
 BRAIN_SCAN_NAME = "brain_(.*)"
 TUMOR_SEG_NAME = "final_seg"
+CSV_HEADERS = ["SubjectID", "Timepoint", "T1", "T1GD", "T2", "FLAIR"]
 
 def get_index(subject, timepoint):
     return f"{subject}|{timepoint}"
@@ -155,9 +156,32 @@ def move_tumor_segmentation(subject, timepoint, seg_file, in_subject_path, out_d
 
     return in_seg_path, seg_finalized_path
 
+def write_partial_csv(csv_path, subject, timepoint):
+    # Used when cases are semi-prepared, in which case they
+    # skip the formal csv creation
+    if os.path.exists(csv_path):
+        df = pd.read_csv(csv_path)
+    else:
+        df = pd.DataFrame(columns=CSV_HEADERS)
+    
+    row = pd.Series(index=CSV_HEADERS)
+    row["SubjectID"] = subject
+    row["Timepoint"] = timepoint
+    row.name = get_index(subject, timepoint)
+    row = row.fillna("")
+
+    # Check for existence of this row
+    row_search = df[(df["SubjectID"] == subject) & (df["Timepoint"] == timepoint)]
+    if len(row_search) == 0:
+        df = df.append(row)
+
+    df.to_csv(csv_path, index=False)
+
+
 class GenerateReport(DatasetStage):
     def __init__(
         self,
+        data_csv: str,
         input_path: str,
         output_path: str,
         input_labels_path: str,
@@ -169,6 +193,7 @@ class GenerateReport(DatasetStage):
         tumor_data_out_path: str,
         reviewed_status: int,
     ):
+        self.data_csv = data_csv
         self.input_path = input_path
         self.output_path = output_path
         self.input_labels_path = input_labels_path
@@ -202,23 +227,24 @@ class GenerateReport(DatasetStage):
 
         # Move tumor segmentation to its expected location
         seg_file = f"{subject}_{timepoint}_{TUMOR_SEG_NAME}.nii.gz"
-        in_seg_path, seg_finalized_path = move_tumor_segmentation(subject, timepoint, seg_file, in_subject_path, self.tumor_data_out_path, self.output_labels_path)
+        _, seg_finalized_path = move_tumor_segmentation(subject, timepoint, seg_file, in_subject_path, self.tumor_data_out_path, self.output_labels_path)
 
         # Update the report
-        seg_hash = md5_file(in_seg_path)
         data = {
             "status": self.reviewed_status,
             "data_path": final_path,
             "labels_path": seg_finalized_path,
-            "num_changed_voxels": 0,
-            "brain_mask_hash": seg_hash,
-            "segmentation_hash": seg_hash,
+            "num_changed_voxels": np.nan,
+            "brain_mask_hash": "",
+            "segmentation_hash": "",
             "input_hash": input_hash,
         }
 
         subject_series = pd.Series(data)
         subject_series.name = index
         report = report.append(subject_series)
+
+        write_partial_csv(self.data_csv, subject, timepoint)
 
         return report
 
@@ -251,6 +277,8 @@ class GenerateReport(DatasetStage):
         subject_series = pd.Series(data)
         subject_series.name = index
         report = report.append(subject_series)
+
+        write_partial_csv(self.data_csv, subject, timepoint)
 
         return report
 
@@ -371,4 +399,5 @@ class GenerateReport(DatasetStage):
         for case_index in removed_cases:
             report = report.drop(case_index)
 
+        report = report.sort_index()
         return report, True
