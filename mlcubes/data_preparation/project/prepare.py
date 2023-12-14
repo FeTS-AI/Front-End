@@ -77,7 +77,7 @@ def init_pipeline(args):
     trash_folder = os.path.join(args.data_out, ".trash")
 
     loop = None
-    report_gen = GenerateReport(args.data, out_raw, args.labels, args.labels_out, args.data_out, 8)
+    report_gen = GenerateReport(out_data_csv, args.data, out_raw, args.labels, args.labels_out, args.data_out, 8, brain_data_out, 3, tumor_data_out, 5)
     csv_proc = AddToCSV(out_raw, out_data_csv, valid_data_out, out_raw)
     nifti_proc = NIfTITransform(out_data_csv, nifti_data_out, valid_data_out, args.metadata_path)
     brain_extract_proc = Extract(

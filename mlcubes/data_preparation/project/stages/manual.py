@@ -198,7 +198,9 @@ class ManualStage(RowStage):
 
         cases = os.listdir(out_path)
 
-        brain_mask_hash = md5_file(brain_path)
+        brain_mask_hash = ""
+        if os.path.exists(brain_path):
+            brain_mask_hash = md5_file(brain_path)
         expected_brain_mask_hash = report.loc[index, "brain_mask_hash"]
         brain_mask_changed = brain_mask_hash != expected_brain_mask_hash
 

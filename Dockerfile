@@ -12,9 +12,11 @@ RUN pwd && ls -l
 WORKDIR /Front-End
 
 # Download model checkpoints to torch checkpoint location
-RUN mkdir -p /root/.cache/torch/hub/checkpoints && \
-    wget -O /root/.cache/torch/hub/checkpoints/dpn98-722954780.pth http://data.lip6.fr/cadene/pretrainedmodels/dpn98-722954780.pth --no-check-certificate && \
-    wget -O /root/.cache/torch/hub/checkpoints/resnet50-19c8e357.pth https://download.pytorch.org/models/resnet50-19c8e357.pth
+# https://pytorch.org/docs/stable/hub.html#where-are-my-downloaded-models-saved
+ENV TORCH_HOME="/.pytorch_cache"
+RUN mkdir -p $TORCH_HOME/hub/checkpoints && \
+    wget -O $TORCH_HOME/hub/checkpoints/dpn98-722954780.pth http://data.lip6.fr/cadene/pretrainedmodels/dpn98-722954780.pth --no-check-certificate && \
+    wget -O $TORCH_HOME/hub/checkpoints/resnet50-19c8e357.pth https://download.pytorch.org/models/resnet50-19c8e357.pth
 
 COPY src src
 
