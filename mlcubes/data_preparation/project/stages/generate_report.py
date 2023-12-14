@@ -85,8 +85,10 @@ def has_semiprepared_folder_structure(subject_tp_path, recursive=True):
             if content.endswith(full_suffix):
                 suffixes_presence[suffix] = True
 
-        if all(suffixes_presence.values()):
-            return True, subject_tp_path
+    if all(suffixes_presence.values()):
+        return True, subject_tp_path
+
+    return False, subject_tp_path
 
 def get_timepoints(subject, subject_tp_path):
     contents = os.listdir(subject_tp_path)
@@ -163,10 +165,8 @@ class GenerateReport(DatasetStage):
         done_data_out_path: str,
         done_status: int,
         brain_data_out_path: str,
-        brain_labels_out_path: str,
         brain_status: int,
         tumor_data_out_path: str,
-        tumor_labels_out_path: str,
         reviewed_status: int,
     ):
         self.input_path = input_path
@@ -176,10 +176,8 @@ class GenerateReport(DatasetStage):
         self.done_data_out_path = done_data_out_path
         self.done_status_code = done_status
         self.brain_data_out_path = brain_data_out_path
-        self.brain_labels_out_path = brain_labels_out_path
         self.brain_status = brain_status
         self.tumor_data_out_path = tumor_data_out_path
-        self.tumor_labels_out_path = tumor_labels_out_path
         self.reviewed_status = reviewed_status
 
     @property
@@ -193,7 +191,11 @@ class GenerateReport(DatasetStage):
     def _proceed_to_comparison(self, subject, timepoint, in_subject_path, report):
         index = get_index(subject, timepoint)
         final_path = os.path.join(self.tumor_data_out_path, FINAL_FOLDER, subject, timepoint)
-
+        input_hash = md5_dir(in_subject_path)
+        # Stop if the subject was already present and no input change has happened
+        if index in report.index:
+            if input_hash == report.loc[index]["input_hash"]:
+                return report
 
         # Move brain scans to its expected location
         move_brain_scans(subject, timepoint, in_subject_path, self.tumor_data_out_path)
@@ -203,7 +205,6 @@ class GenerateReport(DatasetStage):
         in_seg_path, seg_finalized_path = move_tumor_segmentation(subject, timepoint, seg_file, in_subject_path, self.tumor_data_out_path, self.output_labels_path)
 
         # Update the report
-        input_hash = md5_dir(in_subject_path)
         seg_hash = md5_file(in_seg_path)
         data = {
             "status": self.reviewed_status,
@@ -223,17 +224,22 @@ class GenerateReport(DatasetStage):
 
     def _proceed_to_tumor_extraction(self, subject, timepoint, in_subject_path, report):
         index = get_index(subject, timepoint)
+        input_hash = md5_dir(in_subject_path)
+        # Stop if the subject was already present and no input change has happened
+        if index in report.index:
+            if input_hash == report.loc[index]["input_hash"]:
+                return report
         final_path = os.path.join(self.brain_data_out_path, FINAL_FOLDER, subject, timepoint)
         labels_path = os.path.join(self.brain_data_out_path, INTERIM_FOLDER, subject, timepoint)
         os.makedirs(final_path, exist_ok=True)
+        os.makedirs(labels_path, exist_ok=True)
 
         # Move brain scans to its expected location
         move_brain_scans(subject, timepoint, in_subject_path, self.brain_data_out_path)
 
         # Update the report
-        input_hash = md5_dir(in_subject_path)
         data = {
-            "status": self.reviewed_status,
+            "status": self.brain_status,
             "data_path": final_path,
             "labels_path": labels_path,
             "num_changed_voxels": np.nan,
@@ -286,11 +292,13 @@ class GenerateReport(DatasetStage):
             if has_semiprepared:
                 timepoints = get_timepoints(subject, in_subject_path)
                 for timepoint in timepoints:
+                    index = get_index(subject, timepoint)
                     tumor_seg = get_tumor_segmentation(subject, timepoint, in_subject_path)
                     if tumor_seg is not None:
                         report = self._proceed_to_comparison(subject, timepoint, in_subject_path, report)
                     else:
                         report = self._proceed_to_tumor_extraction(subject, timepoint, in_subject_path, report)
+                    observed_cases.add(index)
                     continue
 
             for timepoint in os.listdir(in_subject_path):

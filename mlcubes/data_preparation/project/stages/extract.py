@@ -102,7 +102,12 @@ class Extract(RowStage):
     def __process_case(self, index: Union[str, int]):
         id, tp = get_id_tp(index)
         df = self.prep.subjects_df
-        row = df[(df["SubjectID"] == id) & (df["Timepoint"] == tp)].iloc[0]
+        row_search = df[(df["SubjectID"] == id) & (df["Timepoint"] == tp)]
+        if len(row_search) > 0:
+            row = row_search.iloc[0]
+        else:
+            # Most probably this case was semi-prepared. Mock a row
+            row = pd.Series({"SubjectID": id, "Timepoint": tp, "T1": "", "T1GD": "", "T2": "", "FLAIR": ""})
         try:
             self.func(row, self.pbar)
         except Exception as e:
@@ -133,7 +138,11 @@ class Extract(RowStage):
             _, out_path = self.__get_paths(index, self.out_path, self.subpath)
             # Wait a little so that file gets created
             brain_mask_file = os.path.join(out_path, "brainMask_fused.nii.gz")
-            brain_mask_hash = md5_file(brain_mask_file)
+            # Handle the case where a brain mask doesn't exist
+            # Due to the subject being semi-prepared
+            brain_mask_hash = ""
+            if os.path.exists(brain_mask_file):
+                brain_mask_hash = md5_file(brain_mask_file)
             report, success = self.__report_success(index, report, brain_mask_hash)
             self.__hide_paths(hide_paths)
 
