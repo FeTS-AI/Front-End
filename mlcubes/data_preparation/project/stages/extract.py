@@ -74,7 +74,7 @@ class Extract(RowStage):
         """
         self.__prepare_exec()
         self.__copy_case(index)
-        self.__process_case(index)
+        self._process_case(index)
         report, success = self.__update_state(index, report)
         self.prep.write()
 
@@ -99,7 +99,7 @@ class Extract(RowStage):
         for prev, copy in zip(prev_paths, copy_paths):
             shutil.copytree(prev, copy, dirs_exist_ok=True)
 
-    def __process_case(self, index: Union[str, int]):
+    def _process_case(self, index: Union[str, int]):
         id, tp = get_id_tp(index)
         df = self.prep.subjects_df
         row_search = df[(df["SubjectID"] == id) & (df["Timepoint"] == tp)]
