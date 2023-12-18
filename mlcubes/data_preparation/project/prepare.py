@@ -81,6 +81,7 @@ def init_pipeline(args):
     ]
     out_data_csv = os.path.join(args.data_out, "data.csv")
     trash_folder = os.path.join(args.data_out, ".trash")
+    invalid_subjects_file = os.path.join(args.metadata_path, ".invalid.txt")
 
     loop = None
     report_gen = GenerateReport(out_data_csv, args.data, out_raw, args.labels, args.labels_out, args.data_out, 8, brain_data_out, 3, tumor_data_out, 5)
@@ -132,7 +133,7 @@ def init_pipeline(args):
         confirm_proc,
         split_proc
     ]
-    return Pipeline(report_gen, stages, staging_folders, [trash_folder])
+    return Pipeline(report_gen, stages, staging_folders, [trash_folder], invalid_subjects_file)
 
 def init_report(args) -> pd.DataFrame:
     report = None

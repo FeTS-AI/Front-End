@@ -3,6 +3,7 @@ from typing import Union, List, Tuple
 from tqdm import tqdm
 import traceback
 import yaml
+import os
 
 from .dset_stage import DatasetStage
 from .row_stage import RowStage
@@ -39,11 +40,27 @@ class Pipeline:
         stages: List[Union[DatasetStage, RowStage]],
         staging_folders: List[str],
         trash_folders: List[str],
+        invalid_subjects_file: str
     ):
         self.init_stage = init_stage
         self.stages = stages
         self.staging_folders = staging_folders
         self.trash_folders = trash_folders
+        self.invalid_subjects_file = invalid_subjects_file
+
+    def __invalid_subjects(self) -> List[str]:
+        """Retrieve invalid subjects
+
+        Returns:
+            List[str]: list of invalid subjects
+        """
+        if not os.path.exists(self.invalid_subjects_file):
+            open(self.invalid_subjects_file, "a").close()
+
+        with open(self.invalid_subjects_file, "r") as f:
+            invalid_subjects = set([line.strip() for line in f])
+
+        return invalid_subjects
 
     def __is_subject_done(self, subject: Union[str, int], report: DataFrame) -> bool:
         """Determines if a subject is considered done
@@ -151,9 +168,14 @@ class Pipeline:
         report, _ = self.init_stage.execute(report)
         write_report(report, report_path)
 
+        invalid_subjects = self.__invalid_subjects()
+
         should_loop = True
         should_stop = False
         while should_loop:
+            # Filter out invalid subjects
+            working_report = report[~report.index.isin(invalid_subjects)].copy()
+
             # Sine we could have row and dataset stages interwoven, we want
             # to make sure we continue processing subjects until nothing new has happened.
             # This means we can resume a given subject and its row stages even after a dataset stage
@@ -162,9 +184,19 @@ class Pipeline:
             subjects_loop = tqdm(subjects)
 
             for subject in subjects_loop:
-                report, should_stop = self.process_subject(
-                    subject, report, report_path, subjects_loop
+                working_report, should_stop = self.process_subject(
+                    subject, working_report, report_path, subjects_loop
                 )
+                report.update(working_report)
+                write_report(report, report_path)
+
+                # If a new invalid subject is identified, start over
+                new_invalid_subjects = self.__invalid_subjects()
+                if invalid_subjects != new_invalid_subjects:
+                    invalid_subjects = new_invalid_subjects
+                    should_loop = True
+                    break
+
                 if should_stop:
                     break
 
@@ -178,12 +210,8 @@ class Pipeline:
     def process_subject(
         self, subject: Union[int, str], report: DataFrame, report_path: str, pbar: tqdm
     ):
-        # TODO: implement general cleanup
-        # self.cleanup(subject)
-        # self.check_for_errors_that_need_user_attention(subject, report)
         should_stop = False
         while True:
-            # TODO also handle when everything's done
             stage, done = self.determine_next_stage(subject, report)
 
             if done:
@@ -218,7 +246,6 @@ class Pipeline:
             pbar.set_description(f"{stage.name}")
             report, successful = stage.execute(report)
 
-        write_report(report, report_path)
 
         return report, successful
 
@@ -227,7 +254,6 @@ class Pipeline:
         stage: Stage,
         subject: Union[int, str],
         report: DataFrame,
-        report_path: str,
     ):
         # Assign a special status code for unhandled errors, associated
         # to the stage status code
@@ -246,7 +272,5 @@ class Pipeline:
         }
 
         report.loc[subject] = body
-
-        write_report(report, report_path)
 
         return report
