@@ -120,7 +120,7 @@ class ExtractNnUNet(Extract):
     def __run_model(self, model, data_path, out_path):
         # models are named Task<ID>_..., where <ID> is always 3 numbers
         task_id = model[4:7]
-        cmd = f"nnUNet_predict -i {data_path} -o {out_path} -t {task_id} -f all"
+        cmd = f"nnUNet_predict -i {data_path} -o {out_path} -t {task_id}"
         print(cmd)
         print(os.listdir(data_path))
         start = time.time()
