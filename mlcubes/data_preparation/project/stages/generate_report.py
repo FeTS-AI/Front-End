@@ -345,6 +345,15 @@ class GenerateReport(DatasetStage):
                 # Keep track of the cases that were found on the input folder
                 observed_cases.add(index)
 
+                has_semiprepared, in_tp_path = has_semiprepared_folder_structure(in_tp_path, recursive=True)
+                if has_semiprepared:
+                    tumor_seg = get_tumor_segmentation(subject, timepoint, in_tp_path)
+                    if tumor_seg is not None:
+                        report = self._proceed_to_comparison(subject, timepoint, in_tp_path, report)
+                    else:
+                        report = self._proceed_to_tumor_extraction(subject, timepoint, in_tp_path, report)
+                    continue
+
                 if index in report.index:
                     # Case has already been identified, see if input hash is different
                     # if so, override the contents and restart the state for that case
@@ -372,15 +381,6 @@ class GenerateReport(DatasetStage):
                 if has_alternative:
                     # Move files around so it has the expected structure
                     to_expected_folder_structure(out_tp_path, contents_path)
-
-                has_semiprepared, in_tp_path = has_semiprepared_folder_structure(in_tp_path, recursive=True)
-                if has_semiprepared:
-                    tumor_seg = get_tumor_segmentation(subject, timepoint, in_tp_path)
-                    if tumor_seg is not None:
-                        report = self._proceed_to_comparison(subject, timepoint, in_tp_path, report)
-                    else:
-                        report = self._proceed_to_tumor_extraction(subject, timepoint, in_tp_path, report)
-                    continue
 
                 if input_is_prepared:
                     data["status_name"] = "DONE"

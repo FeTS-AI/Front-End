@@ -11,10 +11,11 @@ from .utils import update_row_with_dict, get_id_tp, MockTqdm, unnormalize_path
 
 class NIfTITransform(RowStage):
     def __init__(
-        self, data_csv: str, out_path: str, prev_stage_path: str, metadata_path: str
+        self, data_csv: str, out_path: str, prev_stage_path: str, metadata_path: str, data_out: str,
     ):
         self.data_csv = data_csv
         self.out_path = out_path
+        self.data_out = data_out
         self.prev_stage_path = prev_stage_path
         self.metadata_path = metadata_path
         os.makedirs(self.out_path, exist_ok=True)
@@ -85,7 +86,7 @@ class NIfTITransform(RowStage):
 
     def __update_prev_stage_state(self, index: Union[str, int], report: pd.DataFrame):
         prev_data_path = report.loc[index]["data_path"]
-        prev_data_path = unnormalize_path(prev_data_path, "mlcube_io3")
+        prev_data_path = unnormalize_path(prev_data_path, self.data_out)
         shutil.rmtree(prev_data_path)
 
     def __undo_current_stage_changes(self, index: Union[str, int]):

@@ -21,6 +21,7 @@ tasks:
         data_path: input_data,
         labels_path: input_labels,
         parameters_file: parameters.yaml,
+        models: additional_files/models,
       }
       outputs: {
         output_path: data/,

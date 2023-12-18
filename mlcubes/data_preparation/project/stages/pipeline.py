@@ -19,8 +19,9 @@ def normalize_report_paths(report: DataFrame) -> DataFrame:
     Returns:
         DataFrame: report with transformed paths
     """
-    report["data_path"] = report["data_path"].str.split("mlcube_io3").str[-1]
-    report["labels_path"] = report["labels_path"].str.split("mlcube_io3").str[-1]
+    pattern = "mlcube_io\d+"
+    report["data_path"] = report["data_path"].str.split(pattern).str[-1]
+    report["labels_path"] = report["labels_path"].str.split(pattern).str[-1]
     return report
 
 

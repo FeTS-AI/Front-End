@@ -2,6 +2,7 @@ import os
 import argparse
 import pandas as pd
 import yaml
+import shutil
 from stages.generate_report import GenerateReport
 from stages.get_csv import AddToCSV
 from stages.nifti_transform import NIfTITransform
@@ -13,6 +14,8 @@ from stages.confirm import ConfirmStage
 from stages.split import SplitStage
 from stages.pipeline import Pipeline
 from stages.constants import INTERIM_FOLDER, FINAL_FOLDER, TUMOR_MASK_FOLDER
+
+MODELS_PATH = "/project/models"
 
 
 def find_csv_filenames(path_to_dir, suffix=".csv"):
@@ -27,6 +30,9 @@ def setup_argparser():
     )
     parser.add_argument(
         "--labels_path", dest="labels", type=str, help="path containing labels"
+    )
+    parser.add_argument(
+        "--models_path", dest="models", type=str, help="path to the nnunet models"
     )
     parser.add_argument(
         "--data_out", dest="data_out", type=str, help="path to store prepared data"
@@ -79,7 +85,7 @@ def init_pipeline(args):
     loop = None
     report_gen = GenerateReport(out_data_csv, args.data, out_raw, args.labels, args.labels_out, args.data_out, 8, brain_data_out, 3, tumor_data_out, 5)
     csv_proc = AddToCSV(out_raw, out_data_csv, valid_data_out, out_raw)
-    nifti_proc = NIfTITransform(out_data_csv, nifti_data_out, valid_data_out, args.metadata_path)
+    nifti_proc = NIfTITransform(out_data_csv, nifti_data_out, valid_data_out, args.metadata_path, args.data_out)
     brain_extract_proc = Extract(
         out_data_csv,
         brain_data_out,
@@ -141,24 +147,9 @@ def init_report(args) -> pd.DataFrame:
 def main():
     args = setup_argparser()
 
-    # Check if the input data is already prepared
-    # If so, just copy the contents and skip all processing
-    # TODO: this means we won't have a report. What would be the best way
-    # to handle this?
-    # TODO: Re-enable this when it is implemented correctly and we see the need for it
-    # # 1. If there is a csv file in the input folder
-    # # always reuse it for the prepared dataset
-    # csvs = find_csv_filenames(args.data_out)
-    # if len(csvs) == 1:
-    #     # One csv was found. Assume this is the desired csv
-    #     # move it to the expected location
-    #     # TODO: How to deal with inconsistent paths because of MLCube functionality?
-    #     csv_path = os.path.join(args.data_out, csvs[0])
-    #     os.rename(csv_path, out_data_csv)
-    #     # can we assume the paths inside data.csv to be relative to the csv?
-    #     # TODO: Create some logic to turn the csv paths into the expected paths for the MLCube
-    #     # update_csv_paths(out_data_csv)
-
+    # Move models to the expected location
+    if not os.path.exists(MODELS_PATH):
+        shutil.copytree(args.models, MODELS_PATH)
 
     report = init_report(args)
     pipeline = init_pipeline(args)
