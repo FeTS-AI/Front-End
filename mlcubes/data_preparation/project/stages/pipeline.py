@@ -173,8 +173,6 @@ class Pipeline:
         should_loop = True
         should_stop = False
         while should_loop:
-            # Filter out invalid subjects
-            working_report = report[~report.index.isin(invalid_subjects)].copy()
 
             # Sine we could have row and dataset stages interwoven, we want
             # to make sure we continue processing subjects until nothing new has happened.
@@ -184,11 +182,9 @@ class Pipeline:
             subjects_loop = tqdm(subjects)
 
             for subject in subjects_loop:
-                working_report, should_stop = self.process_subject(
-                    subject, working_report, report_path, subjects_loop
+                report, should_stop = self.process_subject(
+                    subject, report, report_path, subjects_loop
                 )
-                report.update(working_report)
-                write_report(report, report_path)
 
                 # If a new invalid subject is identified, start over
                 new_invalid_subjects = self.__invalid_subjects()
@@ -212,21 +208,32 @@ class Pipeline:
     ):
         should_stop = False
         while True:
-            stage, done = self.determine_next_stage(subject, report)
+            # Check if subject has been invalidated
+            invalid_subjects = self.__invalid_subjects()
+            if subject in invalid_subjects:
+                break
+
+            # Filter out invalid subjects
+            working_report = report[~report.index.isin(invalid_subjects)].copy()
+
+            stage, done = self.determine_next_stage(subject, working_report)
 
             if done:
                 break
 
             try:
-                report, successful = self.run_stage(
-                    stage, subject, report, report_path, pbar
+                working_report, successful = self.run_stage(
+                    stage, subject, working_report, pbar
                 )
             except Exception:
-                report = self.__report_unhandled_exception(
-                    stage, subject, report, report_path
+                working_report = self.__report_unhandled_exception(
+                    stage, subject, working_report
                 )
                 print(traceback.format_exc())
                 successful = False
+
+            report.update(working_report)
+            write_report(report, report_path)
 
             if not successful:
                 # Send back a signal that a dset stage failed
@@ -237,7 +244,7 @@ class Pipeline:
 
         return report, should_stop
 
-    def run_stage(self, stage, subject, report, report_path, pbar):
+    def run_stage(self, stage, subject, report, pbar):
         successful = False
         if isinstance(stage, RowStage):
             pbar.set_description(f"{subject} | {stage.name}")
