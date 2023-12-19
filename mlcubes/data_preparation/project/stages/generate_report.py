@@ -17,14 +17,14 @@ CSV_HEADERS = ["SubjectID", "Timepoint", "T1", "T1GD", "T2", "FLAIR"]
 def get_index(subject, timepoint):
     return f"{subject}|{timepoint}"
 
-def has_alternative_folder_structure(subject_tp_path):
+def has_alternative_folder_structure(subject_tp_path, og_path):
     contents = os.listdir(subject_tp_path)
     prefixes_presence = {prefix: False for prefix in DICOM_MODALITIES_PREFIX.values()}
     for content in contents:
         content_path = os.path.join(subject_tp_path, content)
         # Search recursively across folders
         if os.path.isdir(content_path):
-            return has_alternative_folder_structure(content_path)
+            return has_alternative_folder_structure(content_path, og_path)
 
         # Check if the file is a dicom file with an expected prefix
         if not content.endswith(".dcm"):
@@ -39,7 +39,7 @@ def has_alternative_folder_structure(subject_tp_path):
             return True, subject_tp_path
 
     # Structure not identified at this tree
-    return False, subject_tp_path
+    return False, og_path
 
 def to_expected_folder_structure(subject_tp_path, contents_path):
     # Create the modality folders
@@ -67,14 +67,14 @@ def to_expected_folder_structure(subject_tp_path, contents_path):
         folder_path = os.path.join(subject_tp_path, folder)
         shutil.rmtree(folder_path)
 
-def has_semiprepared_folder_structure(subject_tp_path, recursive=True):
+def has_semiprepared_folder_structure(subject_tp_path, og_path, recursive=True):
     contents = os.listdir(subject_tp_path)
     suffixes_presence = {suffix: False for suffix in NIFTI_MODALITIES}
     for content in contents:
         content_path = os.path.join(subject_tp_path, content)
         if os.path.isdir(content_path):
             if recursive:
-                return has_semiprepared_folder_structure(content_path)
+                return has_semiprepared_folder_structure(content_path, og_path)
             else:
                 continue
         
@@ -89,7 +89,7 @@ def has_semiprepared_folder_structure(subject_tp_path, recursive=True):
     if all(suffixes_presence.values()):
         return True, subject_tp_path
 
-    return False, subject_tp_path
+    return False, og_path
 
 def get_timepoints(subject, subject_tp_path):
     contents = os.listdir(subject_tp_path)
@@ -316,7 +316,7 @@ class GenerateReport(DatasetStage):
             if not os.path.isdir(in_subject_path):
                 continue
 
-            has_semiprepared, _ = has_semiprepared_folder_structure(in_subject_path, recursive=False)
+            has_semiprepared, _ = has_semiprepared_folder_structure(in_subject_path, in_subject_path, recursive=False)
             if has_semiprepared:
                 timepoints = get_timepoints(subject, in_subject_path)
                 for timepoint in timepoints:
@@ -345,7 +345,7 @@ class GenerateReport(DatasetStage):
                 # Keep track of the cases that were found on the input folder
                 observed_cases.add(index)
 
-                has_semiprepared, in_tp_path = has_semiprepared_folder_structure(in_tp_path, recursive=True)
+                has_semiprepared, in_tp_path = has_semiprepared_folder_structure(in_tp_path, in_tp_path, recursive=True)
                 if has_semiprepared:
                     tumor_seg = get_tumor_segmentation(subject, timepoint, in_tp_path)
                     if tumor_seg is not None:
@@ -377,7 +377,7 @@ class GenerateReport(DatasetStage):
                     "input_hash": input_hash,
                 }
 
-                has_alternative, contents_path = has_alternative_folder_structure(out_tp_path)
+                has_alternative, contents_path = has_alternative_folder_structure(out_tp_path, out_tp_path)
                 if has_alternative:
                     # Move files around so it has the expected structure
                     to_expected_folder_structure(out_tp_path, contents_path)
