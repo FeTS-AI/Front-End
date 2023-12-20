@@ -91,10 +91,12 @@ RUN pip install git+https://github.com/MIC-DKFZ/nnUNet.git@nnunetv1
 
 RUN mkdir /nnUNet_raw_data_base && mkdir /nnUNet_preprocessed
 
-ENV nnUNet_raw_data_base="/nnUNet_raw_data_base"
-ENV nnUNet_preprocessed="/nnUNet_preprocessed"
+ENV nnUNet_raw_data_base="/project/nnUNet_raw_data_base"
+ENV nnUNet_preprocessed="/project/nnUNet_preprocessed"
 ENV RESULTS_FOLDER="/project/models/nnUNet_trained_models"
 
-COPY ./mlcubes/data_preparation/project /project
+COPY --chmod=777 ./mlcubes/data_preparation/project /project
+
+RUN chmod -R 777 /project
 
 ENTRYPOINT ["python", "/project/mlcube.py"]
