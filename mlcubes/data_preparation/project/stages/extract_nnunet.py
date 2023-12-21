@@ -160,16 +160,10 @@ class ExtractNnUNet(Extract):
             out_pred_filepath = os.path.join(
                 out_pred_path, f"{id}_{tp}_tumorMask_model_{i}.nii.gz"
             )
-            try:
-                self.__run_model(model, tmp_data_path, tmp_out_path)
-                output = self.__finalize_pred(tmp_out_path, out_pred_filepath)
-                outputs.append(output)
-                images_for_fusion.append(sitk.ReadImage(output, sitk.sitkUInt8))
-            except Exception as e:
-                self.exception = e
-                self.failed = True
-                self.traceback = traceback.format_exc()
-                return
+            self.__run_model(model, tmp_data_path, tmp_out_path)
+            output = self.__finalize_pred(tmp_out_path, out_pred_filepath)
+            outputs.append(output)
+            images_for_fusion.append(sitk.ReadImage(output, sitk.sitkUInt8))
 
             # cleanup
             shutil.rmtree(tmp_data_path, ignore_errors=True)

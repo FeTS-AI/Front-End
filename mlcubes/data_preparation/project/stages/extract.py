@@ -108,12 +108,7 @@ class Extract(RowStage):
         else:
             # Most probably this case was semi-prepared. Mock a row
             row = pd.Series({"SubjectID": id, "Timepoint": tp, "T1": "", "T1GD": "", "T2": "", "FLAIR": ""})
-        try:
-            self.func(row, self.pbar)
-        except Exception as e:
-            self.failed = True
-            self.exception = e
-            self.traceback = traceback.format_exc()
+        self.func(row, self.pbar)
 
     def __hide_paths(self, hide_paths):
         for path in hide_paths:
