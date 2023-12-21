@@ -76,13 +76,11 @@ class ExtractNnUNet(Extract):
         return self.__status_code
 
     def __get_models(self):
-        rel_models_path = "../models/nnUNet_trained_models/nnUNet/3d_fullres"
-        models_path = realpath(join(dirname(__file__), rel_models_path))
+        models_path = os.path.join(os.environ["RESULTS_FOLDER"], "nnUNet", "3d_fullres")
         return os.listdir(models_path)
 
     def __get_mod_order(self, model):
-        rel_orders_path = "../models/nnUNet_modality_order"
-        order_path = realpath(join(dirname(__file__), rel_orders_path, model, "order"))
+        order_path = os.path.join(os.environ["RESULTS_FOLDER"], os.pardir, "nnUNet_modality_order", model, "order")
         with open(order_path, "r") as f:
             order_str = f.readline()
         # remove 'order = ' from the splitted list

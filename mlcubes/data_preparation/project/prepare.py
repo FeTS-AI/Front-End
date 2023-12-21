@@ -15,9 +15,6 @@ from stages.split import SplitStage
 from stages.pipeline import Pipeline
 from stages.constants import INTERIM_FOLDER, FINAL_FOLDER, TUMOR_MASK_FOLDER
 
-MODELS_PATH = "/project/models"
-
-
 def find_csv_filenames(path_to_dir, suffix=".csv"):
     filenames = os.listdir(path_to_dir)
     return [filename for filename in filenames if filename.endswith(suffix)]
@@ -148,10 +145,7 @@ def init_report(args) -> pd.DataFrame:
 def main():
     args = setup_argparser()
 
-    # Move models to the expected location
-    if not os.path.exists(MODELS_PATH):
-        shutil.copytree(args.models, MODELS_PATH)
-
+    os.environ["RESULTS_FOLDER"] = os.path.join(args.models, "nnUNet_trained_models")
     report = init_report(args)
     pipeline = init_pipeline(args)
     pipeline.run(report, args.report)

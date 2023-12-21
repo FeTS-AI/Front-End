@@ -89,14 +89,9 @@ RUN pip install torch torchvision
 
 RUN pip install git+https://github.com/MIC-DKFZ/nnUNet.git@nnunetv1
 
-RUN mkdir /nnUNet_raw_data_base && mkdir /nnUNet_preprocessed
+ENV nnUNet_raw_data_base="/tmp/nnUNet_raw_data_base"
+ENV nnUNet_preprocessed="/tmp/nnUNet_preprocessed"
 
-ENV nnUNet_raw_data_base="/project/nnUNet_raw_data_base"
-ENV nnUNet_preprocessed="/project/nnUNet_preprocessed"
-ENV RESULTS_FOLDER="/project/models/nnUNet_trained_models"
-
-COPY --chmod=777 ./mlcubes/data_preparation/project /project
-
-RUN chmod -R 777 /project
+COPY ./mlcubes/data_preparation/project /project
 
 ENTRYPOINT ["python", "/project/mlcube.py"]
