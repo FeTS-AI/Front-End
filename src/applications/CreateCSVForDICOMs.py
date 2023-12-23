@@ -5,14 +5,7 @@ from tqdm import tqdm
 import pandas as pd
 import SimpleITK as sitk
 
-
-# check against all these modality ID strings with extensions
-modality_id_dict = {
-    "T1": ["t1", "t1pre", "t1precontrast", "t1n"],
-    "T1GD": ["t1ce", "t1gd", "t1post", "t1postcontrast", "t1gallodinium", "t1c"],
-    "T2": ["t2", "t2w"],
-    "FLAIR": ["flair", "fl", "t2flair", "t2f"],
-}
+from .constants import MODALITY_ID_DICT
 
 
 def verify_dicom_folder(dicom_folder):
@@ -115,12 +108,12 @@ class CSVCreator:
         for modality in modality_folders:
             modality_path = posixpath.join(timepoint_dir, modality)
             modality_lower = modality.lower()
-            for modality_to_check in modality_id_dict:
+            for modality_to_check in MODALITY_ID_DICT:
                 if detected_modalities[modality_to_check] is not None:
                     continue
 
-                for modality_id in modality_id_dict[modality_to_check]:
-                    if modality_id not in modality_lower:
+                for modality_id in MODALITY_ID_DICT[modality_to_check]:
+                    if modality_id != modality_lower:
                         continue
 
                     valid_dicom, first_dicom_file = verify_dicom_folder(modality_path)

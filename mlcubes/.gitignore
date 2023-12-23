@@ -1,0 +1,10 @@
+*.csv
+*.txt
+*.nii.gz
+*.mat
+*.dcm
+*.png
+*/mlcube/workspace/*
+!requirements.txt
+!*/mlcube/workspace/parameters.yaml
+models
