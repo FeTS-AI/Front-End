@@ -826,7 +826,7 @@ class Preparator:
 
     def read(self):
         self.parsed_headers = _parse_csv_header(self.input_csv)
-        self.subjects_df = pd.read_csv(self.input_csv)
+        self.subjects_df = pd.read_csv(self.input_csv, dtype=str)
         if os.path.exists(self.subjects_file):
             self.subjects = pd.read_csv(self.subjects_file)
         if os.path.exists(self.neg_subjects_file):
