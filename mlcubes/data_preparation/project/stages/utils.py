@@ -22,8 +22,8 @@ def get_directory_structure(rootdir):
 
 
 def has_prepared_folder_structure(data_path, labels_path) -> bool:
-    data_struct = get_directory_structure(data_path)["mlcube_io0"]
-    labels_struct = get_directory_structure(labels_path)["mlcube_io1"]
+    data_struct = list(get_directory_structure(data_path).values())[0]
+    labels_struct = list(get_directory_structure(labels_path).values())[0]
     
     expected_data_files = ["brain_t1c.nii.gz", "brain_t1n.nii.gz", "brain_t2f.nii.gz", "brain_t2w.nii.gz"]
     expected_labels_files = ["final_seg.nii.gz"]
