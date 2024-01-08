@@ -81,7 +81,6 @@ def init_pipeline(args):
     invalid_subjects_file = os.path.join(args.metadata_path, INVALID_FILE)
 
     loop = None
-    # TODO: define stage ids as constants on a separate location/file
     report_gen = GenerateReport(
         out_data_csv,
         args.data,

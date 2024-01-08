@@ -9,6 +9,7 @@ from .dset_stage import DatasetStage
 from .row_stage import RowStage
 from .stage import Stage
 from .utils import cleanup_storage
+from .mlcube_constants import DONE_STAGE_STATUS
 
 
 def normalize_report_paths(report: DataFrame) -> DataFrame:
@@ -72,9 +73,9 @@ class Pipeline:
         Returns:
             bool: wether the subject is done or not
         """
-        subject_status = report.loc[subject, "status_name"]
+        subject_status = report.loc[subject, "status"]
 
-        return subject_status == "DONE" # TODO: Outdated -> report no longer contains the status name
+        return subject_status == DONE_STAGE_STATUS
 
     def __is_done(self, report: DataFrame) -> bool:
         """Determines if the preparation is complete
@@ -85,7 +86,7 @@ class Pipeline:
         Returns:
             bool: Wether the preparation is complete
         """
-        return all(report["status_name"] == "DONE") # TODO: Outdated -> report no longer contains the status name
+        return all(report["status"] == DONE_STAGE_STATUS)
 
     def __get_report_stage_to_run(
         self, subject: Union[str, int], report: DataFrame
