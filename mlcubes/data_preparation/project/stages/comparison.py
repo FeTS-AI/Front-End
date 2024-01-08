@@ -10,6 +10,7 @@ import nibabel as nib
 from .row_stage import RowStage
 from .utils import get_id_tp, update_row_with_dict, md5_file
 from .constants import TUMOR_MASK_FOLDER, INTERIM_FOLDER
+from .mlcube_constants import COMPARISON_STAGE_STATUS
 
 
 class SegmentationComparisonStage(RowStage):
@@ -31,7 +32,7 @@ class SegmentationComparisonStage(RowStage):
 
     @property
     def status_code(self):
-        return 6
+        return COMPARISON_STAGE_STATUS
 
     def __get_input_path(self, index: Union[str, int]) -> str:
         id, tp = get_id_tp(index)
@@ -145,7 +146,7 @@ class SegmentationComparisonStage(RowStage):
         if not os.path.exists(gt_file):
             # Ground truth file not found, reviewed file most probably renamed
             report = self.__report_gt_not_found(
-                index, report, reviewed_file, reviewed_hash
+                index, report, reviewed_hash
             )
             return report, False
 

@@ -7,6 +7,7 @@ import shutil
 from typing import Tuple
 from .utils import has_prepared_folder_structure, md5_dir, md5_file
 from .constants import INTERIM_FOLDER, FINAL_FOLDER, TUMOR_MASK_FOLDER
+from .mlcube_constants import REPORT_STAGE_STATUS
 
 DICOM_MODALITIES_PREFIX = {"fl": "t2_Flair", "t1": "t1_axial-3", "t1c": "t1_axial_stealth", "t2": "T2_SAG"}
 NIFTI_MODALITIES = ["t1c", "t1n", "t2f", "t2w"]
@@ -211,7 +212,7 @@ class GenerateReport(DatasetStage):
 
     @property
     def status_code(self) -> int:
-        return 0
+        return REPORT_STAGE_STATUS
 
     def _proceed_to_comparison(self, subject, timepoint, in_subject_path, report):
         index = get_index(subject, timepoint)
@@ -383,7 +384,6 @@ class GenerateReport(DatasetStage):
                     to_expected_folder_structure(out_tp_path, contents_path)
 
                 if input_is_prepared:
-                    data["status_name"] = "DONE"
                     data["status_code"] = self.done_status_code
                     shutil.rmtree(out_labels_tp_path, ignore_errors=True)
                     shutil.copytree(in_labels_tp_path, out_labels_tp_path)

@@ -67,14 +67,14 @@ class Pipeline:
 
         Args:
             subject (Union[str, int]): subject index
-            report (DataFrame): DaraFrame containing the state of the processing
+            report (DataFrame): DataFrame containing the state of the processing
 
         Returns:
             bool: wether the subject is done or not
         """
         subject_status = report.loc[subject, "status_name"]
 
-        return subject_status == "DONE"
+        return subject_status == "DONE" # TODO: Outdated -> report no longer contains the status name
 
     def __is_done(self, report: DataFrame) -> bool:
         """Determines if the preparation is complete
@@ -85,7 +85,7 @@ class Pipeline:
         Returns:
             bool: Wether the preparation is complete
         """
-        return all(report["status_name"] == "DONE")
+        return all(report["status_name"] == "DONE") # TODO: Outdated -> report no longer contains the status name
 
     def __get_report_stage_to_run(
         self, subject: Union[str, int], report: DataFrame
@@ -115,6 +115,18 @@ class Pipeline:
     def determine_next_stage(
         self, subject: Union[str, int], report
     ) -> Tuple[List[Union[DatasetStage, RowStage]], bool]:
+        """Determines what stage to run
+        First priority goes to a stage if it is the only one that could run. (only one stage can run)
+        Second priority goes to what the report says should run next. (The report knows what stage can run)
+        Third priority goes to the first of all possible stages that could run. (Earliest of all possible stages)
+
+        Args:
+            subject (Union[str, int]): Subject name (SubjectID, Timepoint)
+            report (pd.DataFrame): report dataframe
+
+        Returns:
+            Tuple[List[Union[DatasetStage, RowStage]], bool]: Stage to run, and wether it is done or not
+        """
         could_run_stages = []
         for i, stage in enumerate(self.stages):
             could_run = False
@@ -127,6 +139,7 @@ class Pipeline:
                 runnable_stage = self.stages[i]
                 could_run_stages.append(runnable_stage)
 
+        # TODO: split into a function
         if len(could_run_stages) == 1:
             stage = could_run_stages[0]
             is_last_subject = subject == report.index[-1]
@@ -141,6 +154,7 @@ class Pipeline:
         # or multiple stages can be executed (len(could_run_stages > 1))
         report_stage = self.__get_report_stage_to_run(subject, report)
 
+        # TODO: split into a function
         if len(could_run_stages) == 0:
             # Either the case processing was on-going but it's state is broken
             # or the next stage is a dataset stage, which means we're done with this one
@@ -152,6 +166,7 @@ class Pipeline:
                 return None, True
             else:
                 return None, False
+        # TODO: split into a function
         else:
             # Multiple stages could run. Remove ambiguity by
             # syncing with the report
@@ -174,7 +189,7 @@ class Pipeline:
         should_stop = False
         while should_loop:
 
-            # Sine we could have row and dataset stages interwoven, we want
+            # Since we could have row and dataset stages interwoven, we want
             # to make sure we continue processing subjects until nothing new has happened.
             # This means we can resume a given subject and its row stages even after a dataset stage
             prev_status = report["status"].copy()
@@ -186,14 +201,14 @@ class Pipeline:
                     subject, report, report_path, subjects_loop
                 )
 
+                if should_stop:
+                    break
+
                 # If a new invalid subject is identified, start over
                 new_invalid_subjects = self.__invalid_subjects()
                 if invalid_subjects != new_invalid_subjects:
                     invalid_subjects = new_invalid_subjects
-                    should_loop = True
-                    break
-
-                if should_stop:
+                    # We're going to restart the subjects loop
                     break
 
             # Check for report differences. If there are, rerun the loop
@@ -226,6 +241,8 @@ class Pipeline:
                     stage, subject, working_report, pbar
                 )
             except Exception:
+                # TODO: The superclass could be in charge of catching the error, reporting it and cleaning up
+                # and raise the exception again to be caught here
                 working_report = self.__report_unhandled_exception(
                     stage, subject, working_report
                 )
@@ -239,7 +256,6 @@ class Pipeline:
                 # Send back a signal that a dset stage failed
                 if isinstance(stage, DatasetStage):
                     should_stop = True
-                print("breaking", flush=True)
                 break
 
         return report, should_stop

@@ -6,6 +6,7 @@ import math
 
 from .dset_stage import DatasetStage
 from .utils import get_id_tp, cleanup_storage
+from .mlcube_constants import DONE_STAGE_STATUS
 
 
 def row_to_path(row: pd.Series) -> str:
@@ -36,7 +37,7 @@ class SplitStage(DatasetStage):
 
     @property
     def status_code(self) -> int:
-        return 8
+        return DONE_STAGE_STATUS
 
     def could_run(self, report: pd.DataFrame) -> bool:
         split_exists = os.path.exists(self.split_csv_path)
