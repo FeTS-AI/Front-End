@@ -34,7 +34,7 @@ class AddToCSV(RowStage):
 
     @property
     def status_code(self) -> int:
-        return MANUAL_STAGE_STATUS
+        return CSV_STAGE_STATUS
 
     def could_run(self, index: Union[str, int], report: pd.DataFrame) -> bool:
         """Determines if getting a new CSV is necessary.
