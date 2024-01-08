@@ -98,9 +98,6 @@ class NIfTITransform(RowStage):
     def __update_report(
         self, index: Union[str, int], report: pd.DataFrame
     ) -> pd.DataFrame:
-        # TODO: What could be reported? We have the processed data,
-        # QC subjects with negative intensities and
-        # QC subjects with bratspipeline error
         id, tp = get_id_tp(index)
         failing = self.prep.failing_subjects
         failing_subject = failing[
