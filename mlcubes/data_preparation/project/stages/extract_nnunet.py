@@ -52,6 +52,7 @@ class ExtractNnUNet(Extract):
         prev_subpath: str,
         status_code: int,
         extra_labels_path=[],
+        nnunet_executable: str = "/nnunet_env/bin/nnUNet_predict"
     ):
         self.data_csv = data_csv
         self.out_path = out_path
@@ -66,6 +67,7 @@ class ExtractNnUNet(Extract):
         self.exception = None
         self.__status_code = status_code
         self.extra_labels_path = extra_labels_path
+        self.nnunet_executable = nnunet_executable
 
     @property
     def name(self) -> str:
@@ -118,7 +120,7 @@ class ExtractNnUNet(Extract):
     def __run_model(self, model, data_path, out_path):
         # models are named Task<ID>_..., where <ID> is always 3 numbers
         task_id = model[4:7]
-        cmd = f"nnUNet_predict -i {data_path} -o {out_path} -t {task_id}"
+        cmd = f"{self.nnunet_executable} -i {data_path} -o {out_path} -t {task_id}"
         print(cmd)
         print(os.listdir(data_path))
         start = time.time()
