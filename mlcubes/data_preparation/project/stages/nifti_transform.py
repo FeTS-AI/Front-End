@@ -7,6 +7,7 @@ import shutil
 from .row_stage import RowStage
 from .PrepareDataset import Preparator, INTERIM_FOLDER, FINAL_FOLDER
 from .utils import update_row_with_dict, get_id_tp, MockTqdm, unnormalize_path
+from .mlcube_constants import NIFTI_STAGE_STATUS
 
 
 class NIfTITransform(RowStage):
@@ -29,7 +30,7 @@ class NIfTITransform(RowStage):
 
     @property
     def status_code(self) -> int:
-        return 2
+        return NIFTI_STAGE_STATUS
 
     def could_run(self, index: Union[str, int], report: pd.DataFrame) -> bool:
         """Determine if case at given index needs to be converted to NIfTI
@@ -97,9 +98,6 @@ class NIfTITransform(RowStage):
     def __update_report(
         self, index: Union[str, int], report: pd.DataFrame
     ) -> pd.DataFrame:
-        # TODO: What could be reported? We have the processed data,
-        # QC subjects with negative intensities and
-        # QC subjects with bratspipeline error
         id, tp = get_id_tp(index)
         failing = self.prep.failing_subjects
         failing_subject = failing[

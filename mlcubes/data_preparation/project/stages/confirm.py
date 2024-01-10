@@ -11,6 +11,7 @@ from pandas import DataFrame
 from .dset_stage import DatasetStage
 from .utils import get_id_tp, cleanup_storage
 from .constants import TUMOR_MASK_FOLDER, INTERIM_FOLDER, FINAL_FOLDER
+from .mlcube_constants import CONFIRM_STAGE_STATUS
 
 
 class ConfirmStage(DatasetStage):
@@ -38,7 +39,7 @@ class ConfirmStage(DatasetStage):
 
     @property
     def status_code(self):
-        return 7
+        return CONFIRM_STAGE_STATUS
 
     def __get_input_data_path(self, index: Union[str, int]):
         id, tp = get_id_tp(index)

@@ -5,6 +5,7 @@ import shutil
 
 from .row_stage import RowStage
 from .constants import TUMOR_MASK_FOLDER, INTERIM_FOLDER, FINAL_FOLDER
+from .mlcube_constants import MANUAL_STAGE_STATUS
 from .utils import (
     get_id_tp,
     update_row_with_dict,
@@ -31,7 +32,7 @@ class ManualStage(RowStage):
 
     @property
     def status_code(self) -> int:
-        return 5
+        return MANUAL_STAGE_STATUS
 
     def __get_input_paths(self, index: Union[str, int]):
         id, tp = get_id_tp(index)

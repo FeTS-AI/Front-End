@@ -7,6 +7,7 @@ import pandas as pd
 from typing import Union, Tuple
 import os
 import shutil
+from .mlcube_constants import CSV_STAGE_STATUS
 
 
 class AddToCSV(RowStage):
@@ -33,7 +34,7 @@ class AddToCSV(RowStage):
 
     @property
     def status_code(self) -> int:
-        return 1
+        return CSV_STAGE_STATUS
 
     def could_run(self, index: Union[str, int], report: pd.DataFrame) -> bool:
         """Determines if getting a new CSV is necessary.
@@ -95,21 +96,15 @@ class AddToCSV(RowStage):
             shutil.rmtree(tp_out_path, ignore_errors=True)
             # Differentiate errors by floating point value
             status_code = -self.status_code - 0.1  # -1.1
-            comment = "There are missing modalities. Please check the data"
             report_data["status"] = status_code
-            report_data["status_name"] = "MISSING_MODALITIES"
             report_data["data_path"] = tp_path
-            report_data["comment"] = comment
             success = False
         elif f"{id}_{tp}" in self.csv_processor.subject_timepoint_extra_modalities:
             shutil.rmtree(tp_out_path, ignore_errors=True)
             # Differentiate errors by floating point value
             status_code = -self.status_code - 0.2  # -1.2
-            comment = "There are extra modalities. Please check the data"
             report_data["status"] = status_code
-            report_data["status_name"] = "EXTRA MODALITIES"
             report_data["data_path"] = tp_path
-            report_data["comment"] = comment
             success = False
         else:
             shutil.rmtree(tp_path)

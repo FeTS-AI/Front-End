@@ -2,7 +2,6 @@ import os
 import argparse
 import pandas as pd
 import yaml
-import shutil
 from stages.generate_report import GenerateReport
 from stages.get_csv import AddToCSV
 from stages.nifti_transform import NIfTITransform
@@ -13,6 +12,7 @@ from stages.comparison import SegmentationComparisonStage
 from stages.confirm import ConfirmStage
 from stages.split import SplitStage
 from stages.pipeline import Pipeline
+from stages.mlcube_constants import *
 from stages.constants import INTERIM_FOLDER, FINAL_FOLDER, TUMOR_MASK_FOLDER
 
 def find_csv_filenames(path_to_dir, suffix=".csv"):
@@ -61,13 +61,13 @@ def setup_argparser():
 
 def init_pipeline(args):
     # RUN COLUMN-WISE PROCESSING
-    out_raw = os.path.join(args.data_out, "raw")
-    valid_data_out = os.path.join(args.data_out, "validated")
-    nifti_data_out = os.path.join(args.data_out, "prepared")
-    brain_data_out = os.path.join(args.data_out, "brain_extracted")
-    tumor_data_out = os.path.join(args.data_out, "tumor_extracted")
+    out_raw = os.path.join(args.data_out, RAW_PATH)
+    valid_data_out = os.path.join(args.data_out, VALID_PATH)
+    nifti_data_out = os.path.join(args.data_out, PREP_PATH)
+    brain_data_out = os.path.join(args.data_out, BRAIN_PATH)
+    tumor_data_out = os.path.join(args.data_out, TUMOR_PATH)
     match_data_out = args.labels_out
-    backup_out = os.path.join(args.labels_out, ".tumor_segmentation_backup")
+    backup_out = os.path.join(args.labels_out, TUMOR_BACKUP_PATH)
     staging_folders = [
         out_raw,
         valid_data_out,
@@ -76,12 +76,24 @@ def init_pipeline(args):
         tumor_data_out,
         backup_out,
     ]
-    out_data_csv = os.path.join(args.data_out, "data.csv")
-    trash_folder = os.path.join(args.data_out, ".trash")
-    invalid_subjects_file = os.path.join(args.metadata_path, ".invalid.txt")
+    out_data_csv = os.path.join(args.data_out, OUT_CSV)
+    trash_folder = os.path.join(args.data_out, TRASH_PATH)
+    invalid_subjects_file = os.path.join(args.metadata_path, INVALID_FILE)
 
     loop = None
-    report_gen = GenerateReport(out_data_csv, args.data, out_raw, args.labels, args.labels_out, args.data_out, 8, brain_data_out, 3, tumor_data_out, 5)
+    report_gen = GenerateReport(
+        out_data_csv,
+        args.data,
+        out_raw,
+        args.labels,
+        args.labels_out,
+        args.data_out,
+        DONE_STAGE_STATUS,
+        brain_data_out,
+        BRAIN_STAGE_STATUS,
+        tumor_data_out,
+        MANUAL_STAGE_STATUS\
+    )
     csv_proc = AddToCSV(out_raw, out_data_csv, valid_data_out, out_raw)
     nifti_proc = NIfTITransform(out_data_csv, nifti_data_out, valid_data_out, args.metadata_path, args.data_out)
     brain_extract_proc = Extract(
@@ -92,7 +104,7 @@ def init_pipeline(args):
         INTERIM_FOLDER,
         # loop,
         "extract_brain",
-        3,
+        BRAIN_STAGE_STATUS,
     )
     tumor_extract_proc = ExtractNnUNet(
         out_data_csv,
@@ -100,7 +112,7 @@ def init_pipeline(args):
         INTERIM_FOLDER,
         brain_data_out,
         INTERIM_FOLDER,
-        4,
+        TUMOR_STAGE_STATUS,
     )
     manual_proc = ManualStage(out_data_csv, tumor_data_out, tumor_data_out, backup_out)
     match_proc = SegmentationComparisonStage(

@@ -85,9 +85,12 @@ RUN cp -R /Front-End/bin/install/appdir/usr/bin/data_prep_models /project/stages
 # Hotfix: install more recent version of GaNDLF for metrics generation
 RUN pip install git+https://github.com/mlcommons/GaNDLF@616b37bafad8f89d5c816a88f44fa30470601311
 
-RUN pip install torch torchvision
+# setup a separate env for nnunet
+RUN python -m venv /nnunet_env && /nnunet_env/bin/pip install --upgrade pip
 
-RUN pip install git+https://github.com/MIC-DKFZ/nnUNet.git@nnunetv1
+RUN /nnunet_env/bin/pip install torch==1.12.1+cu102 torchvision==0.13.1+cu102 torchaudio==0.12.1 --extra-index-url https://download.pytorch.org/whl/cu102
+
+RUN /nnunet_env/bin/pip install git+https://github.com/MIC-DKFZ/nnUNet.git@nnunetv1
 
 ENV nnUNet_raw_data_base="/tmp/nnUNet_raw_data_base"
 ENV nnUNet_preprocessed="/tmp/nnUNet_preprocessed"
