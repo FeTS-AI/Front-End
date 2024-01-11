@@ -28,13 +28,26 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    dicom_info_file = "dicom_tag_information_to_write_anon.yaml"
-    dicom_info_filepath = os.path.join(args.metadata_path, dicom_info_file)
+    splits_path = os.path.join(args.data, "splits.csv")
+    invalid_path = os.path.join(args.metadata_path, ".invalid.txt")
 
-    stats = {}
-    if os.path.exists(dicom_info_filepath):
-        with open(dicom_info_filepath, "r") as f:
-            stats = yaml.safe_load(f)
+    invalid_subjects = []
+    if os.path.exists(invalid_path):
+        with open(invalid_path, "r") as f:
+            invalid_subjects = f.readlines()
+
+    splits_df = pd.read_csv(splits_path)
+
+    num_train_subjects = len(splits_df[splits_df["Split"] == "Train"])
+    num_val_subjects = len(splits_df[splits_df["Split"] == "Val"])
+
+    num_invalid_subjects = len(invalid_subjects)
+
+    stats = {
+        "num_train_subjects": num_train_subjects,
+        "num_val_subjects": num_val_subjects,
+        "num_invalid_subjects": num_invalid_subjects
+    }
 
     with open(args.out_file, "w") as f:
         yaml.dump(stats, f)
