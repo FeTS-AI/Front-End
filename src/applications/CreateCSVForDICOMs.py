@@ -8,23 +8,39 @@ import SimpleITK as sitk
 from .constants import MODALITY_ID_DICT
 
 
-def verify_dicom_folder(dicom_folder):
-    series_IDs = sitk.ImageSeriesReader.GetGDCMSeriesIDs(dicom_folder)
-    if not series_IDs:
-        return False, None
+def verify_dicom_folder(dicom_folder: str) -> (bool, str):
+    """
+    This function verifies that the folder is a valid DICOM folder. In the case of NIfTI file input, it will just verify if a 3D NIfTI is being passed in.
 
-    if len(series_IDs) > 1:
-        return False, None
+    Args:
+        dicom_folder (str): The path to the DICOM folder or NIfTI file.
 
-    series_file_names = sitk.ImageSeriesReader.GetGDCMSeriesFileNames(
-        dicom_folder, series_IDs[0]
-    )
-    series_reader = sitk.ImageSeriesReader()
-    series_reader.SetFileNames(series_file_names)
-    series_reader.MetaDataDictionaryArrayUpdateOn()
-    series_reader.LoadPrivateTagsOn()
-    image_dicom = series_reader.Execute()
-    if image_dicom.GetDimension() != 3:
+    Returns:
+        bool: True if the folder is a valid DICOM folder or a 3D NIfTI file, False otherwise.
+        str: The path to the first DICOM file in the folder if the folder is a valid DICOM folder, the NIfTI file itself otherwise.
+    """
+
+    if os.path.isdir(dicom_folder):
+        series_IDs = sitk.ImageSeriesReader.GetGDCMSeriesIDs(dicom_folder)
+        if not series_IDs:
+            return False, None
+
+        if len(series_IDs) > 1:
+            return False, None
+
+        series_file_names = sitk.ImageSeriesReader.GetGDCMSeriesFileNames(
+            dicom_folder, series_IDs[0]
+        )
+        series_reader = sitk.ImageSeriesReader()
+        series_reader.SetFileNames(series_file_names)
+        series_reader.MetaDataDictionaryArrayUpdateOn()
+        series_reader.LoadPrivateTagsOn()
+        image = series_reader.Execute()
+    else:
+        image = sitk.ReadImage(dicom_folder)
+        series_file_names = [dicom_folder]
+
+    if image.GetDimension() != 3:
         return False, None
 
     return True, series_file_names[0]
