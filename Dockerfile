@@ -94,7 +94,7 @@ RUN /nnunet_env/bin/pip install git+https://github.com/MIC-DKFZ/nnUNet.git@nnune
 
 ENV nnUNet_raw_data_base="/tmp/nnUNet_raw_data_base"
 ENV nnUNet_preprocessed="/tmp/nnUNet_preprocessed"
-ENV CUDA_VISIBLE_DEVICES="0"
+ENV CUDA_VISIBLE_DEVICES="0" # see https://docs.docker.com/config/containers/resource_constraints/#gpu for detailed explanation
 
 COPY ./mlcubes/data_preparation/project /project
 
