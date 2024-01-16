@@ -1,4 +1,4 @@
-import os, argparse, sys, platform, posixpath
+import os, argparse, sys, platform, posixpath, re
 from pathlib import Path
 from datetime import date
 from tqdm import tqdm
@@ -124,12 +124,13 @@ class CSVCreator:
         for modality in modality_folders:
             modality_path = posixpath.join(timepoint_dir, modality)
             modality_lower = modality.lower()
+            modality_norm = re.sub('\.nii\.gz', '', modality_lower)
             for modality_to_check in MODALITY_ID_DICT:
                 if detected_modalities[modality_to_check] is not None:
                     continue
 
                 for modality_id in MODALITY_ID_DICT[modality_to_check]:
-                    if modality_id != modality_lower:
+                    if modality_id != modality_norm:
                         continue
 
                     valid_dicom, first_dicom_file = verify_dicom_folder(modality_path)
