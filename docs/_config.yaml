@@ -13,3 +13,5 @@ navigation:
     url: extras
   - title: ITCR Connectivity
     url: itcr_connectivity
+  - title: RANO Federation
+    url: rano_federation
