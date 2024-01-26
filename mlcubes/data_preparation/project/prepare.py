@@ -156,8 +156,6 @@ def init_report(args) -> pd.DataFrame:
 
 def main():
     args = setup_argparser()
-
-    os.environ["RESULTS_FOLDER"] = os.path.join(args.models, "nnUNet_trained_models")
     report = init_report(args)
     pipeline = init_pipeline(args)
     pipeline.run(report, args.report)
