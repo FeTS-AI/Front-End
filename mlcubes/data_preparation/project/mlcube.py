@@ -1,7 +1,8 @@
 """MLCube handler file"""
+import os
 import typer
 import subprocess
-
+import shutil
 
 app = typer.Typer()
 
@@ -29,9 +30,19 @@ def prepare(
     report_file: str = typer.Option(..., "--report_file"),
     metadata_path: str = typer.Option(..., "--metadata_path"),
 ):
+    # runtime env vars should be set as early as possible
+    tmpfolder = os.path.join(output_path, ".tmp")
+    os.environ["TMPDIR"] = tmpfolder
+    os.makedirs(tmpfolder, exist_ok=True)
+    os.environ["RESULTS_FOLDER"] = os.path.join(models_path, "nnUNet_trained_models")
+    os.environ["nnUNet_raw_data_base"] = os.path.join(tmpfolder, "nnUNet_raw_data_base")
+    os.environ["nnUNet_preprocessed"] = os.path.join(tmpfolder, "nnUNet_preprocessed")
+
     cmd = f"python3 /project/prepare.py --data_path={data_path} --labels_path={labels_path} --models_path={models_path} --data_out={output_path} --labels_out={output_labels_path} --report={report_file} --parameters={parameters_file} --metadata_path={metadata_path}"
     exec_python(cmd)
 
+    # cleanup tmp folder
+    shutil.rmtree(tmpfolder, ignore_errors=True)
 
 @app.command("sanity_check")
 def sanity_check(
