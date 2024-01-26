@@ -29,7 +29,7 @@ def prepare(
     report_file: str = typer.Option(..., "--report_file"),
     metadata_path: str = typer.Option(..., "--metadata_path"),
 ):
-    cmd = f"python3 project/prepare.py --data_path={data_path} --labels_path={labels_path} --models_path={models_path} --data_out={output_path} --labels_out={output_labels_path} --report={report_file} --parameters={parameters_file} --metadata_path={metadata_path}"
+    cmd = f"python3 /project/prepare.py --data_path={data_path} --labels_path={labels_path} --models_path={models_path} --data_out={output_path} --labels_out={output_labels_path} --report={report_file} --parameters={parameters_file} --metadata_path={metadata_path}"
     exec_python(cmd)
 
 
@@ -41,7 +41,7 @@ def sanity_check(
     metadata_path: str = typer.Option(..., "--metadata_path"),
 ):
     # Modify the sanity_check command as needed
-    cmd = f"python3 project/sanity_check.py --data_path={data_path} --labels_path={labels_path} --metadata={metadata_path}"
+    cmd = f"python3 /project/sanity_check.py --data_path={data_path} --labels_path={labels_path} --metadata={metadata_path}"
     exec_python(cmd)
 
 
@@ -54,7 +54,7 @@ def sanity_check(
     out_path: str = typer.Option(..., "--output_path"),
 ):
     # Modify the statistics command as needed
-    cmd = f"python3 project/statistics.py --data_path={data_path} --labels_path={labels_path} --out_file={out_path} --metadata={metadata_path}"
+    cmd = f"python3 /project/statistics.py --data_path={data_path} --labels_path={labels_path} --out_file={out_path} --metadata={metadata_path}"
     exec_python(cmd)
 
 
