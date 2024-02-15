@@ -29,9 +29,9 @@ jobs:
     steps:
     - name: Check out the repository
       uses: actions/checkout@v3
-      # with:
+      with:
       #   lfs: false
-      #   submodules: 'recursive'
+        submodules: 'true'
         
     # - name: Check if the repository has changed
     #   run: ls -l
@@ -150,4 +150,3 @@ jobs:
     #  # This step uses the identity token to provision an ephemeral certificate
     #  # against the sigstore community Fulcio instance.
     #  run: cosign sign ghcr.io/fets-ai/front-end@${{ steps.upload.outputs.digest }}
-
