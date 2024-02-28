@@ -155,7 +155,11 @@ int main(int argc, char** argv)
         return EXIT_FAILURE;
       }
 
-      auto tempOutput = cbica::createTemporaryDirectory();
+      auto tempOutput = cbica::getEnvironmentVariableValue("OUTPUT_DIR_FROM_MEDPERF");
+      if (tempOutput == "")
+      {
+        tempOutput = cbica::createTemporaryDirectory();
+      }
       //construct command
       std::string fullCommandToRun = cbica::normPath(m_exe) + " -o " + cbica::normPath(tempOutput) + " -z y \"" + cbica::normPath(dicomFolderPath) + "\"";
 
