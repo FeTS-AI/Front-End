@@ -1,0 +1,11 @@
+typer
+pandas
+PyYAML
+# Include all your requirements here
+SimpleITK
+tqdm
+scikit-image
+FigureGenerator==0.0.4
+gandlf==0.0.16
+labelfusion==1.0.14
+nibabel==5.1.0

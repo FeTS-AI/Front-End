@@ -11,9 +11,9 @@ SET( ${PROJECT_NAME}_Variant "Full" ) # the particular variant of CaPTk (Full/Ne
 # So small changes here to formatting or naming convention *may potentially break the linux packager*!
 # STRING(TIMESTAMP TODAY "%Y%m%d")
 
-SET( PROJECT_VERSION_MAJOR 1 )
+SET( PROJECT_VERSION_MAJOR 2 )
 SET( PROJECT_VERSION_MINOR 0 )
-SET( PROJECT_VERSION_PATCH 3 )
+SET( PROJECT_VERSION_PATCH 0 )
 SET( PROJECT_VERSION_TWEAK )
 
 # check for the string "nonRelease" in the PROJECT_VERSION_PATCH variable
@@ -157,12 +157,12 @@ IF(${PROJECT_NAME}_Variant MATCHES "Full" )
 ELSE()
   SET( PROJECT_NAME_EXTENDED "Federated Tumor Segmentation (${PROJECT_NAME}_${${PROJECT_NAME}_Variant})" )
 ENDIF()
-SET( PROJECT_VENDOR "CBICA - UPenn" )
+SET( PROJECT_VENDOR "The FeTS-AI Group" )
 SET( LICENSE_FILE "${PROJECT_SOURCE_DIR}/LICENSE" )
 SET( README_FILE  "${PROJECT_SOURCE_DIR}/README.txt" )
-SET( PROJECT_DOMAIN "https://www.med.upenn.edu/cbica/captk/" )
-SET( PROJECT_CONTACT "software@cbica.upenn.edu" )
-SET( COPYRIGHT "Copyright (c) 2019 CBICA. All rights reserved.")
+SET( PROJECT_DOMAIN "https://www.fets.ai" )
+SET( PROJECT_CONTACT "admin@fets" )
+SET( COPYRIGHT "Copyright (c) 2023 FeTS-AI. All rights reserved.")
 SET( IDENTIFIER "")
 ADD_DEFINITIONS(-DPROJECT_NAME="${PROJECT_NAME}" )
 ADD_DEFINITIONS(-DPROJECT_VERSION="${PROJECT_VERSION}" )
@@ -544,95 +544,95 @@ IF( NOT BUILD_DOCUMENTATION_ONLY )
     ${LIBNAME_Applications} 
   )
 
-  # update submodule
-  IF( NOT EXISTS "${PROJECT_SOURCE_DIR}/OpenFederatedLearning/setup.py" )
-    EXECUTE_PROCESS(COMMAND git submodule update --init --recursive
-    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-    RESULT_VARIABLE git_result
-    OUTPUT_VARIABLE git_ver)    
-  ENDIF()
+  # # update submodule
+  # IF( NOT EXISTS "${PROJECT_SOURCE_DIR}/OpenFederatedLearning/setup.py" )
+  #   EXECUTE_PROCESS(COMMAND git submodule update --init --recursive
+  #   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+  #   RESULT_VARIABLE git_result
+  #   OUTPUT_VARIABLE git_ver)    
+  # ENDIF()
   
-  # update submodule
-  IF( NOT EXISTS "${PROJECT_SOURCE_DIR}/Models_Pretrained/README.md" )
-    EXECUTE_PROCESS(COMMAND git submodule update --init --recursive
-    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-    RESULT_VARIABLE git_result
-    OUTPUT_VARIABLE git_ver)    
-  ENDIF()
+  # # update submodule
+  # IF( NOT EXISTS "${PROJECT_SOURCE_DIR}/Models_Pretrained/README.md" )
+  #   EXECUTE_PROCESS(COMMAND git submodule update --init --recursive
+  #   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+  #   RESULT_VARIABLE git_result
+  #   OUTPUT_VARIABLE git_ver)    
+  # ENDIF()
 
-  # get lfs to pull
-  IF( EXISTS "${PROJECT_SOURCE_DIR}/BrainMaGe" )
-    EXECUTE_PROCESS(COMMAND git lfs pull
-    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/BrainMaGe
-    RESULT_VARIABLE git_result
-    OUTPUT_VARIABLE git_ver)  
-  ENDIF()  
+  # # get lfs to pull
+  # IF( EXISTS "${PROJECT_SOURCE_DIR}/BrainMaGe" )
+  #   EXECUTE_PROCESS(COMMAND git lfs pull
+  #   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/BrainMaGe
+  #   RESULT_VARIABLE git_result
+  #   OUTPUT_VARIABLE git_ver)  
+  # ENDIF()  
   
-  # copy plans from algorithms 
-  IF( EXISTS "${PROJECT_SOURCE_DIR}/OpenFederatedLearning/submodules/fets_ai/Algorithms/fets/bin/federations/plans/pt_3dresunet_brainmagebrats.yaml" )
-    FILE( GLOB FETS_AI_PLANS
-      "${PROJECT_SOURCE_DIR}/OpenFederatedLearning/submodules/fets_ai/Algorithms/fets/bin/federations/plans/*.yaml"
-    )
-    FOREACH(fetsai_plan ${FETS_AI_PLANS})
-      CONFIGURE_FILE("${fetsai_plan}" "${PROJECT_SOURCE_DIR}/OpenFederatedLearning/bin/federations/plans/" COPYONLY) 
-    ENDFOREACH()
-  ENDIF()
+  # # copy plans from algorithms 
+  # IF( EXISTS "${PROJECT_SOURCE_DIR}/OpenFederatedLearning/submodules/fets_ai/Algorithms/fets/bin/federations/plans/pt_3dresunet_brainmagebrats.yaml" )
+  #   FILE( GLOB FETS_AI_PLANS
+  #     "${PROJECT_SOURCE_DIR}/OpenFederatedLearning/submodules/fets_ai/Algorithms/fets/bin/federations/plans/*.yaml"
+  #   )
+  #   FOREACH(fetsai_plan ${FETS_AI_PLANS})
+  #     CONFIGURE_FILE("${fetsai_plan}" "${PROJECT_SOURCE_DIR}/OpenFederatedLearning/bin/federations/plans/" COPYONLY) 
+  #   ENDFOREACH()
+  # ENDIF()
   
-  # copy weights from models
-  SET( DOWNLOAD_LINK "ftp://www.nitrc.org/home/groups/captk/downloads/models/torch/pt_3dresunet_ss_brainmagebrats_best.pt" )
-  SET( FILE_TO_EXTRACT "${PROJECT_SOURCE_DIR}/OpenFederatedLearning/bin/federations/weights/pt_3dresunet_ss_brainmagebrats_best.pt")
-#   IF( NOT EXISTS "${FILE_TO_EXTRACT}" )
+  # # copy weights from models
+  # SET( DOWNLOAD_LINK "ftp://www.nitrc.org/home/groups/captk/downloads/models/torch/pt_3dresunet_ss_brainmagebrats_best.pt" )
+  # SET( FILE_TO_EXTRACT "${PROJECT_SOURCE_DIR}/OpenFederatedLearning/bin/federations/weights/pt_3dresunet_ss_brainmagebrats_best.pt")
+  # IF( NOT EXISTS "${FILE_TO_EXTRACT}" )
 
-#     # download exe from url
-#     MESSAGE( STATUS "Downloading weights for skull stripping" )
-#     FILE(DOWNLOAD "${DOWNLOAD_LINK}" "${FILE_TO_EXTRACT}" TIMEOUT 1000000 STATUS STATUS_CODE SHOW_PROGRESS)
-#     IF(NOT STATUS_CODE EQUAL 0)
-#       MESSAGE(FATAL_ERROR "Failed to download skull-stripping weights. Status=${STATUS_CODE}")
-#     ENDIF()
-#   ENDIF()
+  #   # download exe from url
+  #   MESSAGE( STATUS "Downloading weights for skull stripping" )
+  #   FILE(DOWNLOAD "${DOWNLOAD_LINK}" "${FILE_TO_EXTRACT}" TIMEOUT 1000000 STATUS STATUS_CODE SHOW_PROGRESS)
+  #   IF(NOT STATUS_CODE EQUAL 0)
+  #     MESSAGE(FATAL_ERROR "Failed to download skull-stripping weights. Status=${STATUS_CODE}")
+  #   ENDIF()
+  # ENDIF()
 
-  # copy network information
-  ## todo: change to a direct installation so that git doesn't get confused that submodule has changed
-  CONFIGURE_FILE("${PROJECT_SOURCE_DIR}/data/fets/network.yaml" "${PROJECT_SOURCE_DIR}/OpenFederatedLearning/bin/federations/plans/defaults/network.yaml")
-  CONFIGURE_FILE("${PROJECT_SOURCE_DIR}/data/fets/cert_chain.crt" "${PROJECT_SOURCE_DIR}/OpenFederatedLearning/bin/federations/pki/cert_chain.crt")
-  #CONFIGURE_FILE("${PROJECT_SOURCE_DIR}/data/fets/pt_3dresunet_brainmagebrats.yaml" "${PROJECT_SOURCE_DIR}/OpenFederatedLearning/bin/federations/plans/pt_3dresunet_brainmagebrats.yaml" COPYONLY) 
-  CONFIGURE_FILE("${PROJECT_SOURCE_DIR}/data/fets/deepscan_inference.yaml" "${PROJECT_SOURCE_DIR}/OpenFederatedLearning/bin/federations/plans/deepscan_inference.yaml" COPYONLY) 
-  CONFIGURE_FILE("${PROJECT_SOURCE_DIR}/data/fets/nnunet_inference.yaml" "${PROJECT_SOURCE_DIR}/OpenFederatedLearning/bin/federations/plans/nnunet_inference.yaml" COPYONLY) 
+  # # copy network information
+  # ## todo: change to a direct installation so that git doesn't get confused that submodule has changed
+  # CONFIGURE_FILE("${PROJECT_SOURCE_DIR}/data/fets/network.yaml" "${PROJECT_SOURCE_DIR}/OpenFederatedLearning/bin/federations/plans/defaults/network.yaml")
+  # CONFIGURE_FILE("${PROJECT_SOURCE_DIR}/data/fets/cert_chain.crt" "${PROJECT_SOURCE_DIR}/OpenFederatedLearning/bin/federations/pki/cert_chain.crt")
+  # #CONFIGURE_FILE("${PROJECT_SOURCE_DIR}/data/fets/pt_3dresunet_brainmagebrats.yaml" "${PROJECT_SOURCE_DIR}/OpenFederatedLearning/bin/federations/plans/pt_3dresunet_brainmagebrats.yaml" COPYONLY) 
+  # CONFIGURE_FILE("${PROJECT_SOURCE_DIR}/data/fets/deepscan_inference.yaml" "${PROJECT_SOURCE_DIR}/OpenFederatedLearning/bin/federations/plans/deepscan_inference.yaml" COPYONLY) 
+  # CONFIGURE_FILE("${PROJECT_SOURCE_DIR}/data/fets/nnunet_inference.yaml" "${PROJECT_SOURCE_DIR}/OpenFederatedLearning/bin/federations/plans/nnunet_inference.yaml" COPYONLY) 
   
-  # find stand-alone CMD applications
-  FILE( GLOB DeepScan_Weights
-    "${PROJECT_SOURCE_DIR}/data/fets/*.tar"
-  )
-  file(MAKE_DIRECTORY "${PROJECT_SOURCE_DIR}/OpenFederatedLearning/bin/federations/weights/deepscan/")
-  FOREACH(deepScan_weight ${DeepScan_Weights})
-    CONFIGURE_FILE("${deepScan_weight}" "${PROJECT_SOURCE_DIR}/OpenFederatedLearning/bin/federations/weights/deepscan/" COPYONLY) 
-  ENDFOREACH()
+  # # find stand-alone CMD applications
+  # FILE( GLOB DeepScan_Weights
+  #   "${PROJECT_SOURCE_DIR}/data/fets/*.tar"
+  # )
+  # file(MAKE_DIRECTORY "${PROJECT_SOURCE_DIR}/OpenFederatedLearning/bin/federations/weights/deepscan/")
+  # FOREACH(deepScan_weight ${DeepScan_Weights})
+  #   CONFIGURE_FILE("${deepScan_weight}" "${PROJECT_SOURCE_DIR}/OpenFederatedLearning/bin/federations/weights/deepscan/" COPYONLY) 
+  # ENDFOREACH()
 
-  INSTALL(
-    DIRECTORY "${PROJECT_SOURCE_DIR}/OpenFederatedLearning" 
-    DESTINATION bin
-    PATTERN ".git" EXCLUDE
-    PATTERN "venv" EXCLUDE
-  )
+  # INSTALL(
+  #   DIRECTORY "${PROJECT_SOURCE_DIR}/OpenFederatedLearning" 
+  #   DESTINATION bin
+  #   PATTERN ".git" EXCLUDE
+  #   PATTERN "venv" EXCLUDE
+  # )
 
-  INSTALL(
-    DIRECTORY "${PROJECT_SOURCE_DIR}/LabelFusion" 
-    DESTINATION bin
-    PATTERN ".git" EXCLUDE
-    PATTERN "venv" EXCLUDE
-  )
+  # INSTALL(
+  #   DIRECTORY "${PROJECT_SOURCE_DIR}/LabelFusion" 
+  #   DESTINATION bin
+  #   PATTERN ".git" EXCLUDE
+  #   PATTERN "venv" EXCLUDE
+  # )
 
-  INSTALL(
-    DIRECTORY "${PROJECT_SOURCE_DIR}/BrainMaGe" 
-    DESTINATION bin
-    PATTERN ".git" EXCLUDE
-    PATTERN "venv" EXCLUDE
-  )
+  # INSTALL(
+  #   DIRECTORY "${PROJECT_SOURCE_DIR}/BrainMaGe" 
+  #   DESTINATION bin
+  #   PATTERN ".git" EXCLUDE
+  #   PATTERN "venv" EXCLUDE
+  # )
 
 
-  FILE( GLOB_RECURSE ALL_PY_FILES "${PROJECT_SOURCE_DIR}/src/applications/*.py" )
+  FILE( GLOB ALL_PY_FILES "${PROJECT_SOURCE_DIR}/src/applications/*.py" )
   FOREACH( pyFile ${ALL_PY_FILES} )
-    INSTALL( FILES "${pyFile}" DESTINATION bin )
+    INSTALL( FILES "${pyFile}" DESTINATION bin PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
   ENDFOREACH()
 
   # find stand-alone CMD applications
@@ -1046,9 +1046,9 @@ IF( NOT BUILD_DOCUMENTATION_ONLY )
       SET(CPACK_NSIS_ENABLE_UNINSTALL_BEFORE_INSTALL ON)
       SET(CPACK_NSIS_MUI_ICON "${DATA_DIR}/icons/application/windows/FeTS.ico")
       SET(CPACK_NSIS_MUI_FINISHPAGE_RUN "${EXE_NAME}.exe")
-      SET(CPACK_NSIS_HELP_LINK "https:\\\\\\\\www.med.upenn.edu\\\\cbica\\\\captk\\\\")
+      SET(CPACK_NSIS_HELP_LINK "https:\\\\\\\\www.fets.ai\\\\")
       SET(CPACK_NSIS_CONTACT "${PROJECT_CONTACT}")
-      SET(CPACK_NSIS_URL_INFO_ABOUT "https:\\\\\\\\www.med.upenn.edu\\\\cbica\\\\captk\\\\")
+      SET(CPACK_NSIS_URL_INFO_ABOUT "https:\\\\\\\\www.fets.ai\\\\")
       #SET(CPACK_NSIS_MODIFY_PATH "ON") # desktop shortcut doesn't work, for some reason
       # create extra shortcuts and respective uninstall targets
       SET(CPACK_NSIS_CREATE_ICONS_EXTRA "CreateShortCut '\$SMPROGRAMS\\\\$STARTMENU_FOLDER\\\\${EXE_NAME}.lnk' '\$INSTDIR\\\\bin\\\\${EXE_NAME}.exe'")
