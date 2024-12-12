@@ -14,9 +14,9 @@ def sanity_check(data_path: str, labels_path: str):
     """
     # Here you must add all the checks you consider important regarding the
     # state of the data
-    assert has_prepared_folder_structure(
-        data_path, labels_path
-    ), "The contents of the labels and data don't ressemble a prepared dataset"
+    if not has_prepared_folder_structure(data_path, labels_path):
+        print("The contents of the labels and data don't resemble a prepared dataset", flush=True)
+        exit(1)
 
 
 if __name__ == "__main__":

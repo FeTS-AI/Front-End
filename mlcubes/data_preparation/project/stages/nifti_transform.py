@@ -42,10 +42,13 @@ class NIfTITransform(RowStage):
         Returns:
             bool: Wether this stage could be executed for the given case
         """
+        print(f"Checking if {self.name} can run")
         id, tp = get_id_tp(index)
         prev_case_path = os.path.join(self.prev_stage_path, id, tp)
         if os.path.exists(prev_case_path):
-            return len(os.listdir(prev_case_path)) > 0
+            is_valid = len(os.listdir(prev_case_path)) > 0 
+            print(f"{is_valid}")
+            return is_valid
         return False
 
     def execute(self, index: Union[str, int], report: pd.DataFrame) -> pd.DataFrame:
@@ -60,11 +63,22 @@ class NIfTITransform(RowStage):
         """
         self.__prepare_exec()
         self.__process_case(index)
+        self.__cleanup_artifacts(index)
         report, success = self.__update_report(index, report)
         self.prep.write()
         self.__update_metadata()
 
         return report, success
+
+    def __cleanup_artifacts(self, index):
+        unused_artifacts_substrs = ["raw", "to_SRI", ".mat"]
+        _, out_path = self.__get_output_paths(index)
+        root_artifacts = os.listdir(out_path)
+        for artifact in root_artifacts:
+            if not any([substr in artifact for substr in unused_artifacts_substrs]):
+                continue
+            artifact_path = os.path.join(out_path, artifact)
+            os.remove(artifact_path)
 
     def __get_output_paths(self, index: Union[str, int]):
         id, tp = get_id_tp(index)
@@ -88,7 +102,7 @@ class NIfTITransform(RowStage):
     def __update_prev_stage_state(self, index: Union[str, int], report: pd.DataFrame):
         prev_data_path = report.loc[index]["data_path"]
         prev_data_path = unnormalize_path(prev_data_path, self.data_out)
-        shutil.rmtree(prev_data_path)
+        shutil.rmtree(prev_data_path, ignore_errors=True)
 
     def __undo_current_stage_changes(self, index: Union[str, int]):
         fets_path, qc_path = self.__get_output_paths(index)

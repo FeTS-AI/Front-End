@@ -1,4 +1,5 @@
 import os
+import shutil
 import argparse
 import pandas as pd
 import yaml
@@ -157,10 +158,25 @@ def init_report(args) -> pd.DataFrame:
 def main():
     args = setup_argparser()
 
-    os.environ["RESULTS_FOLDER"] = os.path.join(args.models, "nnUNet_trained_models")
+    output_path = args.data_out
+    models_path = args.models
+
+    tmpfolder = os.path.join(output_path, ".tmp")
+    cbica_tmpfolder = os.path.join(tmpfolder, ".cbicaTemp")
+    os.environ["TMPDIR"] = tmpfolder
+    os.environ["CBICA_TEMP_DIR"] = cbica_tmpfolder
+    os.makedirs(tmpfolder, exist_ok=True)
+    os.makedirs(cbica_tmpfolder, exist_ok=True)
+    os.environ["RESULTS_FOLDER"] = os.path.join(models_path, "nnUNet_trained_models")
+    os.environ["nnUNet_raw_data_base"] = os.path.join(tmpfolder, "nnUNet_raw_data_base")
+    os.environ["nnUNet_preprocessed"] = os.path.join(tmpfolder, "nnUNet_preprocessed")
+
     report = init_report(args)
     pipeline = init_pipeline(args)
     pipeline.run(report, args.report)
+
+    # cleanup tmp folder
+    shutil.rmtree(tmpfolder, ignore_errors=True)
 
 if __name__ == "__main__":
     main()

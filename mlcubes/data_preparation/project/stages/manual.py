@@ -97,7 +97,7 @@ class ManualStage(RowStage):
         return report
 
     def __report_multiple_cases_error(
-        self, index: Union[str, int], report: pd.DataFrame
+        self, index: Union[str, int], report: pd.DataFrame, cases: list
     ) -> pd.DataFrame:
         path = self.__get_output_path(index)
         data_path = report.loc[index, "data_path"]
@@ -106,6 +106,8 @@ class ManualStage(RowStage):
             "status": -self.status_code - 0.1,  # -5.1
             "data_path": data_path,
             "labels_path": path,
+            "comment": f"Multiple files were identified in the labels path: {cases}. " \
+            + "Please ensure that there is only the manually corrected segmentation file."
         }
         update_row_with_dict(report, report_data, index)
         return report
@@ -155,6 +157,7 @@ class ManualStage(RowStage):
         return report
 
     def could_run(self, index: Union[str, int], report: pd.DataFrame) -> bool:
+        print(f"Checking if {self.name} can run")
         out_path = self.__get_output_path(index)
         cases = []
         if os.path.exists(out_path):
@@ -169,6 +172,7 @@ class ManualStage(RowStage):
         segmentation_exists = os.path.exists(in_path)
         annotation_exists = len(cases) == 1
         brain_mask_changed = brain_mask_hash != expected_brain_mask_hash
+        print(f"{segmentation_exists=} and (not {annotation_exists=} or {brain_mask_changed=})")
         return segmentation_exists and (not annotation_exists or brain_mask_changed)
 
     def execute(
@@ -213,7 +217,7 @@ class ManualStage(RowStage):
 
         if len(cases) > 1:
             # Found more than one reviewed case
-            return self.__report_multiple_cases_error(index, report), False
+            return self.__report_multiple_cases_error(index, report, cases), False
         elif not len(cases):
             # Found no cases yet reviewed
             return self.__report_step_missing(index, report), False

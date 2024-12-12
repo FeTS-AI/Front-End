@@ -47,10 +47,12 @@ class AddToCSV(RowStage):
         Returns:
             bool: wether this stage could be executed
         """
+        print(f"Checking if {self.name} can run")
         id, tp = get_id_tp(index)
         prev_case_path = os.path.join(self.prev_stage_path, id, tp)
-
-        return os.path.exists(prev_case_path)
+        is_valid = os.path.exists(prev_case_path)
+        print(f"{is_valid=}")
+        return is_valid
 
     def execute(
         self, index: Union[str, int], report: pd.DataFrame
@@ -73,6 +75,7 @@ class AddToCSV(RowStage):
         # We will first copy the timepoint to the out folder
         # This is so, if successful, the csv will point to the data
         # in the next stage, instead of the previous
+        shutil.rmtree(tp_out_path, ignore_errors=True)
         shutil.copytree(tp_path, tp_out_path)
 
         try:
@@ -92,23 +95,35 @@ class AddToCSV(RowStage):
             update_row_with_dict(report, report_data, index)
             return report, False
 
-        if f"{id}_{tp}" in self.csv_processor.subject_timepoint_missing_modalities:
-            shutil.rmtree(tp_out_path, ignore_errors=True)
-            # Differentiate errors by floating point value
-            status_code = -self.status_code - 0.1  # -1.1
-            report_data["status"] = status_code
-            report_data["data_path"] = tp_path
-            success = False
-        elif f"{id}_{tp}" in self.csv_processor.subject_timepoint_extra_modalities:
-            shutil.rmtree(tp_out_path, ignore_errors=True)
-            # Differentiate errors by floating point value
-            status_code = -self.status_code - 0.2  # -1.2
-            report_data["status"] = status_code
-            report_data["data_path"] = tp_path
-            success = False
-        else:
+        missing = self.csv_processor.subject_timepoint_missing_modalities
+        extra = self.csv_processor.subject_timepoint_extra_modalities
+
+        success = True
+        report_data["comment"] = ""
+        for missing_subject, msg in missing:
+            if f"{id}_{tp}" in missing_subject:
+                # Differentiate errors by floating point value
+                status_code = -self.status_code - 0.1  # -1.1
+                report_data["status"] = status_code
+                report_data["data_path"] = tp_path
+                report_data["comment"] += "\n\n" + msg
+                success = False
+
+        for extra_subject, msg in extra:
+            if f"{id}_{tp}" in extra_subject:
+                # Differentiate errors by floating point value
+                status_code = -self.status_code - 0.2  # -1.2
+                report_data["status"] = status_code
+                report_data["data_path"] = tp_path
+                report_data["comment"] += "\n\n" + msg
+                success = False
+
+        if success:
             shutil.rmtree(tp_path)
-            success = True
+        else:
+            shutil.rmtree(tp_out_path, ignore_errors=True)
+
+        report_data["comment"] = report_data["comment"].strip()
 
         update_row_with_dict(report, report_data, index)
 

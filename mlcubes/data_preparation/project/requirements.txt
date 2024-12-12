@@ -1,10 +1,10 @@
-typer
-pandas
-PyYAML
+typer==0.9.0
+pandas==1.5.3
+PyYAML==6.0.1
 # Include all your requirements here
-SimpleITK
-tqdm
-scikit-image
+SimpleITK==2.3.1
+tqdm==4.66.2
+scikit-image==0.21.0
 FigureGenerator==0.0.4
 gandlf==0.0.16
 labelfusion==1.0.14

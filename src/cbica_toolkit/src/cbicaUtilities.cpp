@@ -162,7 +162,11 @@ namespace cbica
     homeEnv = "HOME";
 #endif
 
-    auto exeTempDir = cbica::getEnvironmentVariableValue(homeEnv) + "/.cbicaTemp/"/* + cbica::getExecutableName()*/;
+    auto exeTempDir = cbica::getEnvironmentVariableValue("CBICA_TEMP_DIR");
+    if (exeTempDir == "")
+    {
+      exeTempDir = cbica::getEnvironmentVariableValue(homeEnv) + "/.cbicaTemp/"/* + cbica::getExecutableName()*/;
+    }
     if (!directoryExists(exeTempDir))
     {
       createDir(exeTempDir);

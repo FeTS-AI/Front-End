@@ -106,6 +106,7 @@ class SegmentationComparisonStage(RowStage):
         return report
 
     def could_run(self, index: Union[str, int], report: DataFrame) -> bool:
+        print(f"Checking if {self.name} can run")
         # Ensure a single reviewed segmentation file exists
         path = self.__get_input_path(index)
         gt_path = self.__get_backup_path(index)
@@ -125,6 +126,7 @@ class SegmentationComparisonStage(RowStage):
 
         prev_hash = report.loc[index]["segmentation_hash"]
         hash_changed = prev_hash != reviewed_hash
+        print(f"{path_exists=} and {contains_case=} and {gt_path_exists=} and {hash_changed=}")
         is_valid = path_exists and contains_case and gt_path_exists and hash_changed
 
         return is_valid

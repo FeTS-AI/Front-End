@@ -296,7 +296,9 @@ class GenerateReport(DatasetStage):
             "labels_path",
             "input_hash",
         ]
+        print("Initializing report")
         if report is None:
+            print("No previous report was identified. Creating a new one")
             report = pd.DataFrame(columns=cols)
 
         input_is_prepared = has_prepared_folder_structure(
@@ -304,6 +306,7 @@ class GenerateReport(DatasetStage):
         )
         if input_is_prepared:
             # If prepared, store data directly in the data folder
+            print("Input data looks prepared already. Skipping preprocessing")
             self.output_path = self.done_data_out_path
 
         observed_cases = set()
@@ -357,15 +360,23 @@ class GenerateReport(DatasetStage):
 
                 if index in report.index:
                     # Case has already been identified, see if input hash is different
+                    # or if status is corrupted
                     # if so, override the contents and restart the state for that case
-                    if report.loc[index]["input_hash"] == input_hash:
+                    case = report.loc[index]
+                    has_not_changed = case["input_hash"] == input_hash
+                    has_a_valid_status = not np.isnan(case["status"])
+                    if has_not_changed and has_a_valid_status:
                         continue
+
+                    print(f"Case {index} has either changed ({not has_not_changed}) or has a corrupted status ({not has_a_valid_status}). Starting from scratch")
 
                     shutil.rmtree(out_tp_path, ignore_errors=True)
                     shutil.copytree(in_tp_path, out_tp_path)
                     report = report.drop(index)
                 else:
                     # New case not identified by the report. Add it
+                    print(f"New case identified: {index}. Adding to report")
+                    shutil.rmtree(out_tp_path, ignore_errors=True)
                     shutil.copytree(in_tp_path, out_tp_path)
 
                 data = {

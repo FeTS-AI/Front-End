@@ -8,9 +8,8 @@ from tqdm import tqdm
 import numpy as np
 from skimage.measure import label
 from copy import deepcopy
+import subprocess
 
-from FigureGenerator.screenshot_maker import figure_generator
-from GANDLF.cli import main_run
 from LabelFusion.wrapper import fuse_images
 from .constants import *
 
@@ -111,7 +110,7 @@ def _get_relevant_dicom_tags(filename: str) -> dict:
         }
         for key in keys_to_extract:
             output_dict[keys_to_extract[key]] = series_reader.GetMetaData(0, key)
-    except RuntimeError as e:
+    except (RuntimeError, IndexError) as e:
         # print(
         #     f"WARNING: Could not read DICOM tags from {input_dicom_dir}.",
         # )
@@ -142,14 +141,11 @@ def save_screenshot(
     )
     ylabels = (",").join(MODALITIES_LIST)
 
-    figure_generator(
-        input_images=images,
-        ylabels=ylabels,
-        output=output_filename,
-        input_mask=input_mask,
-        flip_sagittal=True,
-        flip_coronal=True,
-    )
+    cmd_path = os.path.join(os.path.dirname(__file__), "figure_generator_wrapper.py")
+    cmd = f"python3 {cmd_path} -i={images} -ylabels={ylabels} -output={output_filename}"
+    if input_mask is not None:
+        cmd += f" -masks={input_mask}"
+    subprocess.run(cmd.split(), check=True)
 
 
 def _read_image_with_min_check(filename):
@@ -188,7 +184,7 @@ def _read_image_with_min_check(filename):
             sitk.WriteImage(output_image, filename)
             return 0
         else:
-            return counts.astype(int)
+            return counts.sum().astype(int)
 
     return 0
 
@@ -330,16 +326,9 @@ def _run_brain_extraction_using_gandlf(
                 config_file = posixpath.join(model_dir, file)
                 break
 
-        main_run(
-            data_csv=data_path,
-            config_file=config_file,
-            model_dir=model_dir,
-            train_mode=False,
-            device="cpu",
-            resume=False,
-            reset=False,
-            output_dir=model_output_dir,
-        )
+        cmd = f"gandlf_run -c={config_file} -i={data_path} -t=False -m={model_dir} -d=cpu -o={model_output_dir}"
+        subprocess.run(cmd.split(), check=True)
+
 
         model_output_dir_testing = posixpath.join(model_output_dir, TESTING_FOLDER)
         modality_outputs = os.listdir(model_output_dir_testing)
@@ -423,16 +412,8 @@ def _run_tumor_segmentation_using_gandlf(
         # parameters["model"]["type"] = "openvino"
         # yaml.safe_dump(parameters, open(config_file, "w"))
 
-        main_run(
-            data_csv=data_path,
-            config_file=config_file,
-            model_dir=model_dir,
-            train_mode=False,
-            device="cpu",
-            resume=False,
-            reset=False,
-            output_dir=model_output_dir,
-        )
+        cmd = f"gandlf_run -c={config_file} -i={data_path} -t=False -m={model_dir} -d=cpu -o={model_output_dir}"
+        subprocess.run(cmd.split(), check=True)
 
         model_output_dir_testing = posixpath.join(model_output_dir, TESTING_FOLDER)
         # We expect one subject (one output modality, one file).
@@ -620,6 +601,7 @@ class Preparator:
 
             command = (
                 bratsPipeline_exe
+                + " -d "
                 + " -t1 "
                 + row[parsed_headers["T1"]]
                 + " -t1c "

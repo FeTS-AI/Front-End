@@ -127,6 +127,7 @@ class ConfirmStage(DatasetStage):
         return row
 
     def could_run(self, report: DataFrame) -> bool:
+        print(f"Checking if {self.name} can run")
         # could run once all cases have been compared to the ground truth
         missing_voxels = report["num_changed_voxels"].isnull().values.any()
         prev_path_exists = os.path.exists(self.prev_stage_path)
@@ -134,6 +135,7 @@ class ConfirmStage(DatasetStage):
         if prev_path_exists:
             empty_prev_path = len(os.listdir(self.prev_stage_path)) == 0
 
+        print(f"{prev_path_exists=} and not {empty_prev_path=} and not {missing_voxels=}")
         return prev_path_exists and not empty_prev_path and not missing_voxels
 
     def execute(self, report: DataFrame) -> Tuple[DataFrame, bool]:

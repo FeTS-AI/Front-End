@@ -2,6 +2,7 @@ from pandas import DataFrame
 from typing import Union, List, Tuple
 from tqdm import tqdm
 import traceback
+from pathlib import Path
 import yaml
 import os
 
@@ -30,8 +31,12 @@ def normalize_report_paths(report: DataFrame) -> DataFrame:
 def write_report(report: DataFrame, filepath: str):
     report = normalize_report_paths(report)
     report_dict = report.to_dict()
-    with open(filepath, "w") as f:
+    
+    # Use a temporary file to avoid quick writes collisions and corruption
+    temp_path = Path(filepath).parent / ".report.yaml"
+    with open(temp_path, 'w') as f:
         yaml.dump(report_dict, f)
+    os.rename(temp_path, filepath)
 
 
 class Pipeline:
@@ -140,6 +145,8 @@ class Pipeline:
                 runnable_stage = self.stages[i]
                 could_run_stages.append(runnable_stage)
 
+        print(f"Possible next stages: {[stage.name for stage in could_run_stages]}")
+
         # TODO: split into a function
         if len(could_run_stages) == 1:
             stage = could_run_stages[0]
@@ -154,6 +161,8 @@ class Pipeline:
         # Either no stage can be executed (len(could_run_stages == 0))
         # or multiple stages can be executed (len(could_run_stages > 1))
         report_stage = self.__get_report_stage_to_run(subject, report)
+        if report_stage is not None:
+            print(f"Reported next stage: {report_stage.name}")
 
         # TODO: split into a function
         if len(could_run_stages) == 0:
@@ -232,9 +241,13 @@ class Pipeline:
             # Filter out invalid subjects
             working_report = report[~report.index.isin(invalid_subjects)].copy()
 
+            print(f"Determining next stage for {subject}", flush=True)
             stage, done = self.determine_next_stage(subject, working_report)
+            if stage is not None:
+                print(f"Next stage for {subject}: {stage.name}", flush=True)
 
             if done:
+                print(f"Subject {subject} is Done", flush=True)
                 break
 
             try:

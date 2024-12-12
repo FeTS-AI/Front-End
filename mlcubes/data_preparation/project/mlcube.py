@@ -1,12 +1,13 @@
 """MLCube handler file"""
+import os
 import typer
 import subprocess
-
+import shutil
 
 app = typer.Typer()
 
 
-def exec_python(cmd: str) -> None:
+def exec_python(cmd: str, check_for_failure=True) -> None:
     """Execute a python script as a subprocess
 
     Args:
@@ -15,7 +16,8 @@ def exec_python(cmd: str) -> None:
     splitted_cmd = cmd.split()
     process = subprocess.Popen(splitted_cmd, cwd=".")
     process.wait()
-    assert process.returncode == 0, f"command failed: {cmd}"
+    if check_for_failure:
+        assert process.returncode == 0, f"command failed: {cmd}"
 
 
 @app.command("prepare")
@@ -29,9 +31,8 @@ def prepare(
     report_file: str = typer.Option(..., "--report_file"),
     metadata_path: str = typer.Option(..., "--metadata_path"),
 ):
-    cmd = f"python3 project/prepare.py --data_path={data_path} --labels_path={labels_path} --models_path={models_path} --data_out={output_path} --labels_out={output_labels_path} --report={report_file} --parameters={parameters_file} --metadata_path={metadata_path}"
+    cmd = f"python3 /project/prepare.py --data_path={data_path} --labels_path={labels_path} --models_path={models_path} --data_out={output_path} --labels_out={output_labels_path} --report={report_file} --parameters={parameters_file} --metadata_path={metadata_path}"
     exec_python(cmd)
-
 
 @app.command("sanity_check")
 def sanity_check(
@@ -41,7 +42,7 @@ def sanity_check(
     metadata_path: str = typer.Option(..., "--metadata_path"),
 ):
     # Modify the sanity_check command as needed
-    cmd = f"python3 project/sanity_check.py --data_path={data_path} --labels_path={labels_path} --metadata={metadata_path}"
+    cmd = f"python3 /project/sanity_check.py --data_path={data_path} --labels_path={labels_path} --metadata={metadata_path}"
     exec_python(cmd)
 
 
@@ -54,8 +55,8 @@ def sanity_check(
     out_path: str = typer.Option(..., "--output_path"),
 ):
     # Modify the statistics command as needed
-    cmd = f"python3 project/statistics.py --data_path={data_path} --labels_path={labels_path} --out_file={out_path} --metadata={metadata_path}"
-    exec_python(cmd)
+    cmd = f"python3 /project/statistics.py --data_path={data_path} --labels_path={labels_path} --out_file={out_path} --metadata={metadata_path}"
+    exec_python(cmd, check_for_failure=False) # Don't throw an error if it fails, to avoid traceback and confusion from users
 
 
 if __name__ == "__main__":

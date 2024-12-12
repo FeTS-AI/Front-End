@@ -18,15 +18,26 @@ def verify_dicom_folder(dicom_folder: str) -> (bool, str):
     Returns:
         bool: True if the folder is a valid DICOM folder or a 3D NIfTI file, False otherwise.
         str: The path to the first DICOM file in the folder if the folder is a valid DICOM folder, the NIfTI file itself otherwise.
+        str: If verification failed, a message explaining the cause of failure is returned. Otherwise an empty string is returned.
     """
 
     if os.path.isdir(dicom_folder):
         series_IDs = sitk.ImageSeriesReader.GetGDCMSeriesIDs(dicom_folder)
         if not series_IDs:
-            return False, None
+            msg = (
+                f"No valid or readable DICOM files were found in `{dicom_folder}`. "
+                "Please convert your images using an external tool (such as dcm2niix) "
+                "and try again by passing the NIfTI images in the CSV files instead of the DICOM images."
+            )
+            return False, None, msg
 
         if len(series_IDs) > 1:
-            return False, None
+            msg = (
+                f"More than 1 DICOM series was found in `{dicom_folder}`, "
+                "which usually means that multiple modalities or timepoints "
+                "are present in that folder. Please ensure that only 1 modality is present per folder and try again."
+            )
+            return False, None, msg
 
         series_file_names = sitk.ImageSeriesReader.GetGDCMSeriesFileNames(
             dicom_folder, series_IDs[0]
@@ -41,9 +52,14 @@ def verify_dicom_folder(dicom_folder: str) -> (bool, str):
         series_file_names = [dicom_folder]
 
     if image.GetDimension() != 3:
-        return False, None
+        msg = (
+            f"Only 3D volumes are supported, but the image in `{dicom_folder}` "
+            f"appears to have {int(image.GetDimension())} dimensions. If your are scans "
+            "have been encoded differently, please contact your vendor to convert them to 3D volumes."
+        )
+        return False, None, msg
 
-    return True, series_file_names[0]
+    return True, series_file_names[0], ""
 
 
 def setup_argparser():
@@ -105,13 +121,23 @@ class CSVCreator:
             return
 
         modality_folders = os.listdir(timepoint_dir)
+        modality_folders = [folder for folder in modality_folders if not folder.startswith(".")]
         # check if there are missing modalities
+        subject_tp = subject + "_" + timepoint
         if len(modality_folders) < 4:
-            self.subject_timepoint_missing_modalities.append(subject + "_" + timepoint)
+            msg = (
+                f"Less than 4 modalities where identified: {modality_folders}. "
+                "Please ensure all modalities are present."
+            )
+            self.subject_timepoint_missing_modalities.append((subject_tp, msg))
             return
         # check if there are extra modalities
         if len(modality_folders) > 4:
-            self.subject_timepoint_extra_modalities.append(subject + "_" + timepoint)
+            msg = (
+                f"More than 4 modalities where identified: {modality_folders}. "
+                "Please review your data and remove any unwanted files/folders."
+            )
+            self.subject_timepoint_extra_modalities.append((subject_tp, msg))
             return
 
         # goldilocks zone
@@ -133,23 +159,25 @@ class CSVCreator:
                     if modality_id != modality_norm:
                         continue
 
-                    valid_dicom, first_dicom_file = verify_dicom_folder(modality_path)
+                    valid_dicom, first_dicom_file, msg = verify_dicom_folder(modality_path)
                     if valid_dicom:
                         detected_modalities[modality_to_check] = first_dicom_file
                         break
                     else:
-                        self.subject_timepoint_missing_modalities.append(
-                            subject + "_" + timepoint + "_" + modality
-                        )
+                        subject_tp_mod = subject + "_" + timepoint + "_" + modality
+                        self.subject_timepoint_missing_modalities.append((subject_tp_mod, msg))
 
         # check if any modalities are missing
         modalities_missing = False
         for modality in detected_modalities:
             if detected_modalities[modality] is None:
                 modalities_missing = True
-                self.subject_timepoint_missing_modalities.append(
-                    subject + "_" + timepoint + "_" + modality
+                subject_tp_mod = subject + "_" + timepoint + "_" + modality
+                msg = (
+                    f"A valid file/directory corresponding to modality {modality} could not be found. "
+                    "Please ensure all modalities are included and are valid."
                 )
+                self.subject_timepoint_missing_modalities.append((subject_tp_mod, msg))
 
         if modalities_missing:
             return
@@ -199,12 +227,12 @@ def main(inputDir: str, outputCSV: str):
     if len(missing) > 0:
         print(
             "WARNING: The following subject timepoints are missing modalities: ",
-            missing,
+            [subject for subject, _ in missing],
         )
     if len(extra) > 0:
         print(
             "WARNING: The following subject timepoints have extra modalities: ",
-            extra,
+            [subject for subject, _ in extra],
         )
 
     print("Done!")
